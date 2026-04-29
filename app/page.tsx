@@ -14,7 +14,7 @@ export default function Home() {
         <MainContent />
         <IntegrationLogos />
         <StyleLibrary />
-        <Footer />
+  
       </div>
     </main>
   );
