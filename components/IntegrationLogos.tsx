@@ -10,10 +10,10 @@ export default function IntegrationLogos() {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-white">
+    <section className="py-12 md:py-16 bg-[#f8f7f5]">
       <div className="container-custom">
         <div className="text-center mb-8">
-          <p className="text-gray-700 text-sm md:text-base font-bold tracking-wide">
+          <p className="text-[#0d0d0d] text-sm md:text-base font-bold tracking-[0.18em] uppercase">
             WORKS ACROSS APPS YOU ❤️
           </p>
         </div>
@@ -21,7 +21,7 @@ export default function IntegrationLogos() {
         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
           {logos.map((logo, idx) => (
             <div key={idx} className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl flex items-center justify-center p-2">
+       <div>
                 <img
                   src={logo.src}
                   alt={logo.name}

@@ -18,43 +18,49 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className={`fixed w-full top-0 z-50 h-16 transition-all duration-300 ${
-      isScrolled 
-        ? "bg-white/70 backdrop-blur-md border-b border-white/30 shadow-lg" 
-        : "bg-white border-b border-transparent"
-    }`}>
+    <nav
+      className={
+        ("fixed w-full top-0 z-50 h-16 transition-all duration-300") +
+        " " +
+        (isScrolled
+          ? "bg-[#f8f7f5]/80 backdrop-blur-md border-b border-black/[0.08] shadow-lg shadow-black/[0.04]"
+          : "bg-[#f8f7f5]/95 border-b border-transparent")
+      }
+    >
       <div className="container-custom flex items-center justify-between h-full">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold">
-          <div className="w-6 h-6 bg-gradient-to-br from-teal-500 to-cyan-400 rounded-sm"></div>
-          <span className="text-teal-600 font-bold text-base">DesignProbe</span>
+          <div className="w-6 h-6 rounded-lg bg-[#0d0d0d] flex items-center justify-center shadow-sm shadow-black/[0.12]">
+            <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[#f59e0b] via-[#ec4899] to-[#3b82f6]" />
+          </div>
+          <span className="text-[#0d0d0d] font-bold text-base tracking-tight">DesignProbe</span>
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
-          <Link href="#" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
             How it Works
           </Link>
-          <Link href="#" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
             Library
           </Link>
-          <Link href="#" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
             Generate
           </Link>
-          <Link href="#" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
             FAQs
           </Link>
-          <Link href="#" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
             About
           </Link>
         </div>
 
         {/* CTA Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <button className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
             Log In
-          </button>
-          <button className="px-5 py-2 text-sm font-semibold text-white bg-black rounded-lg hover:opacity-85 transition-opacity">
+          </Link>
+          <button className="px-5 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl hover:opacity-90 transition-opacity shadow-sm shadow-black/[0.12]">
             Sign Up
           </button>
         </div>
@@ -64,33 +70,33 @@ export default function Navbar() {
           className="md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
-          <Menu size={24} className="text-gray-900" />
+          <Menu size={24} className="text-[#0d0d0d]" />
         </button>
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-gray-100 p-6 space-y-4 max-h-[calc(100vh-64px)] overflow-y-auto">
-          <Link href="#" className="block text-sm font-medium text-gray-700 hover:text-gray-900">
+        <div className="md:hidden bg-[#f8f7f5] border-b border-black/[0.08] p-6 space-y-4 max-h-[calc(100vh-64px)] overflow-y-auto">
+          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
             How it Works
           </Link>
-          <Link href="#" className="block text-sm font-medium text-gray-700 hover:text-gray-900">
+          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
             Library
           </Link>
-          <Link href="#" className="block text-sm font-medium text-gray-700 hover:text-gray-900">
+          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
             Generate
           </Link>
-          <Link href="#" className="block text-sm font-medium text-gray-700 hover:text-gray-900">
+          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
             FAQs
           </Link>
-          <Link href="#" className="block text-sm font-medium text-gray-700 hover:text-gray-900">
+          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
             About
           </Link>
-          <div className="flex gap-3 pt-6 border-t border-gray-200">
-            <button className="flex-1 px-4 py-2 text-sm font-medium text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50">
+          <div className="flex gap-3 pt-6 border-t border-black/[0.08]">
+            <button className="flex-1 px-4 py-2 text-sm font-medium text-[#0d0d0d] border border-black/[0.12] rounded-xl hover:bg-[#f7f4ee]">
               Log In
             </button>
-            <button className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-black rounded-lg hover:opacity-85">
+            <button className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl hover:opacity-90">
               Sign Up
             </button>
           </div>

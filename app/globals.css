@@ -4,6 +4,22 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
+:root {
+  --paper: #f8f7f5;
+  --paper-strong: #f2efe9;
+  --surface: #ffffff;
+  --surface-soft: #f7f4ee;
+  --ink: #0d0d0d;
+  --muted: #5f5b56;
+  --line: rgba(13, 13, 13, 0.08);
+  --accent-blue: #3b82f6;
+  --accent-cyan: #36c5f0;
+  --accent-green: #4ade80;
+  --accent-orange: #f59e0b;
+  --accent-purple: #7c3aed;
+  --accent-pink: #ec4899;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -16,8 +32,11 @@ html {
 
 body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
-  background-color: #ffffff;
-  color: #1a1a1a;
+  background:
+    radial-gradient(circle at top left, rgba(245, 158, 11, 0.08), transparent 28%),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 24%),
+    linear-gradient(180deg, #fbfaf8 0%, #f8f7f5 45%, #f3f0ea 100%);
+  color: var(--ink);
   line-height: 1.5;
 }
 
@@ -27,15 +46,15 @@ body {
   }
 
   .btn-primary {
-    @apply px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold text-base hover:opacity-90 transition-all duration-200 shadow-md hover:shadow-lg;
+    @apply px-6 py-3 bg-[#0d0d0d] text-white rounded-xl font-semibold text-base hover:opacity-90 transition-all duration-200 shadow-md hover:shadow-lg;
   }
 
   .btn-secondary {
-    @apply px-5 py-2 bg-black text-white rounded-lg font-semibold text-sm hover:opacity-85 transition-all duration-200;
+    @apply px-5 py-2 bg-white text-[#0d0d0d] border border-black/[0.08] rounded-xl font-semibold text-sm hover:bg-[#f7f4ee] transition-all duration-200;
   }
 
   .btn-outline {
-    @apply px-6 py-3 bg-transparent border border-gray-300 text-black rounded-lg font-semibold text-base hover:bg-gray-50 transition-all duration-200;
+    @apply px-6 py-3 bg-transparent border border-black/[0.12] text-[#0d0d0d] rounded-xl font-semibold text-base hover:bg-white transition-all duration-200;
   }
 
   .section-padding {
@@ -43,26 +62,26 @@ body {
   }
 
   .heading-h1 {
-    @apply text-5xl md:text-6xl font-bold leading-tight tracking-tighter text-gray-900;
+    @apply text-5xl md:text-6xl font-bold leading-tight tracking-tighter text-[#0d0d0d];
     font-family: 'Magnetic Sans Serif', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   }
 
   .heading-h2 {
-    @apply text-3xl md:text-4xl font-bold leading-tight text-gray-900;
+    @apply text-3xl md:text-4xl font-bold leading-tight text-[#0d0d0d];
     font-family: 'Magnetic Sans Serif', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   }
 
   .heading-h3 {
-    @apply text-lg md:text-xl font-bold text-gray-900;
+    @apply text-lg md:text-xl font-bold text-[#0d0d0d];
     font-family: 'Magnetic Sans Serif', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   }
 
   .text-body {
-    @apply text-base md:text-lg leading-relaxed text-gray-700;
+    @apply text-base md:text-lg leading-relaxed text-[#5f5b56];
   }
 
   .text-small {
-    @apply text-sm text-gray-600;
+    @apply text-sm text-[#6b6761];
     font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   }
 }

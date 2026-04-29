@@ -14,6 +14,7 @@ export default function StyleLibrary() {
       bg: "bg-gradient-to-br from-purple-300 to-purple-400",
       content: "bg-gradient-to-br from-purple-300 to-purple-400",
       badge: "🎨",
+      screenshot: "/logos/Replit--Streamline-Svg-Logos.png",
     },
     {
       title: "Supabase",
@@ -45,6 +46,7 @@ export default function StyleLibrary() {
       bg: "bg-gradient-to-br from-pink-500 to-purple-600",
       content: "bg-gradient-to-br from-pink-500 to-purple-600",
       badge: "AI-powered insights",
+      screenshot: "/logos/logoblack 1.png",
     },
     {
       title: "Firebase",
@@ -57,6 +59,7 @@ export default function StyleLibrary() {
       bg: "bg-gradient-to-br from-teal-400 to-cyan-500",
       content: "bg-gradient-to-br from-teal-400 to-cyan-500",
       badge: "🌍",
+      screenshot: "/logos/Base44-logo_brandlogos.net_1a9f67 1.png",
     },
     {
       title: "Stripe",
@@ -67,17 +70,20 @@ export default function StyleLibrary() {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-gray-50">
+    <section className="py-12 md:py-16 bg-[#f2efe9]">
       <div className="container-custom">
         {/* Header with Title and Search */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-black">Style Library</h2>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#6b6761] mb-2">Curated vibes</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0d0d0d]">Style Library</h2>
+          </div>
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
+            <Search className="absolute left-4 top-3.5 text-[#7a756f]" size={20} />
             <input
               type="text"
               placeholder="Search"
-              className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              className="w-full pl-12 pr-4 py-2.5 bg-white border border-black/[0.08] rounded-2xl text-sm placeholder-[#8a847d] focus:outline-none focus:border-black/[0.18] focus:ring-2 focus:ring-black/[0.04]"
             />
           </div>
         </div>
@@ -93,8 +99,8 @@ export default function StyleLibrary() {
                   onClick={() => setActiveTab(tab.toLowerCase())}
                   className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                     activeTab === tab.toLowerCase()
-                      ? "bg-blue-500 text-white shadow-md"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      ? "bg-[#0d0d0d] text-white shadow-md shadow-black/[0.12]"
+                      : "bg-white text-[#5f5b56] border border-black/[0.08] hover:bg-[#f7f4ee]"
                   }`}
                 >
                   {tab}
@@ -111,8 +117,8 @@ export default function StyleLibrary() {
                   onClick={() => setActiveTab(tab.toLowerCase())}
                   className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                     activeTab === tab.toLowerCase()
-                      ? "bg-blue-500 text-white shadow-md"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      ? "bg-[#0d0d0d] text-white shadow-md shadow-black/[0.12]"
+                      : "bg-white text-[#5f5b56] border border-black/[0.08] hover:bg-[#f7f4ee]"
                   }`}
                 >
                   {tab}
@@ -124,22 +130,37 @@ export default function StyleLibrary() {
         {/* Cards Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {cards.map((card, idx) => (
-            <div key={idx} className="group cursor-pointer rounded-3xl overflow-hidden border border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg transition-all">
-              <div
-                className={`${card.bg} h-40 flex items-center justify-center relative overflow-hidden`}
-              >
-                {card.subtitle ? (
-                  <div className="text-center text-white px-4">
-                    <div className="text-sm font-bold mb-2">{card.badge?.split('\n')[0]}</div>
-                    <div className="text-xs opacity-90">{card.badge?.split('\n')[1]}</div>
-                  </div>
-                ) : (
-                  <div className="text-5xl group-hover:scale-110 transition-transform">{card.badge}</div>
-                )}
+            <div
+              key={idx}
+              className="group cursor-pointer rounded-3xl overflow-hidden border border-black/[0.08] bg-white hover:border-black/[0.16] hover:shadow-lg hover:shadow-black/[0.05] transition-all"
+            >
+              <div className="relative">
+                <div className={`h-40 rounded-t-2xl overflow-hidden ${!card.screenshot ? card.bg : ''}`}>
+                  {card.screenshot ? (
+                    <img
+                      src={card.screenshot}
+                      alt={`${card.title} screenshot`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : card.subtitle ? (
+                    <div className="h-full flex items-center justify-center text-center text-white px-4">
+                      <div>
+                        <div className="text-sm font-bold mb-2">{card.badge?.split('\n')[0]}</div>
+                        <div className="text-xs opacity-90">{card.badge?.split('\n')[1]}</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-5xl group-hover:scale-110 transition-transform">{card.badge}</div>
+                  )}
+                </div>
+
+                <button className="absolute right-4 bottom-0 translate-y-1/2 px-4 py-2 bg-[#0d0d0d] text-white rounded-full font-semibold text-sm shadow-md shadow-black/[0.12]">
+                  View now
+                </button>
               </div>
-              <div className="p-3 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-black">{card.title}</h3>
-                <button className="px-4 py-2 bg-black text-white rounded-lg font-semibold text-sm hover:opacity-85 transition-opacity">View now</button>
+
+              <div className="p-4 pt-6 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#0d0d0d]">{card.title}</h3>
               </div>
             </div>
           ))}
