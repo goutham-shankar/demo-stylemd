@@ -2,11 +2,22 @@
 
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Navigation links centralized for maintainability and easier updates
+  const navLinks = useMemo(() => [
+    { label: "How it Works", href: "#" },
+    { label: "Library", href: "#" },
+    { label: "Generate", href: "#" },
+    { label: "FAQs", href: "#" },
+    { label: "About", href: "#" },
+  ], []);
+
+  const toggleMobile = useCallback(() => setMobileMenuOpen((s) => !s), []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +30,7 @@ export default function Navbar() {
 
   return (
     <nav
+      aria-label="Main navigation"
       className={
         ("fixed w-full top-0 z-50 h-16 transition-all duration-300") +
         " " +
@@ -26,6 +38,7 @@ export default function Navbar() {
           ? "bg-[#f8f7f5]/80 backdrop-blur-md border-b border-black/[0.08] shadow-lg shadow-black/[0.04]"
           : "bg-[#f8f7f5]/95 border-b border-transparent")
       }
+      role="navigation"
     >
       <div className="container-custom flex items-center justify-between h-full">
         {/* Logo */}
@@ -38,21 +51,15 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
-          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
-            How it Works
-          </Link>
-          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
-            Library
-          </Link>
-          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
-            Generate
-          </Link>
-          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
-            FAQs
-          </Link>
-          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
-            About
-          </Link>
+          {navLinks.map((l) => (
+            <Link
+              key={l.label}
+              href={l.href}
+              className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors"
+            >
+              {l.label}
+            </Link>
+          ))}
         </div>
 
         {/* CTA Buttons */}
@@ -60,7 +67,11 @@ export default function Navbar() {
           <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
             Log In
           </Link>
-          <button className="px-5 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl hover:opacity-90 transition-opacity shadow-sm shadow-black/[0.12]">
+          <button
+            type="button"
+            className="px-5 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl hover:opacity-90 transition-opacity shadow-sm shadow-black/[0.12]"
+            aria-label="Sign up"
+          >
             Sign Up
           </button>
         </div>
@@ -68,7 +79,10 @@ export default function Navbar() {
         {/* Mobile Menu Button */}
         <button
           className="md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          onClick={toggleMobile}
+          aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-menu"
         >
           <Menu size={24} className="text-[#0d0d0d]" />
         </button>
@@ -76,27 +90,17 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#f8f7f5] border-b border-black/[0.08] p-6 space-y-4 max-h-[calc(100vh-64px)] overflow-y-auto">
-          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
-            How it Works
-          </Link>
-          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
-            Library
-          </Link>
-          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
-            Generate
-          </Link>
-          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
-            FAQs
-          </Link>
-          <Link href="#" className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
-            About
-          </Link>
+        <div id="mobile-menu" className="md:hidden bg-[#f8f7f5] border-b border-black/[0.08] p-6 space-y-4 max-h-[calc(100vh-64px)] overflow-y-auto">
+          {navLinks.map((l) => (
+            <Link key={l.label} href={l.href} className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
+              {l.label}
+            </Link>
+          ))}
           <div className="flex gap-3 pt-6 border-t border-black/[0.08]">
-            <button className="flex-1 px-4 py-2 text-sm font-medium text-[#0d0d0d] border border-black/[0.12] rounded-xl hover:bg-[#f7f4ee]">
+            <button className="flex-1 px-4 py-2 text-sm font-medium text-[#0d0d0d] border border-black/[0.12] rounded-xl hover:bg-[#f7f4ee]" type="button">
               Log In
             </button>
-            <button className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl hover:opacity-90">
+            <button className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl hover:opacity-90" type="button">
               Sign Up
             </button>
           </div>

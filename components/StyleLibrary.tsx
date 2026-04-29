@@ -163,11 +163,12 @@ export default function StyleLibrary() {
             <h2 className="text-4xl md:text-5xl font-bold text-[#0d0d0d]">Style Library</h2>
           </div>
           <div className="relative w-full md:w-72">
-            <Search className="absolute left-4 top-3 text-[#aaa]" size={18} />
+            <Search className="absolute left-4 top-3 text-[#aaa]" size={18} aria-hidden />
             <input
-              type="text"
+              type="search"
+              aria-label="Search styles"
               placeholder="Search"
-              className="w-full pl-11 pr-4 py-2.5 bg-white border border-black/[0.1] rounded-2xl text-sm placeholder-[#aaa] focus:outline-none"
+              className="w-full pl-11 pr-4 py-2.5 bg-white border border-black/[0.1] rounded-2xl text-sm placeholder-[#aaa] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/[0.06]"
             />
           </div>
         </div>
@@ -178,11 +179,11 @@ export default function StyleLibrary() {
             {leftTabs.map((tab) => (
               <button
                 key={tab}
+                type="button"
                 onClick={() => setActiveTab(tab.toLowerCase())}
+                aria-pressed={activeTab === tab.toLowerCase()}
                 className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-all ${
-                  activeTab === tab.toLowerCase()
-                    ? "bg-[#3b82f6] text-white"
-                    : "text-[#5f5b56] hover:bg-gray-50"
+                  activeTab === tab.toLowerCase() ? "bg-[#3b82f6] text-white" : "text-[#5f5b56] hover:bg-gray-50"
                 }`}
               >
                 {tab}
@@ -194,7 +195,9 @@ export default function StyleLibrary() {
             {rightTabs.map((tab) => (
               <button
                 key={tab}
+                type="button"
                 onClick={() => setActiveTab(tab.toLowerCase())}
+                aria-pressed={activeTab === tab.toLowerCase()}
                 className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all border ${
                   activeTab === tab.toLowerCase()
                     ? "bg-[#0d0d0d] text-white border-transparent"

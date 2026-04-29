@@ -19,34 +19,34 @@ export default function Footer() {
           </div>
 
           {/* Product */}
-          <div>
+          <nav aria-label="Footer product links">
             <h4 className="font-bold mb-6 text-[#0d0d0d] text-base">Product</h4>
             <ul className="space-y-3 text-[#6b6761] text-sm">
               <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">How it Works</a></li>
               <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Library</a></li>
               <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Generate</a></li>
             </ul>
-          </div>
+          </nav>
 
           {/* Resources */}
-          <div>
+          <nav aria-label="Footer resources links">
             <h4 className="font-bold mb-6 text-[#0d0d0d] text-base">Resources</h4>
             <ul className="space-y-3 text-[#6b6761] text-sm">
               <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Docs</a></li>
               <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Blog</a></li>
               <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">FAQs</a></li>
             </ul>
-          </div>
+          </nav>
 
           {/* Company */}
-          <div>
+          <nav aria-label="Footer company links">
             <h4 className="font-bold mb-6 text-[#0d0d0d] text-base">Company</h4>
             <ul className="space-y-3 text-[#6b6761] text-sm">
               <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">About</a></li>
               <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Contact</a></li>
               <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Privacy</a></li>
             </ul>
-          </div>
+          </nav>
         </div>
 
         {/* Bottom */}

@@ -30,6 +30,7 @@ function AppBadge({ bg, label, size, top, left, right, bottom }: BadgeProps) {
     <div
       className="absolute flex items-center justify-center rounded-2xl bg-white shadow-sm border border-black/[0.06]"
       style={{ width: size, height: size, top, left, right, bottom }}
+      aria-hidden="true"
     >
       <div
         className="flex items-center justify-center rounded-xl text-white font-bold text-[10px]"
@@ -73,29 +74,28 @@ export default function Hero() {
 
         {/* Cards */}
         <div className="grid md:grid-cols-2 gap-3 max-w-2xl mx-auto mb-8">
-
-          {/* Left Card */}
+          {/* Left Card - reference URL */}
           <div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm">
-            <h3 className="text-lg font-bold text-[#0d0d0d] mb-4 leading-snug text-left">
-              Start with a<br />reference website
-            </h3>
-            <input
-              type="text"
-              placeholder="Paste any website URL"
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none mb-3"
-            />
-            <div className="flex justify-end">
-              <button className="px-4 py-2.5 bg-[#0d0d0d] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
-                Generate DESIGN.md
-              </button>
-            </div>
+            <h3 className="text-lg font-bold text-[#0d0d0d] mb-4 leading-snug text-left">Start with a<br />reference website</h3>
+            <form onSubmit={(e) => e.preventDefault()} aria-label="Generate design from URL">
+              <label className="sr-only" htmlFor="ref-url">Paste any website URL</label>
+              <input
+                id="ref-url"
+                name="refUrl"
+                type="url"
+                placeholder="Paste any website URL"
+                aria-label="Reference website URL"
+                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none mb-3"
+              />
+              <div className="flex justify-end">
+                <button type="submit" className="px-4 py-2.5 bg-[#0d0d0d] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">Generate DESIGN.md</button>
+              </div>
+            </form>
           </div>
 
-          {/* Right Card */}
+          {/* Right Card - catalog preview */}
           <div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm">
-            <h3 className="text-lg font-bold text-[#0d0d0d] mb-3 leading-snug text-left">
-              Select from a catalog<br />of 100+ curated styles
-            </h3>
+            <h3 className="text-lg font-bold text-[#0d0d0d] mb-3 leading-snug text-left">Select from a catalog<br />of 100+ curated styles</h3>
             <div className="h-[100px] bg-purple-50 rounded-xl flex items-center justify-center gap-3 overflow-hidden">
               <div className="w-12 h-12 rounded-full bg-orange-400" />
               <div className="flex flex-col gap-1.5">
