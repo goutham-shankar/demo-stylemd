@@ -10,7 +10,7 @@ export default function IntegrationLogos() {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-[#f8f7f5]">
+    <section className="py-12 md:py-8 bg-[#f8f7f5]">
       <div className="container-custom">
         <div className="text-center mb-8">
           <p className="text-[#0d0d0d] text-sm md:text-base font-bold tracking-[0.18em] uppercase">
