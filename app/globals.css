@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+@layer components {
+  .container-custom {
+    @apply max-w-6xl mx-auto px-4 md:px-6 lg:px-8;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold text-base hover:opacity-90 transition-all duration-200 shadow-md hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply px-5 py-2 bg-black text-white rounded-lg font-semibold text-sm hover:opacity-85 transition-all duration-200;
+  }
+
+  .btn-outline {
+    @apply px-6 py-3 bg-transparent border border-gray-300 text-black rounded-lg font-semibold text-base hover:bg-gray-50 transition-all duration-200;
+  }
+
+  .section-padding {
+    @apply py-12 md:py-16;
+  }
+
+  .heading-h1 {
+    @apply text-5xl md:text-6xl font-bold leading-tight tracking-tighter text-gray-900;
+    font-family: 'Magnetic Sans Serif', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  }
+
+  .heading-h2 {
+    @apply text-3xl md:text-4xl font-bold leading-tight text-gray-900;
+    font-family: 'Magnetic Sans Serif', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  }
+
+  .heading-h3 {
+    @apply text-lg md:text-xl font-bold text-gray-900;
+    font-family: 'Magnetic Sans Serif', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  }
+
+  .text-body {
+    @apply text-base md:text-lg leading-relaxed text-gray-700;
+  }
+
+  .text-small {
+    @apply text-sm text-gray-600;
+    font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  }
+}
