@@ -198,11 +198,12 @@ export default function StyleLibrary() {
                 type="button"
                 onClick={() => setActiveTab(tab.toLowerCase())}
                 aria-pressed={activeTab === tab.toLowerCase()}
-                className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all border ${
+                className={`px-4 py-1.5 text-sm font-semibold transition-all border ${
                   activeTab === tab.toLowerCase()
                     ? "bg-[#0d0d0d] text-white border-transparent"
                     : "bg-white text-[#5f5b56] border-black/[0.1] hover:bg-[#f7f4ee]"
                 }`}
+                style={{ borderRadius: 10 }}
               >
                 {tab}
               </button>

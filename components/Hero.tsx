@@ -67,31 +67,31 @@ export default function Hero() {
       ))}
       <div className="relative z-10 w-full max-w-3xl mx-auto text-center px-4">
         {/* Heading */}
-        <h1 className="text-4xl md:text-5xl font-bold text-black mb-4 leading-tight tracking-tight font-poppins">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-black mb-5 leading-tight tracking-tight font-poppins">
           Give your{" "}
-          <span className="inline-flex items-center align-middle gap-1 md:gap-2  text-black px-2 py-0 rounded-xl" style={{verticalAlign: 'middle'}}>
+          <span className="inline-flex items-center align-middle gap-1.5 md:gap-2 text-black px-2 py-0.5 rounded-xl text-xl md:text-2xl" style={{verticalAlign: 'middle'}}>
             <img
               src={svgLogos[logoIdx]}
               alt="Logo"
-              className="w-8 h-8 md:w-10 md:h-10 rounded-xl inline-block transition-all duration-500 align-middle"
-              style={{ border: "none", marginBottom: '-2px' }}
+              className="w-8 h-8 md:w-10 md:h-10 rounded-xl inline-block transition-all duration-500 align-middle object-contain"
+              style={{ border: "none", marginBottom: '-2px', maxHeight: '2.2em', verticalAlign: 'middle' }}
             />
-            <span className="text-lg md:text-2xl font-bold align-middle" style={{lineHeight: 1}}></span>
+            <span className="text-xl md:text-2xl font-extrabold align-middle" style={{lineHeight: 1}}>Lovable</span>
           </span>
           <br />
           project a design makeover
         </h1>
-        <p className="text-[15px] text-gray-600 mb-2 font-poppins">
+        <p className="text-[16px] md:text-[18px] text-gray-700 mb-3 font-poppins font-medium">
           A plug-and-play Design.md file to elevate your project's design
         </p>
-        <Link href="#" className="text-[13px] text-[#616161] font-poppins underline inline-block mb-8">
+        <Link href="#" className="text-[13px] md:text-[15px] text-[#3b3b3b] font-poppins underline inline-block mb-8 font-semibold">
           See how it works
         </Link>
         {/* Cards */}
-        <div className="grid md:grid-cols-2 gap-3 max-w-2xl mx-auto mb-8">
+        <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
           {/* Left Card - reference URL */}
 {/* Left Card - reference URL */}
-<div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm" style={{ background: '#fff' }}>            <h3 className="text-lg font-bold text-black mb-4 leading-snug text-left">Start with a<br />reference website</h3>
+<div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm" style={{ background: '#fff' }}>            <h3 className="text-lg md:text-xl font-bold text-black mb-4 leading-snug text-left">Start with a<br />reference website</h3>
             <form onSubmit={(e) => e.preventDefault()} aria-label="Generate design from URL">
               <label className="sr-only" htmlFor="ref-url">Paste any website URL</label>
               <input
@@ -104,14 +104,14 @@ export default function Hero() {
                 style={{ background: '#eceff3' }}
               />
               <div className="flex justify-end">
-                <button type="submit" className="px-4 py-2.5 bg-black text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">Generate DESIGN.md</button>
+                <button type="submit" className="px-4 py-2.5 bg-black text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">Generate DESIGN.md</button>
               </div>
             </form>
           </div>
           {/* Right Card - catalog preview */}
           <div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm">
-            <h3 className="text-lg font-bold text-black mb-3 leading-snug text-left">Select from a catalog<br />of 100+ curated styles</h3>
-            <div className="h-[100px] bg-white rounded-xl flex items-center justify-center gap-3 overflow-hidden border border-black/10">
+            <h3 className="text-lg md:text-xl font-bold text-black mb-4 leading-snug text-left">Select from a catalog<br />of 100+ curated styles</h3>
+            <div className="h-[100px] bg-white rounded-xl flex items-center justify-center gap-4 overflow-hidden border border-black/10">
               <div className="w-12 h-12 rounded-full bg-white border border-black/10" />
               <div className="flex flex-col gap-1.5">
                 <div className="w-16 h-7 bg-white border border-black/10 rounded-lg" />

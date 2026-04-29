@@ -34,6 +34,28 @@ export const designCards: DesignCard[] = [
       { name: "Neutral", hex: "#f9c74f", swatches: ["#fffde7", "#fff9c4", "#fff59d", "#fff176", "#ffee58", "#ffeb3b", "#fdd835", "#f9c74f", "#c8a200"] },
     ],
   },
+  {
+    id: "spotify",
+    name: "Spotify",
+    logo: "/logos/spotify.svg",
+    accentColor: "#1ed760",
+    tags: [
+      { label: "Music", color: "bg-green-50 text-green-700 border-green-200" },
+      { label: "Dark UI", color: "bg-black text-white border-gray-800" },
+      { label: "Immersive", color: "bg-gray-900 text-green-400 border-green-200" },
+    ],
+    desc: "A dark, immersive design system inspired by Spotify. Content-first darkness, pill geometry, and the iconic Spotify Green accent.",
+    fonts: [
+      { name: "SpotifyMixUI", sample: "Aa Bb", role: "BODY", dark: true },
+      { name: "SpotifyMixUITitle", sample: "Aa Bb", role: "TITLE", dark: true },
+    ],
+    palette: [
+      { name: "Spotify Green", hex: "#1ed760", swatches: ["#1ed760"] },
+      { name: "Near Black", hex: "#121212", swatches: ["#121212", "#181818", "#1f1f1f"] },
+      { name: "White", hex: "#ffffff", swatches: ["#ffffff", "#b3b3b3", "#cbcbcb", "#fdfdfd"] },
+      { name: "Semantic", hex: "#f3727f", swatches: ["#f3727f", "#ffa42b", "#539df5"] },
+    ],
+  },
 ];
 
 export function getDesignCardBySlug(slug: string) {
