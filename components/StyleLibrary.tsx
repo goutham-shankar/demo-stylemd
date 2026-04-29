@@ -224,12 +224,12 @@ export default function StyleLibrary() {
               </div>
 
               {/* Card footer */}
-              <div className="px-5 py-4 flex items-center justify-between bg-white">
-                <h3 className="text-lg font-bold text-[#0d0d0d]">{card.title}</h3>
-                <button className="px-5 py-2 bg-[#0d0d0d] text-white rounded-full font-semibold text-sm hover:opacity-80 transition-opacity">
-                  View now
-                </button>
-              </div>
+             <div className="px-5 py-4 flex items-center justify-between bg-white">
+  <h3 className="text-lg font-bold text-[#0d0d0d]">{card.title}</h3>
+  <button className="px-5 py-2 bg-[#0d0d0d] text-white rounded-[10px] font-semibold text-sm hover:opacity-80 transition-opacity">
+    View now
+  </button>
+</div>
             </div>
           ))}
         </div>
