@@ -11,7 +11,7 @@ export default function Navbar() {
   // Navigation links centralized for maintainability and easier updates
   const navLinks = useMemo(() => [
     { label: "How it Works", href: "#" },
-    { label: "Library", href: "#" },
+    { label: "Style Library", href: "/styles" },
     { label: "Generate", href: "#" },
     { label: "FAQs", href: "#" },
     { label: "About", href: "#" },
@@ -35,18 +35,16 @@ export default function Navbar() {
         ("fixed w-full top-0 z-50 h-16 transition-all duration-300") +
         " " +
         (isScrolled
-          ? "bg-[#f8f7f5]/80 backdrop-blur-md border-b border-black/[0.08] shadow-lg shadow-black/[0.04]"
-          : "bg-[#f8f7f5]/95 border-b border-transparent")
+          ? "bg-[#f6f8fa]/80 backdrop-blur-md border-b border-black/[0.08] shadow-lg shadow-black/[0.04]"
+          : "bg-[#f6f8fa]/95 border-b border-transparent")
       }
       role="navigation"
     >
       <div className="container-custom flex items-center justify-between h-full">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold">
-          <div className="w-6 h-6 rounded-lg bg-[#0d0d0d] flex items-center justify-center shadow-sm shadow-black/[0.12]">
-            <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[#f59e0b] via-[#ec4899] to-[#3b82f6]" />
-          </div>
-          <span className="text-[#0d0d0d] font-bold text-base tracking-tight">DesignProbe</span>
+          <img src="/logos/ai.svg" alt="Logo" className="w-7 h-7" />
+          <span className="text-[#0d0d0d] font-bold text-base tracking-tight font-funnel">DesignProbe</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -55,7 +53,7 @@ export default function Navbar() {
             <Link
               key={l.label}
               href={l.href}
-              className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors"
+              className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors font-poppins"
             >
               {l.label}
             </Link>
@@ -69,7 +67,8 @@ export default function Navbar() {
           </Link>
           <button
             type="button"
-            className="px-5 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl hover:opacity-90 transition-opacity shadow-sm shadow-black/[0.12]"
+            className="px-5 py-2 text-sm font-semibold text-white bg-[#0d0d0d] hover:opacity-90 transition-opacity shadow-sm shadow-black/[0.12]"
+            style={{ borderRadius: 10 }}
             aria-label="Sign up"
           >
             Sign Up

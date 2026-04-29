@@ -2,18 +2,18 @@
 
 export default function IntegrationLogos() {
   const logos = [
-    { name: "Replit", src: "/logos/Replit--Streamline-Svg-Logos.png" },
-    { name: "Claude", src: "/logos/claude 1.png" },
-    { name: "Lovable", src: "/logos/logoblack 1.png" },
-    { name: "Base44", src: "/logos/Base44-logo_brandlogos.net_1a9f67 1.png" },
-    { name: "Emergent", src: "/logos/emergent-logo-new 1.png" },
+    { name: "Replit", src: "/logos/Replit--Streamline-Svg-Logos.svg" },
+    { name: "Claude", src: "/logos/claude 1.svg" },
+    { name: "Lovable", src: "/logos/logoblack 1.svg" },
+    { name: "Base44", src: "/logos/Base44-logo_brandlogos.net_1a9f67 1.svg" },
+    { name: "Emergent", src: "/logos/emergent-logo-new 1.svg" },
   ];
 
   return (
     <section className="py-12 md:py-8 bg-[#f8f7f5]">
       <div className="container-custom">
         <div className="text-center mb-8">
-          <p className="text-[#0d0d0d] text-sm md:text-base font-bold tracking-[0.18em] uppercase">
+          <p className="text-[#616161] text-sm md:text-base font-bold tracking-[0.18em] uppercase">
             WORKS ACROSS APPS YOU ❤️
           </p>
         </div>

@@ -154,7 +154,7 @@ export default function StyleLibrary() {
   const rightTabs = ["SaaS", "Fintech", "Ecommerce", "Consumer", "Hardware", "Logistics"];
 
   return (
-    <section className="py-12 md:py-16 bg-[#f2efe9]">
+    <section className="py-12 md:py-16 bg-[#f6f8fa]">
       <div className="container-custom max-w-6xl mx-auto px-6">
 
         {/* Header */}
@@ -215,7 +215,8 @@ export default function StyleLibrary() {
           {cards.map((card, idx) => (
             <div
               key={idx}
-              className="group cursor-pointer rounded-3xl overflow-hidden border border-black/[0.07] bg-white hover:border-black/[0.15] hover:shadow-xl hover:shadow-black/[0.06] transition-all"
+              className="group cursor-pointer overflow-hidden border border-black/[0.07] bg-white hover:border-black/[0.15] hover:shadow-xl hover:shadow-black/[0.06] transition-all"
+              style={{ borderRadius: 16 }}
             >
               {/* Preview area */}
               <div className="h-48 overflow-hidden">

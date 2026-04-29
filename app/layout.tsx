@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "DesignProbe - Design Makeover for Lovable",
@@ -13,8 +15,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-white">
-        {children}
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#f6f8fa" />
+      </head>
+      <body>
+        <Navbar />
+        <div className="pt-16">{children}</div>
       </body>
     </html>
   );

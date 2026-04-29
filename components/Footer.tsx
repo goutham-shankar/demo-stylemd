@@ -2,7 +2,7 @@
 
 export default function Footer() {
   return (
-    <footer className="bg-[#f8f7f5] text-[#0d0d0d] py-12 md:py-16 border-t border-black/[0.08]">
+    <footer className="bg-[#f6f8fa] text-[#0d0d0d] py-12 md:py-16 border-t border-black/[0.08]">
       <div className="container-custom">
         <div className="grid md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-black/[0.08]">
           {/* Brand */}
@@ -22,9 +22,9 @@ export default function Footer() {
           <nav aria-label="Footer product links">
             <h4 className="font-bold mb-6 text-[#0d0d0d] text-base">Product</h4>
             <ul className="space-y-3 text-[#6b6761] text-sm">
-              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">How it Works</a></li>
-              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Library</a></li>
-              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Generate</a></li>
+              <li><a href="#" className="hover:text-[#616161] transition-colors">How it Works</a></li>
+              <li><a href="#" className="hover:text-[#616161] transition-colors">Library</a></li>
+              <li><a href="#" className="hover:text-[#616161] transition-colors">Generate</a></li>
             </ul>
           </nav>
 
@@ -32,9 +32,9 @@ export default function Footer() {
           <nav aria-label="Footer resources links">
             <h4 className="font-bold mb-6 text-[#0d0d0d] text-base">Resources</h4>
             <ul className="space-y-3 text-[#6b6761] text-sm">
-              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Docs</a></li>
-              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">FAQs</a></li>
+              <li><a href="#" className="hover:text-[#616161] transition-colors">Docs</a></li>
+              <li><a href="#" className="hover:text-[#616161] transition-colors">Blog</a></li>
+              <li><a href="#" className="hover:text-[#616161] transition-colors">FAQs</a></li>
             </ul>
           </nav>
 
