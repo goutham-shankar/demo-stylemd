@@ -55,9 +55,9 @@ export default function Footer() {
         {/* Bottom */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <p className="text-[#7a756f] text-small">
-            © 2026 DesignProbe. All rights reserved.
+            © {new Date().getFullYear()} DesignProbe. All rights reserved.
           </p>
-          <div className="flex gap-6 items-center">
+          <div className="flex gap-4 items-center flex-wrap">
             <a href="#" className="text-[#7a756f] hover:text-[#0d0d0d] text-small transition-colors font-medium">Twitter</a>
             <a href="#" className="text-[#7a756f] hover:text-[#0d0d0d] text-small transition-colors font-medium">LinkedIn</a>
             <a href="#" className="text-[#7a756f] hover:text-[#0d0d0d] text-small transition-colors font-medium">GitHub</a>
