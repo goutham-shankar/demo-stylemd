@@ -62,7 +62,7 @@ export default function Navbar() {
 
         {/* CTA Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors duration-150">
+          <Link href="#" className="px-4 py-2 text-sm font-medium text-[#5f5b56] border border-[#c1c7d0] rounded-[10px] hover:text-[#0d0d0d] hover:bg-[#f7f4ee] transition-colors duration-150">
             Log In
           </Link>
           <button
@@ -96,7 +96,7 @@ export default function Navbar() {
             </Link>
           ))}
           <div className="flex gap-3 pt-6 border-t border-black/[0.08]">
-            <button className="flex-1 px-4 py-2 text-sm font-medium text-[#0d0d0d] border border-black/[0.12] rounded-xl hover:bg-[#f7f4ee] transition-all duration-150" type="button">
+            <button className="flex-1 px-4 py-2 text-sm font-medium text-[#0d0d0d] border border-[#c1c7d0] rounded-[10px] hover:bg-[#f7f4ee] transition-all duration-150" type="button">
               Log In
             </button>
             <button className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150" type="button">
