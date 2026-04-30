@@ -67,7 +67,7 @@ export default function Hero() {
       ))}
       <div className="relative z-10 w-full max-w-3xl mx-auto text-center px-4">
         {/* Heading */}
-        <h1 className="text-4xl md:text-5xl font-extrabold text-black mb-5 leading-tight tracking-tight font-poppins">
+        <h1 className="heading-h1 font-poppins mb-5">
           Give your{" "}
           <span className="inline-flex items-center align-middle gap-1.5 md:gap-2 text-black px-2 py-0.5 rounded-xl text-xl md:text-2xl" style={{verticalAlign: 'middle', height: '3.8em'}}>
             <img
@@ -76,22 +76,22 @@ export default function Hero() {
               className=" rounded-xl inline-block transition-all duration-700 align-middle object-contain"
               style={{ border: "none", marginBottom: '-2px', maxHeight: '3.8em', verticalAlign: 'middle' }}
             />
-            <span className="text-xl md:text-2xl font-extrabold align-middle" style={{lineHeight: 1}}></span>
+            <span className="text-xl md:text-2xl align-middle" style={{lineHeight: 1}}></span>
           </span>
           <br />
           project a design makeover
         </h1>
-        <p className="text-[16px] md:text-[18px] text-gray-700 mb-3 font-poppins font-medium">
+        <p className="text-base md:text-lg text-gray-700 mb-3 font-poppins font-medium">
           A plug-and-play Design.md file to elevate your project's design
         </p>
-        <Link href="#" className="text-[13px] md:text-[15px] text-[#3b3b3b] font-poppins underline inline-block mb-8 font-semibold">
+        <Link href="#" className="text-sm md:text-base text-[#3b3b3b] font-poppins underline inline-block mb-8 font-semibold">
           See how it works
         </Link>
         {/* Cards */}
         <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
           {/* Left Card - reference URL */}
 {/* Left Card - reference URL */}
-<div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm h-[200px] flex flex-col" style={{ background: '#fff' }}>            <h3 className="text-lg md:text-xl font-bold text-black mb-4 leading-snug text-left">Start with a<br />reference website</h3>
+<div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm h-[200px] flex flex-col" style={{ background: '#fff' }}>            <h3 className="heading-h3 text-black mb-4 leading-snug text-left">Start with a<br />reference website</h3>
             <form onSubmit={(e) => e.preventDefault()} aria-label="Generate design from URL">
               <label className="sr-only" htmlFor="ref-url">Paste any website URL</label>
               <input
@@ -104,7 +104,7 @@ export default function Hero() {
                 style={{ background: '#eceff3' }}
               />
               <div className="flex justify-end">
-                <button type="submit" className="px-4 py-2.5 bg-black text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">Generate DESIGN.md</button>
+                <button type="submit" className="px-4 py-2.5 bg-[#0d0d0d] text-white rounded-xl font-bold text-sm shadow-md hover:opacity-90 hover:shadow-lg transition-all duration-150">Generate DESIGN.md</button>
               </div>
             </form>
           </div>
@@ -118,7 +118,7 @@ export default function Hero() {
     />
   </div>
   <div className="flex items-start justify-start pt-1">
-    <h3 className="text-lg md:text-xl font-bold text-black leading-snug text-left">
+    <h3 className="heading-h3 text-black leading-snug text-left">
       Select from a catalog<br />of 100+ curated styles
     </h3>
   </div>

@@ -120,7 +120,7 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
             >
               {card.logo}
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-[#111]">
+            <h1 className="text-2xl font-black tracking-tight text-[#111] font-poppins">
               {card.name}
             </h1>
           </div>

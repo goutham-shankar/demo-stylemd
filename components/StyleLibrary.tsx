@@ -160,7 +160,7 @@ export default function StyleLibrary() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
           <div>
-            <h2 className="text-4xl md:text-5xl font-bold text-[#0d0d0d]">Style Library</h2>
+            <h2 className="heading-h2 text-[#0d0d0d]">Style Library</h2>
           </div>
           <div className="relative w-full md:w-72">
             <Search className="absolute left-4 top-3 text-[#aaa]" size={18} aria-hidden />

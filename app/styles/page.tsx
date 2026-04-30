@@ -4,7 +4,7 @@ import { designCards } from "@/lib/design-cards";
 export default function StylesHome() {
   return (
     <main className="max-w-5xl mx-auto py-12 px-4">
-      <h1 className="text-4xl font-extrabold mb-4 text-[#18181b] tracking-tight">Style Library</h1>
+      <h1 className="heading-h1 mb-4 text-[#18181b]">Style Library</h1>
       <p className="mb-10 text-lg text-gray-500">Browse all available design systems and style guides. Click a card to view details and explore their palettes, typography, and more.</p>
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {designCards.map(card => (
@@ -24,7 +24,7 @@ export default function StylesHome() {
                 <span key={t.label} className={`text-xs font-medium px-3 py-1 rounded-full border ${t.color}`}>{t.label}</span>
               ))}
             </div>
-            <p className="text-[15px] text-gray-500 mb-2 line-clamp-2">{card.desc}</p>
+            <p className="text-sm text-gray-500 mb-2 line-clamp-2">{card.desc}</p>
             <div className="flex gap-1 mt-2">
               {card.palette.slice(0, 4).map((p, i) => (
                 <span key={i} className="w-6 h-3 rounded-full border border-gray-200" style={{ background: p.hex }} />
