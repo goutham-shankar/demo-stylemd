@@ -1,4 +1,6 @@
 export type DesignCard = {
+  url: string;
+  heroHeadline: string;
   id: string;
   name: string;
   logo: string;
@@ -11,6 +13,8 @@ export type DesignCard = {
 
 export const designCards: DesignCard[] = [
   {
+    url: "/levain",
+    heroHeadline: "Levain Bakery Design System",
     id: "levain",
     name: "Levain Bakery",
     logo: "L",
@@ -35,6 +39,8 @@ export const designCards: DesignCard[] = [
     ],
   },
   {
+    url: "/spotify",
+    heroHeadline: "Spotify Design System",
     id: "spotify",
     name: "Spotify",
     logo: "/logos/spotify.svg",
@@ -47,7 +53,7 @@ export const designCards: DesignCard[] = [
     desc: "A dark, immersive design system inspired by Spotify. Content-first darkness, pill geometry, and the iconic Spotify Green accent.",
     fonts: [
       { name: "SpotifyMixUI", sample: "Aa Bb", role: "BODY", dark: true },
-      { name: "SpotifyMixUITitle", sample: "Aa Bb", role: "TITLE", dark: true },
+      { name: "SpotifyMixUITitle", sample: "Aa Bb", role: "TITLE", dark: false },
     ],
     palette: [
       { name: "Spotify Green", hex: "#1ed760", swatches: ["#1ed760"] },

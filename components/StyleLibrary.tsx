@@ -112,9 +112,9 @@ export default function StyleLibrary() {
     },
     {
       title: "Firebase",
-      cardBg: "bg-[#0d0d0d]",
+      cardBg: "bg-cta",
       preview: (
-        <div className="h-full flex items-center justify-center bg-[#0d0d0d] gap-3">
+        <div className="h-full flex items-center justify-center bg-cta gap-3">
           <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
             <path d="M5.35 24.6l.9-13.4 6.15-10.6 3.45 6.35L5.35 24.6z" fill="#FFA000"/>
             <path d="M21.65 11.55L17.4 4.5l-1.55 2.95 5.8 17.15 5.35-3.1-5.35-10z" fill="#F57F17"/>
@@ -154,28 +154,28 @@ export default function StyleLibrary() {
   const rightTabs = ["SaaS", "Fintech", "Ecommerce", "Consumer", "Hardware", "Logistics"];
 
   return (
-    <section className="py-12 md:py-16 bg-[#f6f8fa]">
+    <section className="py-12 md:py-16 bg-page">
       <div className="container-custom max-w-6xl mx-auto px-6">
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
           <div>
-            <h2 className="heading-h2 text-[#0d0d0d]">Style Library</h2>
+            <h2 className="heading-h2 text-primary">Style Library</h2>
           </div>
           <div className="relative w-full md:w-72">
-            <Search className="absolute left-4 top-3 text-[#aaa]" size={18} aria-hidden />
+            <Search className="absolute left-4 top-3 text-secondary" size={18} aria-hidden />
             <input
               type="search"
               aria-label="Search styles"
               placeholder="Search"
-              className="w-full pl-11 pr-4 py-2.5 bg-white border border-black/[0.1] rounded-[10px] text-sm placeholder-[#aaa] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/[0.06]"
+              className="w-full pl-11 pr-4 py-2.5 bg-surface border border-medium rounded-[10px] text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light"
             />
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2 bg-white border border-black/[0.08] rounded-[12px] p-1">
+          <div className="flex items-center gap-2 bg-surface border border-medium rounded-[12px] p-1">
             {leftTabs.map((tab) => (
               <button
                 key={tab}
@@ -183,7 +183,7 @@ export default function StyleLibrary() {
                 onClick={() => setActiveTab(tab.toLowerCase())}
                 aria-pressed={activeTab === tab.toLowerCase()}
                 className={`px-5 py-1.5 rounded-[12px] text-sm font-semibold transition-all duration-150 ${
-                  activeTab === tab.toLowerCase() ? "bg-[#3b82f6] rounded-[12px] text-white" : "text-[#5f5b56] hover:bg-[#f7f4ee]"
+                  activeTab === tab.toLowerCase() ? "bg-cta rounded-[12px] text-white" : "text-muted hover:bg-surface-soft"
                 }`}
               >
                 {tab}
@@ -200,8 +200,8 @@ export default function StyleLibrary() {
                 aria-pressed={activeTab === tab.toLowerCase()}
                 className={`px-4 py-1.5 text-sm font-semibold transition-all border ${
                   activeTab === tab.toLowerCase()
-                    ? "bg-[#0d0d0d] text-white border-transparent"
-                    : "bg-white text-[#5f5b56] border-black/[0.1] hover:bg-[#f7f4ee]"
+                    ? "bg-cta text-white border-transparent"
+                    : "bg-surface text-muted border-medium hover:bg-surface-soft"
                 }`}
                 style={{ borderRadius: 10 }}
               >
@@ -216,7 +216,7 @@ export default function StyleLibrary() {
           {cards.map((card, idx) => (
             <div
               key={idx}
-              className="group cursor-pointer overflow-hidden border border-black/[0.07] bg-white hover:border-black/[0.15] hover:shadow-lg transition-all duration-150"
+              className="group cursor-pointer overflow-hidden border border-light bg-surface shadow-light hover:border-dark hover:shadow-lg transition-all duration-150"
               style={{ borderRadius: 16 }}
             >
               {/* Preview area */}
@@ -225,9 +225,9 @@ export default function StyleLibrary() {
               </div>
 
               {/* Card footer */}
-             <div className="px-5 py-4 flex items-center justify-between bg-white">
-  <h3 className="text-lg font-bold text-[#0d0d0d]">{card.title}</h3>
-  <button className="px-5 py-2 bg-[#0d0d0d] text-white rounded-[10px] font-semibold text-sm shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150">
+             <div className="px-5 py-4 flex items-center justify-between bg-surface">
+  <h3 className="text-lg font-bold text-primary">{card.title}</h3>
+  <button className="px-5 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150">
     View now
   </button>
 </div>

@@ -1,24 +1,184 @@
 @import "./fonts-funnel.css";
+
+/* Magnetik Font Family - Local */
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-Thin.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-ThinItalic.otf') format('opentype');
+  font-weight: 100;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-ExtraLight.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-ExtraLightItalic.otf') format('opentype');
+  font-weight: 200;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-LightItalic.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-RegularItalic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-MediumItalic.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-SemiBoldItalic.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-BoldItalic.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-ExtraBoldItalic.otf') format('opentype');
+  font-weight: 800;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-Heavy.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magnetik';
+  src: url('/fonts/magnetik/Magnetik-HeavyItalic.otf') format('opentype');
+  font-weight: 900;
+  font-style: italic;
+}
+
 @layer utilities {
   .font-funnel {
     font-family: 'Funnel Display', 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  .font-manrope {
+    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  }
+  .font-magnetik {
+    font-family: 'Magnetik', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  }
+  .bg-cta {
+    background-color: var(--cta);
+  }
+  .text-cta {
+    color: var(--cta);
+  }
+  .border-cta {
+    border-color: var(--cta);
   }
 }
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap');
 
 :root {
+  /* Neutrals & Surfaces */
   --paper: #f8f7f5;
   --paper-strong: #f2efe9;
   --surface: #ffffff;
   --surface-soft: #f7f4ee;
+  --bg-page: #f6f8fa;
+  
+  /* Text Colors */
   --ink: #0d0d0d;
+  --text-primary: #111111;
+  --text-secondary: #616161;
+  --text-tertiary: #6b6761;
+  --text-muted: #7a756f;
   --muted: #5f5b56;
+  
+  /* Borders & Lines */
   --line: rgba(13, 13, 13, 0.08);
+  --border-light: rgba(0, 0, 0, 0.05);
+  --border-medium: rgba(0, 0, 0, 0.08);
+  --border-dark: rgba(0, 0, 0, 0.15);
+  
+  /* CTAs & Accents */
+  --cta: #007356;
   --accent-blue: #3b82f6;
+  --accent-blue-light: #0a73eb;
   --accent-cyan: #36c5f0;
   --accent-green: #4ade80;
   --accent-orange: #f59e0b;
@@ -37,8 +197,8 @@ html {
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
-  background: #f6f8fa;
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  background: var(--bg-page);
   color: var(--ink);
   line-height: 1.5;
 }
@@ -48,44 +208,113 @@ body {
     @apply max-w-6xl mx-auto px-4 md:px-6 lg:px-8;
   }
 
+  /* Buttons */
   .btn-primary {
-    @apply px-6 py-3 bg-[#0d0d0d] text-white rounded-xl font-semibold text-base shadow-md hover:opacity-90 hover:shadow-lg transition-all duration-150;
+    @apply px-6 py-3 text-white rounded-xl font-semibold text-base shadow-md hover:opacity-90 hover:shadow-lg transition-all duration-150;
+    background-color: var(--cta);
   }
 
   .btn-secondary {
-    @apply px-5 py-2 bg-white text-[#0d0d0d] border border-black/[0.08] rounded-xl font-semibold text-sm hover:bg-[#f7f4ee] transition-all duration-150;
+    @apply px-5 py-2 bg-white border rounded-xl font-semibold text-sm hover:bg-[#f7f4ee] transition-all duration-150;
+    color: var(--text-primary);
+    border-color: var(--line);
   }
 
   .btn-outline {
-    @apply px-6 py-3 bg-transparent border border-black/[0.12] text-[#0d0d0d] rounded-xl font-semibold text-base hover:bg-white transition-all duration-150;
+    @apply px-6 py-3 bg-transparent border text-[#0d0d0d] rounded-xl font-semibold text-base hover:bg-white transition-all duration-150;
+    border-color: var(--border-medium);
   }
 
+  /* Text Colors */
+  .text-primary {
+    color: var(--text-primary);
+  }
+  
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  
+  .text-tertiary {
+    color: var(--text-tertiary);
+  }
+  
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  /* Background Colors */
+  .bg-page {
+    background-color: var(--bg-page);
+  }
+  
+  .bg-surface {
+    background-color: var(--surface);
+  }
+  
+  .bg-paper {
+    background-color: var(--paper);
+  }
+
+  /* Border Colors */
+  .border-light {
+    border-color: var(--border-light);
+  }
+  
+  .border-medium {
+    border-color: var(--border-medium);
+  }
+  
+  .border-dark {
+    border-color: var(--border-dark);
+  }
+
+  /* CTA Utilities */
+  .bg-cta {
+    background-color: var(--cta);
+  }
+
+  .text-cta {
+    color: var(--cta);
+  }
+
+  .border-cta {
+    border-color: var(--cta);
+  }
+
+  /* Spacing & Layout */
   .section-padding {
     @apply py-12 md:py-16;
   }
 
+  /* Typography Components */
   .heading-h1 {
-    @apply text-5xl md:text-6xl font-bold leading-tight tracking-tighter text-[#0d0d0d];
-    font-family: 'Magnetic Sans Serif', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    @apply text-5xl md:text-6xl font-bold leading-tight tracking-normal;
+    font-family: 'Magnetik', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    color: var(--text-primary);
   }
 
   .heading-h2 {
-    @apply text-3xl md:text-4xl font-bold leading-tight text-[#0d0d0d];
-    font-family: 'Magnetic Sans Serif', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    @apply text-3xl md:text-4xl font-bold leading-tight;
+    font-family: 'Magnetik', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    color: var(--text-primary);
   }
 
   .heading-h3 {
-    @apply text-lg md:text-xl font-bold text-[#0d0d0d];
-    font-family: 'Magnetic Sans Serif', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    @apply text-lg md:text-xl font-bold;
+    font-family: 'Magnetik', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    color: var(--text-primary);
   }
 
   .text-body {
-    @apply text-base md:text-lg leading-relaxed text-[#5f5b56];
+    @apply text-base md:text-lg leading-relaxed;
+    color: var(--muted);
+    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
   }
 
   .text-small {
-    @apply text-sm text-[#6b6761];
-    font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    @apply text-sm;
+    color: var(--text-tertiary);
+    font-family: 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   }
 }
 

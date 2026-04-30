@@ -38,8 +38,8 @@ const config: Config = {
         extrabold: "800",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        poppins: ["Poppins", "ui-sans-serif", "system-ui"],
+        sans: ["Manrope", "system-ui", "sans-serif"],
+        manrope: ["Manrope", "ui-sans-serif", "system-ui"],
       },
       borderRadius: {
         xs: "4px",

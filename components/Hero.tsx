@@ -32,7 +32,7 @@ function FloatingLogo({ src, size, left, right, top }: {
       src={`/logos/${src}`}
       alt=""
       aria-hidden="true"
-      className="absolute object-contain pointer-events-none select-none"
+      className="absolute object-contain pointer-events-none select-none z-30"
       style={{
         width: size,
         height: size,
@@ -54,7 +54,7 @@ function FloatingLogoRight({ src, size, right, top }: {
       src={`/icons/right/${src}`}
       alt=""
       aria-hidden="true"
-      className="absolute object-contain pointer-events-none select-none"
+      className="absolute object-contain pointer-events-none select-none z-30"
       style={{
         width: size,
         height: size,
@@ -74,7 +74,7 @@ function FloatingLogoLeft({ src, size, left, top }: {
       src={`/icons/left/${src}`}
       alt=""
       aria-hidden="true"
-      className="absolute object-contain pointer-events-none select-none"
+      className="absolute object-contain pointer-events-none select-none z-30"
       style={{
         width: size,
         height: size,
@@ -105,10 +105,10 @@ export default function Hero() {
   return (
     <>
       <section
-        className="relative bg-[#f6f8fa] flex flex-col items-center justify-center overflow-hidden"
-        style={{ height: "435px" }}
+        className="relative bg-page flex flex-col items-center justify-center overflow-visible"
+        style={{ height: "360px" }}
       >
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none z-30">
           {leftLogos.map((logo, i) => (
             <FloatingLogoLeft key={`l${i}`} {...logo} />
           ))}
@@ -118,7 +118,7 @@ export default function Hero() {
         </div>
 
         <div className="relative z-10 w-full max-w-3xl mx-auto text-center px-4">
-          <h1 className="heading-h1 font-poppins mb-5">
+          <h1 className="heading-h1 mb-3">
             Give your{" "}
             <span
               className="inline-flex items-center align-middle gap-1.5 md:gap-2 px-2 py-0.5 rounded-xl"
@@ -133,12 +133,12 @@ export default function Hero() {
             </span>{" "}
             <br/>project a design makeover
           </h1>
-          <p className="text-base md:text-lg text-gray-700 mb-3 font-poppins font-medium">
+          <p className="text-base md:text-lg text-secondary mb-2 font-manrope font-medium">
             A plug-and-play Design.md file to elevate your project's design
           </p>
           <Link
             href="#"
-            className="text-sm md:text-base text-[#3b3b3b] font-poppins underline inline-block font-semibold"
+            className="text-sm md:text-base text-secondary font-manrope underline inline-block font-semibold"
           >
             See how it works
           </Link>
@@ -146,9 +146,9 @@ export default function Hero() {
       </section>
 
       {/* Cards outside section — logos cannot reach */}
-      <div className="bg-[#f6f8fa] w-full px-4 pb-10 pt-6">
+      <div className="bg-page w-full px-4 pb-10 pt-3">
         <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-          <div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm h-[200px] flex flex-col">
+          <div className="bg-surface rounded-2xl p-5 border border-medium shadow-sm h-[200px] flex flex-col">
             <h3 className="heading-h3 font-bold text-black mb-4 leading-snug text-left">
               Start with a<br />reference website
             </h3>
@@ -158,13 +158,13 @@ export default function Hero() {
                 id="ref-url"
                 type="url"
                 placeholder="Paste any website URL"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none mb-3"
+                className="w-full px-3 py-2.5 border border-medium rounded-xl text-sm placeholder-secondary focus:outline-none mb-3"
                 style={{ background: "#eceff3" }}
               />
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-[#0d0d0d] text-white rounded-xl font-bold text-sm shadow-md hover:opacity-90 hover:shadow-lg transition-all duration-150"
+                  className="px-4 py-2.5 bg-cta text-white rounded-xl font-bold text-sm shadow-md hover:opacity-90 hover:shadow-lg transition-all duration-150"
                 >
                   Generate DESIGN.md
                 </button>
@@ -172,7 +172,11 @@ export default function Hero() {
             </form>
           </div>
 
-          <div className="bg-white rounded-2xl border border-black/[0.08] shadow-sm p-4 h-[200px] flex flex-row items-stretch gap-3 overflow-hidden">
+          <Link
+            href="/styles"
+            className="bg-surface rounded-2xl border border-medium shadow-sm p-4 h-[200px] flex flex-row items-stretch gap-3 overflow-hidden transition-all duration-150 hover:shadow-md hover:border-dark"
+            aria-label="Select from a catalog of 100+ curated styles"
+          >
             <div className="flex items-start justify-start">
               <img src="/cardplaceholder.svg" alt="Catalog preview" className="object-contain rounded-lg" />
             </div>
@@ -181,7 +185,7 @@ export default function Hero() {
                 Select from a catalog<br />of 100+ curated styles
               </h3>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
     </>

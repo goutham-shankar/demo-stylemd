@@ -13,8 +13,9 @@ export default function IntegrationLogos() {
     <section className="py-12 md:py-8 bg-[#f8f7f5]">
       <div className="container-custom">
         <div className="text-center mb-8">
-          <p className="text-[#616161] text-sm md:text-base font-bold tracking-[0.18em] uppercase">
-            WORKS ACROSS APPS YOU ❤️
+          <p className="text-[#616161] text-sm md:text-base font-bold tracking-[0.18em] uppercase inline-flex items-center justify-center gap-2">
+            <span>WORKS ACROSS APPS YOU</span>
+            <img src="/logos/Favorite_fill.svg" alt="" aria-hidden="true" className="h-4 w-4 md:h-5 md:w-5" />
           </p>
         </div>
 
