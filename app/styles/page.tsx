@@ -8,9 +8,15 @@ export default function StylesHome() {
       <p className="mb-10 text-lg text-gray-500">Browse all available design systems and style guides. Click a card to view details and explore their palettes, typography, and more.</p>
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {designCards.map(card => (
-          <Link key={card.id} href={`/styles/${card.id}`} className="group block rounded-2xl border border-gray-100 bg-white p-7 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200">
+          <Link key={card.id} href={`/styles/${card.id}`} className="group block rounded-2xl border border-gray-100 bg-white p-7 shadow-sm hover:shadow-lg hover:border-black/[0.15] transition-all duration-150">
             <div className="flex items-center gap-4 mb-3">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-2xl shadow" style={{ background: card.accentColor }}>{card.logo}</div>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-2xl shadow" style={{ background: card.accentColor }}>
+                {typeof card.logo === 'string' && card.logo.startsWith('/') ? (
+                  <img src={card.logo} alt={card.name} className="w-8 h-8 object-contain" />
+                ) : (
+                  card.logo
+                )}
+              </div>
               <span className="text-2xl font-bold text-[#18181b] group-hover:text-blue-600 transition-colors">{card.name}</span>
             </div>
             <div className="flex gap-2 flex-wrap mb-3">

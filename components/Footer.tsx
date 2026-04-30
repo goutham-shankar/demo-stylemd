@@ -25,9 +25,9 @@ export default function Footer() {
           <nav aria-label="Footer product links">
             <h4 className="font-bold mb-6 text-[#0d0d0d] text-base font-funnel">Product</h4>
             <ul className="space-y-3 text-[#6b6761] text-small">
-              <li><a href="#" className="hover:text-[#616161] transition-colors">How it Works</a></li>
-              <li><a href="#" className="hover:text-[#616161] transition-colors">Library</a></li>
-              <li><a href="#" className="hover:text-[#616161] transition-colors">Generate</a></li>
+              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors duration-150">How it Works</a></li>
+              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors duration-150">Library</a></li>
+              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors duration-150">Generate</a></li>
             </ul>
           </nav>
 
@@ -35,9 +35,9 @@ export default function Footer() {
           <nav aria-label="Footer resources links">
             <h4 className="font-bold mb-6 text-[#0d0d0d] text-base font-funnel">Resources</h4>
             <ul className="space-y-3 text-[#6b6761] text-small">
-              <li><a href="#" className="hover:text-[#616161] transition-colors">Docs</a></li>
-              <li><a href="#" className="hover:text-[#616161] transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-[#616161] transition-colors">FAQs</a></li>
+              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors duration-150">Docs</a></li>
+              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors duration-150">Blog</a></li>
+              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors duration-150">FAQs</a></li>
             </ul>
           </nav>
 
@@ -45,9 +45,9 @@ export default function Footer() {
           <nav aria-label="Footer company links">
             <h4 className="font-bold mb-6 text-[#0d0d0d] text-base font-funnel">Company</h4>
             <ul className="space-y-3 text-[#6b6761] text-small">
-              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Contact</a></li>
-              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors">Privacy</a></li>
+              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors duration-150">About</a></li>
+              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors duration-150">Contact</a></li>
+              <li><a href="#" className="hover:text-[#0d0d0d] transition-colors duration-150">Privacy</a></li>
             </ul>
           </nav>
         </div>
@@ -58,9 +58,9 @@ export default function Footer() {
             © {new Date().getFullYear()} DesignProbe. All rights reserved.
           </p>
           <div className="flex gap-4 items-center flex-wrap">
-            <a href="#" className="text-[#7a756f] hover:text-[#0d0d0d] text-small transition-colors font-medium">Twitter</a>
-            <a href="#" className="text-[#7a756f] hover:text-[#0d0d0d] text-small transition-colors font-medium">LinkedIn</a>
-            <a href="#" className="text-[#7a756f] hover:text-[#0d0d0d] text-small transition-colors font-medium">GitHub</a>
+            <a href="#" className="text-[#7a756f] hover:text-[#0d0d0d] text-small transition-colors duration-150 font-medium">Twitter</a>
+            <a href="#" className="text-[#7a756f] hover:text-[#0d0d0d] text-small transition-colors duration-150 font-medium">LinkedIn</a>
+            <a href="#" className="text-[#7a756f] hover:text-[#0d0d0d] text-small transition-colors duration-150 font-medium">GitHub</a>
           </div>
         </div>
       </div>

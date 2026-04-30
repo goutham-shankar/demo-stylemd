@@ -69,14 +69,14 @@ export default function Hero() {
         {/* Heading */}
         <h1 className="text-4xl md:text-5xl font-extrabold text-black mb-5 leading-tight tracking-tight font-poppins">
           Give your{" "}
-          <span className="inline-flex items-center align-middle gap-1.5 md:gap-2 text-black px-2 py-0.5 rounded-xl text-xl md:text-2xl" style={{verticalAlign: 'middle'}}>
+          <span className="inline-flex items-center align-middle gap-1.5 md:gap-2 text-black px-2 py-0.5 rounded-xl text-xl md:text-2xl" style={{verticalAlign: 'middle', height: '3.8em'}}>
             <img
               src={svgLogos[logoIdx]}
               alt="Logo"
-              className="w-8 h-8 md:w-10 md:h-10 rounded-xl inline-block transition-all duration-500 align-middle object-contain"
-              style={{ border: "none", marginBottom: '-2px', maxHeight: '2.2em', verticalAlign: 'middle' }}
+              className=" rounded-xl inline-block transition-all duration-700 align-middle object-contain"
+              style={{ border: "none", marginBottom: '-2px', maxHeight: '3.8em', verticalAlign: 'middle' }}
             />
-            <span className="text-xl md:text-2xl font-extrabold align-middle" style={{lineHeight: 1}}>Lovable</span>
+            <span className="text-xl md:text-2xl font-extrabold align-middle" style={{lineHeight: 1}}></span>
           </span>
           <br />
           project a design makeover
@@ -91,7 +91,7 @@ export default function Hero() {
         <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
           {/* Left Card - reference URL */}
 {/* Left Card - reference URL */}
-<div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm" style={{ background: '#fff' }}>            <h3 className="text-lg md:text-xl font-bold text-black mb-4 leading-snug text-left">Start with a<br />reference website</h3>
+<div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm h-[200px] flex flex-col" style={{ background: '#fff' }}>            <h3 className="text-lg md:text-xl font-bold text-black mb-4 leading-snug text-left">Start with a<br />reference website</h3>
             <form onSubmit={(e) => e.preventDefault()} aria-label="Generate design from URL">
               <label className="sr-only" htmlFor="ref-url">Paste any website URL</label>
               <input
@@ -109,20 +109,22 @@ export default function Hero() {
             </form>
           </div>
           {/* Right Card - catalog preview */}
-          <div className="bg-white rounded-2xl p-5 border border-black/[0.08] shadow-sm">
-            <h3 className="text-lg md:text-xl font-bold text-black mb-4 leading-snug text-left">Select from a catalog<br />of 100+ curated styles</h3>
-            <div className="h-[100px] bg-white rounded-xl flex items-center justify-center gap-4 overflow-hidden border border-black/10">
-              <div className="w-12 h-12 rounded-full bg-white border border-black/10" />
-              <div className="flex flex-col gap-1.5">
-                <div className="w-16 h-7 bg-white border border-black/10 rounded-lg" />
-                <div className="w-16 h-7 bg-white border border-black/10 rounded-lg" />
-              </div>
-              <div className="flex flex-col items-center gap-1.5">
-                <div className="w-9 h-9 rounded-full bg-white border border-black/10 flex items-center justify-center text-black text-[10px] font-bold">CO</div>
-                <div className="w-9 h-4 bg-white border border-black/10 rounded" />
-              </div>
-            </div>
-          </div>
+          <div className="bg-white rounded-2xl border border-black/[0.08] shadow-sm p-4 h-[200px] flex flex-row items-stretch gap-3 overflow-hidden">
+  <div className="flex items-start justify-start">
+    <img
+      src="/cardplaceholder.svg"
+      alt="Catalog of curated styles preview"
+      className="  object-contain rounded-lg"
+    />
+  </div>
+  <div className="flex items-start justify-start pt-1">
+    <h3 className="text-lg md:text-xl font-bold text-black leading-snug text-left">
+      Select from a catalog<br />of 100+ curated styles
+    </h3>
+  </div>
+</div>
+ 
+        
         </div>
       </div>
     </section>

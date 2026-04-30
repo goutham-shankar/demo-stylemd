@@ -53,7 +53,7 @@ export default function Navbar() {
             <Link
               key={l.label}
               href={l.href}
-              className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors font-poppins"
+              className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors duration-150 font-poppins"
             >
               {l.label}
             </Link>
@@ -62,12 +62,12 @@ export default function Navbar() {
 
         {/* CTA Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors">
+          <Link href="#" className="text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors duration-150">
             Log In
           </Link>
           <button
             type="button"
-            className="px-5 py-2 text-sm font-semibold text-white bg-[#0d0d0d] hover:opacity-90 transition-opacity shadow-sm shadow-black/[0.12]"
+            className="px-5 py-2 text-sm font-semibold text-white bg-[#0d0d0d] shadow-sm shadow-black/[0.12] hover:opacity-90 hover:shadow-md transition-all duration-150"
             style={{ borderRadius: 10 }}
             aria-label="Sign up"
           >
@@ -91,15 +91,15 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div id="mobile-menu" className="md:hidden bg-[#f8f7f5] border-b border-black/[0.08] p-6 space-y-4 max-h-[calc(100vh-64px)] overflow-y-auto">
           {navLinks.map((l) => (
-            <Link key={l.label} href={l.href} className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d]">
+            <Link key={l.label} href={l.href} className="block text-sm font-medium text-[#5f5b56] hover:text-[#0d0d0d] transition-colors duration-150">
               {l.label}
             </Link>
           ))}
           <div className="flex gap-3 pt-6 border-t border-black/[0.08]">
-            <button className="flex-1 px-4 py-2 text-sm font-medium text-[#0d0d0d] border border-black/[0.12] rounded-xl hover:bg-[#f7f4ee]" type="button">
+            <button className="flex-1 px-4 py-2 text-sm font-medium text-[#0d0d0d] border border-black/[0.12] rounded-xl hover:bg-[#f7f4ee] transition-all duration-150" type="button">
               Log In
             </button>
-            <button className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl hover:opacity-90" type="button">
+            <button className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-[#0d0d0d] rounded-xl shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150" type="button">
               Sign Up
             </button>
           </div>

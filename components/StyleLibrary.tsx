@@ -168,22 +168,22 @@ export default function StyleLibrary() {
               type="search"
               aria-label="Search styles"
               placeholder="Search"
-              className="w-full pl-11 pr-4 py-2.5 bg-white border border-black/[0.1] rounded-2xl text-sm placeholder-[#aaa] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/[0.06]"
+              className="w-full pl-11 pr-4 py-2.5 bg-white border border-black/[0.1] rounded-[10px] text-sm placeholder-[#aaa] focus:outline-none focus-visible:ring-2 focus-visible:ring-black/[0.06]"
             />
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2 bg-white border border-black/[0.08] rounded-full p-1">
+          <div className="flex items-center gap-2 bg-white border border-black/[0.08] rounded-[12px] p-1">
             {leftTabs.map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab.toLowerCase())}
                 aria-pressed={activeTab === tab.toLowerCase()}
-                className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-all ${
-                  activeTab === tab.toLowerCase() ? "bg-[#3b82f6] text-white" : "text-[#5f5b56] hover:bg-gray-50"
+                className={`px-5 py-1.5 rounded-[12px] text-sm font-semibold transition-all duration-150 ${
+                  activeTab === tab.toLowerCase() ? "bg-[#3b82f6] rounded-[12px] text-white" : "text-[#5f5b56] hover:bg-[#f7f4ee]"
                 }`}
               >
                 {tab}
@@ -216,7 +216,7 @@ export default function StyleLibrary() {
           {cards.map((card, idx) => (
             <div
               key={idx}
-              className="group cursor-pointer overflow-hidden border border-black/[0.07] bg-white hover:border-black/[0.15] hover:shadow-xl hover:shadow-black/[0.06] transition-all"
+              className="group cursor-pointer overflow-hidden border border-black/[0.07] bg-white hover:border-black/[0.15] hover:shadow-lg transition-all duration-150"
               style={{ borderRadius: 16 }}
             >
               {/* Preview area */}
@@ -227,7 +227,7 @@ export default function StyleLibrary() {
               {/* Card footer */}
              <div className="px-5 py-4 flex items-center justify-between bg-white">
   <h3 className="text-lg font-bold text-[#0d0d0d]">{card.title}</h3>
-  <button className="px-5 py-2 bg-[#0d0d0d] text-white rounded-[10px] font-semibold text-sm hover:opacity-80 transition-opacity">
+  <button className="px-5 py-2 bg-[#0d0d0d] text-white rounded-[10px] font-semibold text-sm shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150">
     View now
   </button>
 </div>
