@@ -35,7 +35,7 @@ function WebsitePreview({ card }: { card: DesignCard }) {
     <div className="flex h-full flex-col overflow-hidden bg-page">
       <div className="flex-1 overflow-hidden p-3">
         <div className="h-full overflow-hidden rounded-xl border border-medium bg-surface shadow-sm">
-          {(card as any).url ? (
+          {card.url ? (
             <iframe
               src={card.url}
               title={card.name}
