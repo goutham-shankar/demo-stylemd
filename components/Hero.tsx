@@ -88,7 +88,9 @@ function FloatingLogoLeft({ src, size, left, top }: {
 
 const svgLogos = [
   "/logos/claude 1.svg",
-  "/logos/Replit--Streamline-Svg-Logos.svg",
+  //"/logos/Replit--Streamline-Svg-Logos.svg",
+  "/logos/emergent-logo-new 1.svg",
+  "/logos/Base44-logo_brandlogos.net_1a9f67 1.svg",
   "/logos/logoblack 1.svg",
 ];
 
@@ -122,13 +124,13 @@ export default function Hero() {
             Give your{" "}
             <span
               className="inline-flex items-center align-middle gap-1.5 md:gap-2 px-2 py-0.5 rounded-xl"
-              style={{ verticalAlign: "middle", height: "1.2em" }}
+              style={{ verticalAlign: "middle", height: "1em" }}
             >
               <img
                 src={svgLogos[logoIdx]}
                 alt="Logo"
                 className="rounded-xl inline-block transition-all duration-700 align-middle object-contain"
-                style={{ border: "none", maxHeight: "1.2em" }}
+                style={{ border: "none", height: "100%", width: "auto", maxHeight: "none" }}
               />
             </span>{" "}
             <br/>project a design makeover
