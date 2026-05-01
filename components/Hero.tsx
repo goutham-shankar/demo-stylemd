@@ -29,7 +29,7 @@ function FloatingLogo({ src, size, left, right, top }: {
 }) {
   return (
     <img
-      src={`/logos/${src}`}
+      src={`/icons/left/${src}`}
       alt=""
       aria-hidden="true"
       className="absolute object-contain pointer-events-none select-none z-30"

@@ -36,8 +36,6 @@ export default function Footer() {
           <nav aria-label="Footer resources links">
             <h4 className="font-bold mb-6 text-primary text-base font-funnel">Resources</h4>
             <ul className="space-y-3 text-tertiary text-small">
-              <li><Link href="/docs" className="hover:text-primary transition-colors duration-150">Docs</Link></li>
-              <li><Link href="/blog" className="hover:text-primary transition-colors duration-150">Blog</Link></li>
               <li><Link href="/#faqs" className="hover:text-primary transition-colors duration-150">FAQs</Link></li>
             </ul>
           </nav>
@@ -47,8 +45,6 @@ export default function Footer() {
             <h4 className="font-bold mb-6 text-primary text-base font-funnel">Company</h4>
             <ul className="space-y-3 text-tertiary text-small">
               <li><Link href="/#about" className="hover:text-primary transition-colors duration-150">About</Link></li>
-              <li><Link href="/contact" className="hover:text-primary transition-colors duration-150">Contact</Link></li>
-              <li><Link href="/privacy" className="hover:text-primary transition-colors duration-150">Privacy</Link></li>
             </ul>
           </nav>
         </div>

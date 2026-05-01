@@ -17,7 +17,7 @@ export const designCards: DesignCard[] = [
     heroHeadline: "Mother's Day is coming!",
     id: "levain",
     name: "Levain Bakery",
-    logo: "/styles/levian/Rectangle 921377.svg",
+    logo: "/logos/Rectangle 921377.svg",
     accentColor: "#e8006f",
     tags: [
       { label: "D2C", color: "bg-blue-50 text-blue-700 border-blue-200" },
