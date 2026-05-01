@@ -23,7 +23,7 @@ export default function StyleLibrary() {
               <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#FF7262"/>
             </svg>
           </div>
-          <span className="text-3xl font-bold text-black">Figma</span>
+          <span className="text-3xl font-bold text-primary">Figma</span>
         </div>
       ),
     },
@@ -73,7 +73,7 @@ export default function StyleLibrary() {
           <p className="text-white text-lg font-bold text-center relative z-10 mb-3">Your 24/7 AI team</p>
           <div className="flex items-center gap-1.5 relative z-10">
             <div className="w-5 h-5 bg-white rounded flex items-center justify-center">
-              <span className="text-[10px] font-bold text-black">N</span>
+              <span className="text-[10px] font-bold text-primary">N</span>
             </div>
             <span className="text-white text-sm font-semibold">Notion</span>
           </div>
@@ -216,7 +216,7 @@ export default function StyleLibrary() {
           {cards.map((card, idx) => (
             <div
               key={idx}
-              className="group cursor-pointer overflow-hidden border border-light bg-surface shadow-light hover:border-dark hover:shadow-lg transition-all duration-150"
+              className="group cursor-pointer overflow-hidden border border-light bg-surface shadow-sm hover:border-dark hover:shadow-md transition-all duration-150"
               style={{ borderRadius: 16 }}
             >
               {/* Preview area */}

@@ -151,7 +151,7 @@ export default function Hero() {
       <div className="bg-page w-full px-4 pb-10 pt-3">
         <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
           <div className="bg-surface rounded-2xl p-5 border border-medium shadow-sm h-[200px] flex flex-col">
-            <h3 className="heading-h3 font-bold text-black mb-4 leading-snug text-left">
+            <h3 className="heading-h3 font-bold text-primary mb-4 leading-snug text-left">
               Start with a<br />reference website
             </h3>
             <form onSubmit={(e) => e.preventDefault()}>
@@ -160,13 +160,13 @@ export default function Hero() {
                 id="ref-url"
                 type="url"
                 placeholder="Paste any website URL"
-                className="w-full px-3 py-2.5 border border-medium rounded-xl text-sm placeholder-secondary focus:outline-none mb-3"
-                style={{ background: "#eceff3" }}
+                className="w-full px-3 py-2.5 border border-medium rounded-xl text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light mb-3"
+                style={{ background: "var(--bg-page)" }}
               />
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-cta text-white rounded-xl font-bold text-sm shadow-md hover:opacity-90 hover:shadow-lg transition-all duration-150"
+                  className="px-4 py-2.5 bg-cta text-white rounded-xl font-bold text-sm shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150"
                 >
                   Generate DESIGN.md
                 </button>
@@ -183,7 +183,7 @@ export default function Hero() {
               <img src="/cardplaceholder.svg" alt="Catalog preview" className="object-contain rounded-lg" />
             </div>
             <div className="flex items-start justify-start pt-1">
-              <h3 className="heading-h3 font-bold text-black leading-snug text-left">
+              <h3 className="heading-h3 font-bold text-primary leading-snug text-left">
                 Select from a catalog<br />of 100+ curated styles
               </h3>
             </div>
