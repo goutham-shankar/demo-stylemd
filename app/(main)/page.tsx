@@ -1,3 +1,5 @@
+"use client";
+
 import Hero from "@/components/Hero";
 import IntegrationLogos from "@/components/IntegrationLogos";
 import StyleLibrary from "@/components/StyleLibrary";
