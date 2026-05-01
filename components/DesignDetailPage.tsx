@@ -212,7 +212,7 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
   return (
     <div className="flex min-h-screen flex-col bg-page">
       {/* Top bar */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-medium bg-surface px-6 py-3">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-medium bg-[#F6F8FA] px-6 py-3">
         <button
           onClick={handleBack}
           className="flex items-center gap-2 rounded-lg bg-gray-900 border border-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 cursor-pointer transition-colors duration-150"

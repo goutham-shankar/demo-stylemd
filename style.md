@@ -7,6 +7,7 @@
 - **Dark Navy**: `#000000` / `#1A1A1A` - Text, buttons, dark backgrounds
 - **White**: `#FFFFFF` - Main background, card backgrounds
 - **Light Gray**: `#F5F5F5` - Secondary backgrounds
+- **Secondary Text Gray**: `#616161` - Supporting copy and secondary links
 
 ### Accent Colors
 - **Teal Brand**: `#14B8A6` - Logo and brand accents
@@ -77,21 +78,28 @@
 
 ### Navbar
 - **Height**: 64px
-- **Background**: White with subtle shadow
-- **Logo**: "DesignProbe" in teal (`#14B8A6`) with icon
-- **Navigation Links**: Dark text, 14px, hover: opacity 0.7
+- **Background**: White with subtle border and scroll shadow treatment
+- **Logo**: "DesignProbe" in `Funnel Display` with brand icon
+- **Navigation Links**: 14px, `font-medium`, `#616161`, hover to primary text
 - **CTA Buttons**: 
-  - Log In: Transparent, dark text outline
-  - Sign Up: Black background, white text, rounded 6px
+  - Log In: Transparent, dark text outline, 14px, medium weight
+  - Sign Up: Black background, white text, rounded 10px
 - **Layout**: Flex, space-between, items centered
+- **Mobile**: Hamburger menu with collapsible link panel
 
 ### Hero Section
-- **Background**: White
+- **Background**: Page background with centered hero content
 - **Content Width**: Max 700px, centered
-- **Main Heading**: 56px bold, dark text with "Lovable" in black highlight box
-- **Subheading**: 16px, gray text
+- **Main Heading**: 60px bold display text in `Magnetik`, with animated AI tool logo inline
+- **Subheading**: 16px, `#616161`, `Manrope`
+- **Support Link**: "See how it works" in `#616161`, underlined, `Manrope`
 - **Decorative Icons**: Scattered colorful badges around the section (position: absolute)
-- **CTA Button**: Blue background (`#0EA5E9`), white text, rounded 6px, 14px font
+- **CTA Area**: Two cards below the hero, one for reference URL input and one linking to the style library
+
+### Current Layout
+- **Root Page**: Home page renders `Navbar`, `Hero`, `IntegrationLogos`, `StyleLibrary`, and `Footer`
+- **Styles Route Group**: Shared navbar/footer layout is handled inside the `(main)` route group
+- **404 Page**: Custom animated not-found screen with links back to home and style library
 
 ### Two-Column Content Section
 - **Layout**: Two cards side-by-side
