@@ -40,3 +40,5 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+.zshrc
+hero.temp.bak

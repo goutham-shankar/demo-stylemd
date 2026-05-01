@@ -2,15 +2,30 @@
 
 import { Search } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
+
+type Card = {
+  title: string;
+  slug: string;
+  category: string;
+  trending: boolean;
+  cardBg: string;
+  preview: React.ReactNode;
+};
 
 export default function StyleLibrary() {
   const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const tabs = ["All", "Trending", "SaaS", "Fintech", "Ecommerce", "Consumer", "Hardware", "Logistics"];
+  const leftTabs = ["All", "Trending"];
+  const rightTabs = ["SaaS", "Fintech", "Ecommerce", "Consumer", "Hardware", "Logistics"];
 
-  const cards = [
+  const cards: Card[] = [
     {
       title: "Figma",
+      slug: "figma",
+      category: "saas",
+      trending: true,
       cardBg: "bg-[#c4a8e0]",
       preview: (
         <div className="h-full flex items-center justify-center gap-4 bg-[#c4a8e0]">
@@ -29,6 +44,9 @@ export default function StyleLibrary() {
     },
     {
       title: "Supabase",
+      slug: "supabase",
+      category: "saas",
+      trending: true,
       cardBg: "bg-[#111]",
       preview: (
         <div className="h-full flex flex-col items-center justify-center bg-[#111] text-center px-4">
@@ -43,12 +61,19 @@ export default function StyleLibrary() {
     },
     {
       title: "Linear",
+      slug: "linear",
+      category: "saas",
+      trending: false,
       cardBg: "bg-[#1a1a2e]",
       preview: (
         <div className="h-full flex items-center justify-center gap-3 bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
           <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
-            <path d="M1.22541 61.5228c-.2225-.9485.90748-1.5459 1.59638-.857l36.3024 36.3024c.6889.6889.0915 1.8189-.857 1.5964C20.0515 94.0514 5.9486 79.9485 1.22541 61.5228zM.00189135 46.8891c-.01764375.2652.08641935.5244.28127.7073l52.1148 52.1148c.1829.1949.4421.2989.7073.2813C74.2964 97.8443 97.8443 74.2964 99.7924 47.1124c.0177-.2652-.0864-.5244-.2813-.7073L47.3963.281271c-.1829-.194937-.4421-.298983-.7073-.281271C20.0515 2.15568-2.15568 20.0515.00189135 46.8891zM Scanner 54.8132 5.52066l42.1582 42.1582c.3921.3921.3921 1.0277 0 1.4198L1.41980 94.4800c-.392..392-1.02769.392-1.41980 0L.00000 93.0602z" fill="white" opacity=".4"/>
-            <path d="M4.83896 78.9088 78.9088 4.83896c8.5657 5.50186 15.6845 13.04654 20.4821 22.05974L26.9685 99.3911C17.9553 94.5935 10.3407 87.4746 4.83896 78.9088z" fill="white"/>
+            <path
+              d="M1.22541 61.5228c-.2225-.9485.90748-1.5459 1.59638-.857l36.3024 36.3024c.6889.6889.0915 1.8189-.857 1.5964C20.0515 94.0514 5.9486 79.9485 1.22541 61.5228zM.00189135 46.8891c-.01764375.2652.08641935.5244.28127.7073l52.1148 52.1148c.1829.1949.4421.2989.7073.2813C74.2964 97.8443 97.8443 74.2964 99.7924 47.1124c.0177-.2652-.0864-.5244-.2813-.7073L47.3963.281271c-.1829-.194937-.4421-.298983-.7073-.281271C20.0515 2.15568-2.15568 20.0515.00189135 46.8891z"
+              fill="white"
+              opacity=".4"
+            />
+            <path d="M4.83896 78.9088L78.9088 4.83896c8.5657 5.50186 15.6845 13.04654 20.4821 22.05974L26.9685 99.3911C17.9553 94.5935 10.3407 87.4746 4.83896 78.9088z" fill="white"/>
           </svg>
           <span className="text-white text-2xl font-bold tracking-tight">Linear</span>
         </div>
@@ -56,6 +81,9 @@ export default function StyleLibrary() {
     },
     {
       title: "Notion",
+      slug: "notion",
+      category: "saas",
+      trending: false,
       cardBg: "bg-[#1b1f3b]",
       preview: (
         <div className="h-full relative flex flex-col items-center justify-center bg-[#1b1f3b] overflow-hidden px-4">
@@ -82,6 +110,9 @@ export default function StyleLibrary() {
     },
     {
       title: "Snapchat",
+      slug: "snapchat",
+      category: "consumer",
+      trending: false,
       cardBg: "bg-[#FFFC00]",
       preview: (
         <div className="h-full flex items-center justify-center bg-[#FFFC00]">
@@ -93,6 +124,9 @@ export default function StyleLibrary() {
     },
     {
       title: "Lovable",
+      slug: "lovable",
+      category: "saas",
+      trending: true,
       cardBg: "bg-gradient-to-br from-[#1a0533] via-[#3d1063] to-[#ff6b9d]",
       preview: (
         <div className="h-full flex flex-col items-start justify-center px-5 bg-gradient-to-br from-[#1a0533] via-[#3d1063] to-[#e040a0] relative overflow-hidden">
@@ -112,6 +146,9 @@ export default function StyleLibrary() {
     },
     {
       title: "Firebase",
+      slug: "firebase",
+      category: "saas",
+      trending: false,
       cardBg: "bg-cta",
       preview: (
         <div className="h-full flex items-center justify-center bg-cta gap-3">
@@ -127,6 +164,9 @@ export default function StyleLibrary() {
     },
     {
       title: "Shopify",
+      slug: "shopify",
+      category: "ecommerce",
+      trending: false,
       cardBg: "bg-[#96bf48]",
       preview: (
         <div className="h-full flex items-center justify-center bg-[#96bf48] gap-3">
@@ -139,6 +179,9 @@ export default function StyleLibrary() {
     },
     {
       title: "Stripe",
+      slug: "stripe",
+      category: "fintech",
+      trending: true,
       cardBg: "bg-[#635bff]",
       preview: (
         <div className="h-full flex items-center justify-center bg-gradient-to-br from-[#635bff] to-[#8b5cf6] gap-3">
@@ -150,8 +193,16 @@ export default function StyleLibrary() {
     },
   ];
 
-  const leftTabs = ["All", "Trending"];
-  const rightTabs = ["SaaS", "Fintech", "Ecommerce", "Consumer", "Hardware", "Logistics"];
+  // Filter by tab and search query
+  const filteredCards = cards.filter((card) => {
+    const matchesSearch =
+      !searchQuery || card.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab =
+      activeTab === "all" ||
+      (activeTab === "trending" && card.trending) ||
+      card.category === activeTab;
+    return matchesSearch && matchesTab;
+  });
 
   return (
     <section className="py-12 md:py-16 bg-page">
@@ -168,13 +219,15 @@ export default function StyleLibrary() {
               type="search"
               aria-label="Search styles"
               placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-11 pr-4 py-2.5 bg-surface border border-medium rounded-[10px] text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light"
             />
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
           <div className="flex items-center gap-2 bg-surface border border-medium rounded-[12px] p-1">
             {leftTabs.map((tab) => (
               <button
@@ -183,7 +236,7 @@ export default function StyleLibrary() {
                 onClick={() => setActiveTab(tab.toLowerCase())}
                 aria-pressed={activeTab === tab.toLowerCase()}
                 className={`px-5 py-1.5 rounded-[12px] text-sm font-semibold transition-all duration-150 ${
-                  activeTab === tab.toLowerCase() ? "bg-cta rounded-[12px] text-white" : "text-muted hover:bg-surface-soft"
+                  activeTab === tab.toLowerCase() ? "bg-cta text-white" : "text-muted hover:bg-surface-soft"
                 }`}
               >
                 {tab}
@@ -198,12 +251,11 @@ export default function StyleLibrary() {
                 type="button"
                 onClick={() => setActiveTab(tab.toLowerCase())}
                 aria-pressed={activeTab === tab.toLowerCase()}
-                className={`px-4 py-1.5 text-sm font-semibold transition-all border ${
+                className={`px-4 py-1.5 text-sm font-semibold transition-all border rounded-[10px] ${
                   activeTab === tab.toLowerCase()
                     ? "bg-cta text-white border-transparent"
                     : "bg-surface text-muted border-medium hover:bg-surface-soft"
                 }`}
-                style={{ borderRadius: 10 }}
               >
                 {tab}
               </button>
@@ -212,28 +264,38 @@ export default function StyleLibrary() {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cards.map((card, idx) => (
-            <div
-              key={idx}
-              className="group cursor-pointer overflow-hidden border border-light bg-surface shadow-sm hover:border-dark hover:shadow-md transition-all duration-150"
-              style={{ borderRadius: 16 }}
-            >
-              {/* Preview area */}
-              <div className="h-48 overflow-hidden">
-                {card.preview}
-              </div>
+        {filteredCards.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="text-lg font-semibold text-primary mb-2">No styles found</p>
+            <p className="text-sm text-secondary">
+              Try a different search term or filter.
+            </p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCards.map((card) => (
+              <Link
+                key={card.title}
+                href={`/styles/${card.slug}`}
+                className="group block overflow-hidden border border-light bg-surface shadow-sm hover:border-dark hover:shadow-md transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{ borderRadius: 16 }}
+              >
+                {/* Preview area */}
+                <div className="h-48 overflow-hidden">
+                  {card.preview}
+                </div>
 
-              {/* Card footer */}
-             <div className="px-5 py-4 flex items-center justify-between bg-surface">
-  <h3 className="text-lg font-bold text-primary">{card.title}</h3>
-  <button className="px-5 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150">
-    View now
-  </button>
-</div>
-            </div>
-          ))}
-        </div>
+                {/* Card footer */}
+                <div className="px-5 py-4 flex items-center justify-between bg-surface">
+                  <h3 className="text-lg font-bold text-primary">{card.title}</h3>
+                  <span className="px-5 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:opacity-90 group-hover:shadow-md transition-all duration-150">
+                    View now
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
       </div>
     </section>

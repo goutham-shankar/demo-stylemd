@@ -2,11 +2,11 @@
 
 export default function IntegrationLogos() {
   const logos = [
-    { name: "Replit", src: "/logos/Replit--Streamline-Svg-Logos.svg" },
-    { name: "Claude", src: "/logos/claude 1.svg" },
-    { name: "Lovable", src: "/logos/logoblack 1.svg" },
-    { name: "Base44", src: "/logos/Base44-logo_brandlogos.net_1a9f67 1.svg" },
-    { name: "Emergent", src: "/logos/emergent-logo-new 1.svg" },
+    { name: "Replit", src: "/logos/Replit--Streamline-Svg-Logos.svg", w: 48, h: 48 },
+    { name: "Claude", src: "/logos/claude 1.svg", w: 128, h: 40 },
+    { name: "Lovable", src: "/logos/logoblack 1.svg", w: 128, h: 40 },
+    { name: "Base44", src: "/logos/Base44-logo_brandlogos.net_1a9f67 1.svg", w: 128, h: 40 },
+    { name: "Emergent", src: "/logos/emergent-logo-new 1.svg", w: 128, h: 40 },
   ];
 
   return (
@@ -20,15 +20,19 @@ export default function IntegrationLogos() {
         </div>
 
         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
-          {logos.map((logo, idx) => (
-            <div key={idx} className="flex flex-col items-center gap-3">
-       <div>
-                <img
-                  src={logo.src}
-                  alt={logo.name}
-                  className="w-full h-full object-contain"
-                />
-              </div>
+          {logos.map((logo) => (
+            <div
+              key={logo.name}
+              className="flex items-center justify-center"
+              style={{ width: logo.w, height: logo.h }}
+            >
+              <img
+                src={logo.src}
+                alt={logo.name}
+                width={logo.w}
+                height={logo.h}
+                className="max-w-full max-h-full object-contain"
+              />
             </div>
           ))}
         </div>

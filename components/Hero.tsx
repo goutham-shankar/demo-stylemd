@@ -98,6 +98,10 @@ export default function Hero() {
   const [logoIdx, setLogoIdx] = useState(0);
 
   useEffect(() => {
+    // Respect user's reduced-motion preference
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mediaQuery.matches) return;
+
     const interval = setInterval(() => {
       setLogoIdx((idx) => (idx + 1) % svgLogos.length);
     }, 1200);
@@ -108,9 +112,10 @@ export default function Hero() {
     <>
       <section
         className="relative bg-page flex flex-col items-center justify-center overflow-visible"
-        style={{ height: "360px" }}
+        style={{ minHeight: "360px" }}
       >
-        <div className="absolute inset-0 pointer-events-none z-30">
+        {/* Floating logos hidden on mobile to avoid overlap with heading text */}
+        <div className="absolute inset-0 pointer-events-none z-30 hidden md:block">
           {leftLogos.map((logo, i) => (
             <FloatingLogoLeft key={`l${i}`} {...logo} />
           ))}
@@ -128,7 +133,7 @@ export default function Hero() {
             >
               <img
                 src={svgLogos[logoIdx]}
-                alt="Logo"
+                alt="AI tool"
                 className="rounded-xl inline-block transition-all duration-700 align-middle object-contain"
                 style={{ border: "none", height: "100%", width: "auto", maxHeight: "none" }}
               />
@@ -180,7 +185,7 @@ export default function Hero() {
             aria-label="Select from a catalog of 100+ curated styles"
           >
             <div className="flex items-start justify-start">
-              <img src="/cardplaceholder.svg" alt="Catalog preview" className="object-contain rounded-lg" />
+              <img src="/cardplaceholder.svg" alt="Catalog preview" width={120} height={160} className="object-contain rounded-lg" />
             </div>
             <div className="flex items-start justify-start pt-1">
               <h3 className="heading-h3 font-bold text-primary leading-snug text-left">

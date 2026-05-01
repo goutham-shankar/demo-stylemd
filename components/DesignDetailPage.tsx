@@ -150,28 +150,79 @@ function WebsitePreview({ card }: { card: DesignCard }) {
 /* ------------------------------------------------------------------ */
 export default function DesignDetailPage({ card }: DesignDetailPageProps) {
   const [activeTab, setActiveTab] = useState<"preview" | "code">("preview");
+  const [copied, setCopied] = useState(false);
   const router = useRouter();
+
+  const generateMarkdown = () =>
+    `# ${card.name} Design System\n\n## Overview\n${card.desc}\n\n## Colors\n${card.palette
+      .map((p, i) => `- **D${i + 1} ${p.name}**: ${p.hex}`)
+      .join("\n")}\n\n## Typography\n${card.fonts
+      .map((f) => `- **${f.name}**: ${f.role}`)
+      .join("\n")}\n\n## Buttons\n- Primary: ${card.accentColor}\n- Secondary: border-gray-300\n\n## Spacing\n- Base rhythm: 4px\n- Gap: 8px\n- Section: 32px\n`;
+
+  const handleCopy = async () => {
+    const content = generateMarkdown();
+    try {
+      await navigator.clipboard.writeText(content);
+    } catch {
+      // Fallback for browsers without clipboard API
+      const el = document.createElement("textarea");
+      el.value = content;
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    const content = generateMarkdown();
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${card.id}-design.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/styles");
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-page">
       {/* Top bar */}
       <div className="sticky top-0 z-10 flex items-center justify-between border-b border-medium bg-surface px-6 py-3">
         <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 rounded-lg border border-medium bg-surface px-3 py-1.5 text-sm font-medium text-primary hover:bg-surface-soft"
+          onClick={handleBack}
+          className="flex items-center gap-2 rounded-lg border border-medium bg-surface px-3 py-1.5 text-sm font-medium text-primary hover:bg-surface-soft cursor-pointer"
           type="button"
         >
           <ArrowLeft size={14} /> Back
         </button>
         <div className="flex gap-2">
           <button
-            className="flex items-center gap-2 rounded-lg border border-medium bg-surface px-4 py-1.5 text-sm font-medium text-primary hover:bg-surface-soft"
+            onClick={handleCopy}
+            className="flex items-center gap-2 rounded-lg border border-medium bg-surface px-4 py-1.5 text-sm font-medium text-primary hover:bg-surface-soft cursor-pointer transition-colors duration-150"
             type="button"
           >
-            <Copy size={13} /> Copy DESIGN.md
+            {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
+            {copied ? "Copied!" : "Copy DESIGN.md"}
           </button>
           <button
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white"
+            onClick={handleDownload}
+            className="flex items-center gap-2 rounded-lg bg-cta px-4 py-1.5 text-sm font-semibold text-white hover:opacity-90 cursor-pointer transition-all duration-150"
             type="button"
           >
             <Download size={13} /> Download
@@ -182,7 +233,7 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
       {/* Body — exact 50/50 split */}
       <div className="grid flex-1 md:grid-cols-[40%_60%]">
         {/* Left sidebar — 50% */}
-        <div className="sticky top-[53px] hidden h-[calc(100vh-53px)] border-r border-medium md:block">
+        <div className="sticky top-16 hidden h-[calc(100vh-4rem)] border-r border-medium md:block">
           <WebsitePreview card={card} />
         </div>
 
@@ -217,7 +268,7 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
               {card.desc}
             </p>
 
-            <div className="flex gap-0 rounded-[12px] border border-medium bg-surface-soft p-1 w-[370px] h-[64px] items-center mx-auto backdrop-blur-sm">
+            <div className="flex gap-0 rounded-[12px] border border-medium bg-surface-soft p-1 w-full max-w-[370px] h-[64px] items-center mx-auto backdrop-blur-sm">
               <button
                 onClick={() => setActiveTab("preview")}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
@@ -356,8 +407,15 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
                         <h3 className="text-base font-bold tracking-tight text-primary">Icons</h3>
                       </div>
                       <div className="flex flex-col gap-3">
-                        <span className="inline-block w-fit rounded-lg border border-pink-200 bg-pink-50 px-4 py-2 text-base font-black text-pink-600">
-                          Klarna.
+                        <span
+                          className="inline-block w-fit rounded-lg border px-4 py-2 text-base font-black"
+                          style={{
+                            background: card.accentColor + "18",
+                            borderColor: card.accentColor + "40",
+                            color: card.accentColor,
+                          }}
+                        >
+                          {card.name}
                         </span>
                         <div className="flex gap-2">
                           <span className="flex items-center gap-1.5 rounded-full border border-medium bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white">

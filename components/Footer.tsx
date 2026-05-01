@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Footer() {
   // partner logos removed per request
@@ -25,9 +26,9 @@ export default function Footer() {
           <nav aria-label="Footer product links">
             <h4 className="font-bold mb-6 text-primary text-base font-funnel">Product</h4>
             <ul className="space-y-3 text-tertiary text-small">
-              <li><a href="#" className="hover:text-primary transition-colors duration-150">How it Works</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-150">Library</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-150">Generate</a></li>
+              <li><Link href="/#how-it-works" className="hover:text-primary transition-colors duration-150">How it Works</Link></li>
+              <li><Link href="/styles" className="hover:text-primary transition-colors duration-150">Library</Link></li>
+              <li><Link href="/#generate" className="hover:text-primary transition-colors duration-150">Generate</Link></li>
             </ul>
           </nav>
 
@@ -35,9 +36,9 @@ export default function Footer() {
           <nav aria-label="Footer resources links">
             <h4 className="font-bold mb-6 text-primary text-base font-funnel">Resources</h4>
             <ul className="space-y-3 text-tertiary text-small">
-              <li><a href="#" className="hover:text-primary transition-colors duration-150">Docs</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-150">Blog</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-150">FAQs</a></li>
+              <li><Link href="/docs" className="hover:text-primary transition-colors duration-150">Docs</Link></li>
+              <li><Link href="/blog" className="hover:text-primary transition-colors duration-150">Blog</Link></li>
+              <li><Link href="/#faqs" className="hover:text-primary transition-colors duration-150">FAQs</Link></li>
             </ul>
           </nav>
 
@@ -45,9 +46,9 @@ export default function Footer() {
           <nav aria-label="Footer company links">
             <h4 className="font-bold mb-6 text-primary text-base font-funnel">Company</h4>
             <ul className="space-y-3 text-tertiary text-small">
-              <li><a href="#" className="hover:text-primary transition-colors duration-150">About</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-150">Contact</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors duration-150">Privacy</a></li>
+              <li><Link href="/#about" className="hover:text-primary transition-colors duration-150">About</Link></li>
+              <li><Link href="/contact" className="hover:text-primary transition-colors duration-150">Contact</Link></li>
+              <li><Link href="/privacy" className="hover:text-primary transition-colors duration-150">Privacy</Link></li>
             </ul>
           </nav>
         </div>
