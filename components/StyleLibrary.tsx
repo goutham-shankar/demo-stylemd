@@ -9,7 +9,6 @@ type Card = {
   slug: string;
   category: string;
   trending: boolean;
-  cardBg: string;
   preview: React.ReactNode;
 };
 
@@ -26,7 +25,6 @@ export default function StyleLibrary() {
       slug: "figma",
       category: "saas",
       trending: true,
-      cardBg: "bg-[#c4a8e0]",
       preview: (
         <div className="h-full flex items-center justify-center gap-4 bg-[#c4a8e0]">
           <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center">
@@ -47,7 +45,6 @@ export default function StyleLibrary() {
       slug: "supabase",
       category: "saas",
       trending: true,
-      cardBg: "bg-[#111]",
       preview: (
         <div className="h-full flex flex-col items-center justify-center bg-[#111] text-center px-4">
           <div className="flex items-center gap-1.5 mb-3">
@@ -64,7 +61,6 @@ export default function StyleLibrary() {
       slug: "linear",
       category: "saas",
       trending: false,
-      cardBg: "bg-[#1a1a2e]",
       preview: (
         <div className="h-full flex items-center justify-center gap-3 bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
           <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
@@ -84,7 +80,6 @@ export default function StyleLibrary() {
       slug: "notion",
       category: "saas",
       trending: false,
-      cardBg: "bg-[#1b1f3b]",
       preview: (
         <div className="h-full relative flex flex-col items-center justify-center bg-[#1b1f3b] overflow-hidden px-4">
           <div className="absolute inset-0 opacity-30">
@@ -113,7 +108,6 @@ export default function StyleLibrary() {
       slug: "snapchat",
       category: "consumer",
       trending: false,
-      cardBg: "bg-[#FFFC00]",
       preview: (
         <div className="h-full flex items-center justify-center bg-[#FFFC00]">
           <svg width="80" height="80" viewBox="0 0 24 24" fill="black">
@@ -127,7 +121,6 @@ export default function StyleLibrary() {
       slug: "lovable",
       category: "saas",
       trending: true,
-      cardBg: "bg-gradient-to-br from-[#1a0533] via-[#3d1063] to-[#ff6b9d]",
       preview: (
         <div className="h-full flex flex-col items-start justify-center px-5 bg-gradient-to-br from-[#1a0533] via-[#3d1063] to-[#e040a0] relative overflow-hidden">
           <div className="mb-2 flex items-center gap-2">
@@ -149,7 +142,6 @@ export default function StyleLibrary() {
       slug: "firebase",
       category: "saas",
       trending: false,
-      cardBg: "bg-cta",
       preview: (
         <div className="h-full flex items-center justify-center bg-cta gap-3">
           <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
@@ -167,7 +159,6 @@ export default function StyleLibrary() {
       slug: "shopify",
       category: "ecommerce",
       trending: false,
-      cardBg: "bg-[#96bf48]",
       preview: (
         <div className="h-full flex items-center justify-center bg-[#96bf48] gap-3">
           <svg width="44" height="44" viewBox="0 0 109 124" fill="white">
@@ -182,7 +173,6 @@ export default function StyleLibrary() {
       slug: "stripe",
       category: "fintech",
       trending: true,
-      cardBg: "bg-[#635bff]",
       preview: (
         <div className="h-full flex items-center justify-center bg-gradient-to-br from-[#635bff] to-[#8b5cf6] gap-3">
           <svg width="44" height="44" viewBox="0 0 60 25" fill="white">

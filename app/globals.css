@@ -1,4 +1,5 @@
 @import "./fonts-funnel.css";
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap');
 
 /* Magnetik Font Family - Local */
 @font-face {
@@ -165,11 +166,10 @@
     border-color: var(--cta);
   }
 }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap');
 
 :root {
   /* Neutrals & Surfaces */
@@ -286,19 +286,6 @@ body {
     border-color: var(--border-dark);
   }
 
-  /* CTA Utilities */
-  .bg-cta {
-    background-color: var(--cta);
-  }
-
-  .text-cta {
-    color: var(--cta);
-  }
-
-  .border-cta {
-    border-color: var(--cta);
-  }
-
   /* Spacing & Layout */
   .section-padding {
     @apply py-12 md:py-16;
@@ -306,7 +293,8 @@ body {
 
   /* Typography Components */
   .heading-h1 {
-    @apply text-5xl md:text-6xl font-bold leading-tight tracking-normal;
+    @apply text-5xl font-bold leading-tight tracking-normal;
+    font-size: 60px;
     font-family: 'Magnetik', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
     color: var(--text-primary);
   }

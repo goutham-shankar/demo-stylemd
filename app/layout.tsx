@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "DesignProbe - Design Makeover for Lovable",
@@ -23,9 +21,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#f6f8fa" />
       </head>
       <body>
-        <Navbar />
-        <div className="pt-16">{children}</div>
-        <Footer/>
+        {children}
       </body>
     </html>
   );

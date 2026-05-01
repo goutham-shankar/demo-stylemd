@@ -13,12 +13,12 @@ export type DesignCard = {
 
 export const designCards: DesignCard[] = [
   {
-    url: "/levain",
-    heroHeadline: "Levain Bakery Design System",
+    url: "",
+    heroHeadline: "Mother's Day is coming!",
     id: "levain",
     name: "Levain Bakery",
-    logo: "L",
-    accentColor: "#2d2bb5",
+    logo: "/styles/levian/Rectangle 921377.svg",
+    accentColor: "#e8006f",
     tags: [
       { label: "D2C", color: "bg-blue-50 text-blue-700 border-blue-200" },
       { label: "Vibrant", color: "bg-purple-50 text-purple-700 border-purple-200" },
@@ -26,16 +26,16 @@ export const designCards: DesignCard[] = [
       { label: "Vintage", color: "bg-green-50 text-green-700 border-green-200" },
     ],
     desc:
-      "Design system built around minimalism and modularity, using a clean, almost monochromatic palette with subtle greys, crisp typography, and generous whitespace to keep the focus on content.",
+      "Design system built around minimalism and modularity, using a clean, almost monochromatic palette with subtle greys, crisp typography (often their custom Inter-based font), and generous whitespace to keep the focus on content.",
     fonts: [
       { name: "Platform", sample: "Aa Bb", role: "HEADING SYSTEM", dark: true },
       { name: "National", sample: "Aa Bb", role: "BODY SYSTEM", dark: false },
     ],
     palette: [
-      { name: "Primary", hex: "#000000", swatches: ["#f5f5f5", "#e0e0e0", "#bdbdbd", "#9e9e9e", "#757575", "#616161", "#424242", "#212121", "#000000"] },
-      { name: "Secondary", hex: "#ff1fa0", swatches: ["#fce4ec", "#f8bbd0", "#f48fb1", "#f06292", "#ec407a", "#e91e63", "#c2185b", "#880e4f", "#ff1fa0"] },
-      { name: "Tertiary", hex: "#2d2bb5", swatches: ["#e8eaf6", "#c5cae9", "#9fa8da", "#7986cb", "#5c6bc0", "#3f51b5", "#3949ab", "#2d2bb5", "#1a178a"] },
-      { name: "Neutral", hex: "#f9c74f", swatches: ["#fffde7", "#fff9c4", "#fff59d", "#fff176", "#ffee58", "#ffeb3b", "#fdd835", "#f9c74f", "#c8a200"] },
+      { name: "Primary", hex: "#000000", swatches: ["#fafafa", "#f5f5f5", "#e0e0e0", "#bdbdbd", "#9e9e9e", "#757575", "#616161", "#424242", "#212121", "#000000"] },
+      { name: "Secondary", hex: "#e8006f", swatches: ["#fff0f5", "#fce4ec", "#f8bbd0", "#f48fb1", "#f06292", "#ec407a", "#e91e63", "#c2185b", "#880e4f", "#e8006f"] },
+      { name: "Tertiary", hex: "#2d2bb5", swatches: ["#f5f5ff", "#e8eaf6", "#c5cae9", "#9fa8da", "#7986cb", "#5c6bc0", "#3f51b5", "#3949ab", "#2d2bb5", "#1a178a"] },
+      { name: "Neutral", hex: "#f9c74f", swatches: ["#fffef5", "#fffde7", "#fff9c4", "#fff59d", "#fff176", "#ffee58", "#ffeb3b", "#fdd835", "#f9c74f", "#c8a200"] },
     ],
   },
   {

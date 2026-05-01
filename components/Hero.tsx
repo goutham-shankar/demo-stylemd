@@ -140,12 +140,13 @@ export default function Hero() {
             </span>{" "}
             <br/>project a design makeover
           </h1>
-          <p className="text-base md:text-lg text-secondary mb-2 font-manrope font-medium">
+          <p className="text-base md:text-lg mb-2 font-manrope font-medium" style={{ color: "#616161" }}>
             A plug-and-play Design.md file to elevate your project's design
           </p>
           <Link
             href="#"
-            className="text-sm md:text-base text-secondary font-manrope underline inline-block font-semibold"
+            className="text-sm md:text-base font-manrope underline inline-block font-semibold"
+            style={{ color: "#616161" }}
           >
             See how it works
           </Link>

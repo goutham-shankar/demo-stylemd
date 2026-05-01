@@ -57,7 +57,7 @@ export default function Navbar() {
             <Link
               key={l.label}
               href={l.href}
-              className="text-sm font-medium text-muted hover:text-primary transition-colors duration-150 font-manrope"
+              className="text-sm font-medium text-secondary hover:text-primary transition-colors duration-150 font-manrope"
             >
               {l.label}
             </Link>
@@ -106,7 +106,7 @@ export default function Navbar() {
               key={l.label}
               href={l.href}
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-muted hover:text-primary transition-colors duration-150"
+              className="block text-sm font-medium text-secondary hover:text-primary transition-colors duration-150"
             >
               {l.label}
             </Link>

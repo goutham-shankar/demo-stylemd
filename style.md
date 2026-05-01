@@ -23,18 +23,37 @@
 
 ## Typography
 
-### Font Family
-- **Primary Font**: `Inter` / `system-ui` - Clean, modern sans-serif
-- **Font Weights**: 400 (Regular), 600 (Semibold), 700 (Bold), 800 (Extrabold)
+### Font Families
+- **Headings (H1, H2, H3)**: `Magnetik` - Bold, modern display font
+- **Body Text**: `Manrope` - Clean, readable sans-serif
+- **Brand/Navigation**: `Funnel Display` - Display font for branding
+
+### Font Weights
+- **100**: Thin
+- **200**: ExtraLight
+- **300**: Light
+- **400**: Regular
+- **500**: Medium
+- **600**: SemiBold
+- **700**: Bold
+- **800**: ExtraBold
+- **900**: Heavy
 
 ### Heading Styles
-- **H1 (Hero Title)**: 56px, 700 (bold), line-height: 1.2, letter-spacing: -0.02em
-  - Text: "Give your Lovable project a design makeover"
-- **H2 (Section Title)**: 32px, 700 (bold), line-height: 1.3
+- **H1 (Hero Title)** (`.heading-h1`): 60px, 700 (bold), line-height: tight, Magnetik font
+  - Text: "Give your AI tool project a design makeover"
+- **H2 (Section Title)** (`.heading-h2`): 30px (mobile) → 36px (md), 700 (bold), line-height: tight, Magnetik font
   - Text: "Style Library"
-- **H3 (Card Title)**: 18px, 700 (bold)
-- **Body**: 14px-16px, 400 (regular), line-height: 1.5
-- **Small Text**: 12px, 400 (regular), color: `#666666`
+- **H3 (Card Title)** (`.heading-h3`): 18px (mobile) → 20px (md), 700 (bold), Magnetik font
+
+### Body Styles
+- **text-body**: 16px (mobile) → 18px (md), 400 (regular), line-height: relaxed, Manrope font, muted color
+- **text-small**: 14px, 400 (regular), line-height: default, Manrope font, tertiary text color
+
+### Utility Font Classes
+- `.font-funnel`: Funnel Display font for branding elements (logo, section headers)
+- `.font-manrope`: Manrope font for body text and links
+- `.font-magnetik`: Magnetik font for general utility
 
 ## Layout & Spacing
 

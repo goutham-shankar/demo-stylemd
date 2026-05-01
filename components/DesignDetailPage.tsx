@@ -19,7 +19,6 @@ import {
   Square,
   Ruler,
   Layers,
-  Play,
 } from "lucide-react";
 import type { DesignCard } from "@/lib/design-cards";
 
@@ -30,6 +29,13 @@ type DesignDetailPageProps = {
 /* ------------------------------------------------------------------ */
 /*  Left panel — website preview                                        */
 /* ------------------------------------------------------------------ */
+const PRODUCT_IMAGES = [
+  { src: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=200&h=140&fit=crop&q=80", label: "Spring Garden Party Assortment" },
+  { src: "https://images.unsplash.com/photo-1548365328-8c6db3220e4c?w=200&h=140&fit=crop&q=80", label: "Mother's Day Tin Gift Set" },
+  { src: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=200&h=140&fit=crop&q=80", label: "Signature Cookie Assortment" },
+  { src: "https://images.unsplash.com/photo-1621943670494-69cd74a00b8a?w=200&h=140&fit=crop&q=80", label: "Order Same-Day Delivery" },
+];
+
 function WebsitePreview({ card }: { card: DesignCard }) {
   return (
     <div className="flex h-full flex-col overflow-hidden bg-page">
@@ -55,34 +61,36 @@ function WebsitePreview({ card }: { card: DesignCard }) {
                 className="flex flex-shrink-0 items-center justify-between px-4 py-2"
                 style={{ background: card.accentColor }}
               >
-                <span className="text-[8px] font-semibold tracking-widest text-white/80">
-                  COOKIES &amp; GIFTS &nbsp; ORDER &nbsp; BAKERIES
+                <span className="text-[7px] font-semibold tracking-widest text-white/80 uppercase">
+                  Cookies &amp; Gifts &nbsp;·&nbsp; Order &nbsp;·&nbsp; Bakeries
                 </span>
-                <span className="text-[11px] font-black italic text-white">{card.name}</span>
+                <span className="text-[11px] font-black italic text-white">{card.name.split(" ")[0].toLowerCase()}</span>
                 <span className="text-[9px] text-white/70">👤 🛒</span>
               </div>
 
               {/* Hero */}
               <div
-                className="relative flex flex-shrink-0 items-center justify-between gap-2 overflow-hidden px-5 py-5"
-                style={{ background: card.accentColor + "12" }}
+                className="relative flex flex-shrink-0 items-center gap-3 overflow-hidden px-4 py-4"
+                style={{ background: card.accentColor + "10" }}
               >
-                <div
-                  className="h-28 w-32 flex-shrink-0 rounded-lg"
-                  style={{ background: card.accentColor + "30" }}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=250&h=200&fit=crop&q=80"
+                  alt="Gift box"
+                  className="h-24 w-28 flex-shrink-0 rounded-lg object-cover"
                 />
-                <div className="flex-1 text-center">
+                <div className="flex-1">
                   <h3
-                    className="mb-1 text-base font-black leading-tight"
+                    className="mb-1 text-sm font-black leading-tight"
                     style={{ color: card.accentColor }}
                   >
-                    {card.heroHeadline ?? "Mother's Day is coming!"}
+                    {card.heroHeadline}
                   </h3>
-                  <p className="mb-3 text-[9px] text-secondary">
-                    Hint: we're fairly confident she'd rather have cookies than carnations
+                  <p className="mb-2.5 text-[8px] leading-relaxed text-secondary">
+                    Hint: we&apos;re fairly confident she&apos;d rather have cookies than carnations
                   </p>
                   <button
-                    className="rounded-lg px-3 py-1.5 text-[9px] font-bold text-white"
+                    className="rounded-md px-3 py-1 text-[8px] font-bold text-white"
                     style={{ background: card.accentColor }}
                     type="button"
                   >
@@ -91,28 +99,30 @@ function WebsitePreview({ card }: { card: DesignCard }) {
                 </div>
               </div>
 
-              {/* Strip */}
-              <div className="flex flex-shrink-0 items-center gap-3 overflow-hidden border-y border-light px-3 py-1.5">
-                {["🏙 Made in NYC", "🍪 Baked Fresh Daily", "📦 Shipped Same-Day", "❤️ 30 Years"].map((t) => (
-                  <span key={t} className="flex-shrink-0 text-[7px] text-secondary">{t}</span>
+              {/* Info strip */}
+              <div className="flex flex-shrink-0 items-center justify-around border-y border-light bg-amber-50 px-2 py-1">
+                {["🏙 Made in NYC", "🍪 Baked Fresh Daily", "📦 Same-Day", "❤️ 30 Yrs"].map((t) => (
+                  <span key={t} className="flex-shrink-0 text-[6.5px] font-medium text-amber-800">{t}</span>
                 ))}
               </div>
 
               {/* Products */}
-              <div className="flex-1 overflow-hidden p-3">
+              <div className="flex-1 overflow-hidden bg-white p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-[9px] font-bold text-primary">Shop Fan Favorites</span>
-                  <span className="text-[7px] text-secondary">SHOP ALL →</span>
+                  <span className="text-[7px] font-semibold text-secondary">SHOP ALL →</span>
                 </div>
                 <div className="grid grid-cols-4 gap-1.5">
-                  {(card.palette ?? []).slice(0, 4).map((p, i) => (
+                  {PRODUCT_IMAGES.map((product, i) => (
                     <div key={i} className="flex flex-col gap-1">
-                      <div
-                        className="h-14 w-full rounded-md"
-                        style={{ background: p.swatches?.[3] ?? card.accentColor + "40" }}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={product.src}
+                        alt={product.label}
+                        className="h-14 w-full rounded-md object-cover"
                       />
-                      <p className="text-[7px] font-semibold leading-tight text-primary">
-                        {p.name} Collection
+                      <p className="text-[6.5px] font-semibold leading-tight text-primary">
+                        {product.label}
                       </p>
                     </div>
                   ))}
@@ -120,20 +130,19 @@ function WebsitePreview({ card }: { card: DesignCard }) {
               </div>
 
               {/* Bottom banner */}
-              <div
-                className="flex flex-shrink-0 items-center gap-3 px-4 py-4"
-                style={{ background: card.palette?.[0]?.swatches?.[1] ?? "#e8eeff" }}
-              >
-                <div
-                  className="h-16 w-16 flex-shrink-0 rounded-lg"
-                  style={{ background: card.accentColor + "40" }}
+              <div className="flex flex-shrink-0 items-center gap-3 px-4 py-3 bg-[#1a1a2e]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=200&h=150&fit=crop&q=80"
+                  alt="Cookies"
+                  className="h-14 w-14 flex-shrink-0 rounded-lg object-cover"
                 />
                 <div>
-                  <h4 className="mb-1 text-sm font-black text-primary">
+                  <h4 className="mb-0.5 text-xs font-black leading-tight" style={{ color: card.accentColor }}>
                     Big Cookies Baked in the Big Apple
                   </h4>
-                  <p className="text-[8px] leading-relaxed text-secondary">
-                    We've proudly baked our cookies daily since 1995 with simple ingredients and a lotta love.
+                  <p className="text-[7px] leading-relaxed text-gray-400">
+                    Proudly baked daily since 1995 with simple ingredients and a lotta love.
                   </p>
                 </div>
               </div>
@@ -206,7 +215,7 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
       <div className="sticky top-0 z-10 flex items-center justify-between border-b border-medium bg-surface px-6 py-3">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 rounded-lg border border-medium bg-surface px-3 py-1.5 text-sm font-medium text-primary hover:bg-surface-soft cursor-pointer"
+          className="flex items-center gap-2 rounded-lg bg-gray-900 border border-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 cursor-pointer transition-colors duration-150"
           type="button"
         >
           <ArrowLeft size={14} /> Back
@@ -222,7 +231,7 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
           </button>
           <button
             onClick={handleDownload}
-            className="flex items-center gap-2 rounded-lg bg-cta px-4 py-1.5 text-sm font-semibold text-white hover:opacity-90 cursor-pointer transition-all duration-150"
+            className="flex items-center gap-2 rounded-lg bg-gray-900 border border-gray-900 px-4 py-1.5 text-sm font-semibold text-white hover:bg-gray-800 cursor-pointer transition-colors duration-150"
             type="button"
           >
             <Download size={13} /> Download
@@ -246,7 +255,12 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
                 className="flex h-[60px] w-[60px] items-center justify-center rounded-[7.2px] text-lg font-black text-white"
                 style={{ background: card.accentColor }}
               >
-                {card.logo}
+                {typeof card.logo === "string" && card.logo.startsWith("/") ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={card.logo} alt={card.name} className="w-9 h-9 object-contain" />
+                ) : (
+                  card.logo
+                )}
               </div>
               <h1 className="text-3xl font-black tracking-tight text-primary">
                 {card.name}
@@ -268,24 +282,24 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
               {card.desc}
             </p>
 
-            <div className="flex gap-0 rounded-[12px] border border-medium bg-surface-soft p-1 w-full max-w-[370px] h-[64px] items-center mx-auto backdrop-blur-sm">
+            <div className="inline-flex gap-0 rounded-[12px] border border-medium bg-surface-soft p-1 h-[48px] items-center">
               <button
                 onClick={() => setActiveTab("preview")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition-all whitespace-nowrap ${
                   activeTab === "preview"
                     ? "bg-accent-blue text-white shadow-md"
-                    : "bg-surface text-secondary hover:text-primary"
+                    : "text-secondary hover:text-primary"
                 }`}
                 type="button"
               >
-                <Play size={14} /> Live Preview
+                <Monitor size={14} /> Live Preview
               </button>
               <button
                 onClick={() => setActiveTab("code")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition-all whitespace-nowrap ${
                   activeTab === "code"
                     ? "bg-accent-blue text-white shadow-md"
-                    : "bg-surface text-secondary hover:text-primary"
+                    : "text-secondary hover:text-primary"
                 }`}
                 type="button"
               >
@@ -323,8 +337,8 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
                           <p className={`mb-2 text-[9px] font-semibold uppercase tracking-wider ${font.dark ? "text-blue-100" : "text-secondary"}`}>
                             {font.name}
                           </p>
-                          <p className={`text-6xl font-black tracking-tight leading-tight ${font.dark ? "text-white" : "text-primary"}`}>
-                            Aa Bb
+                          <p className={`font-black tracking-tight leading-tight ${font.dark ? "text-white text-6xl" : "text-primary text-7xl"}`}>
+                            {font.sample}
                           </p>
                         </div>
                         <div>
@@ -375,59 +389,60 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
 
               {/* Buttons & Icons */}
               <section className="rounded-2xl border border-light bg-surface p-8">
-                <div className="mb-8">
-                  <div className="mb-6 flex items-center gap-2">
+                {/* Side-by-side section headers */}
+                <div className="mb-6 grid grid-cols-2 gap-8">
+                  <div className="flex items-center gap-2">
                     <MousePointerClick size={14} className="text-secondary" />
                     <h2 className="text-lg font-bold tracking-tight text-primary">Buttons</h2>
                   </div>
-                  <div className="grid grid-cols-2 gap-8">
-                    <div>
-                      <div className="flex flex-col gap-3 mb-4">
-                        <button
-                          className="flex w-fit items-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold text-white"
-                          style={{ background: card.accentColor }}
-                          type="button"
-                        >
-                          <ArrowLeft size={13} /> Primary <ArrowRight size={13} />
-                        </button>
-                        <button
-                          className="flex w-fit items-center gap-2 rounded-lg border border-medium px-5 py-3 text-sm font-medium text-primary"
-                          type="button"
-                        >
-                          <ArrowLeft size={13} /> Secondary <ArrowRight size={13} />
-                        </button>
-                      </div>
-                      <p className="text-sm leading-relaxed text-secondary">
-                        Anchor interactions to the detected button styles. Reuse existing card surfaces.
-                      </p>
+                  <div className="flex items-center gap-2">
+                    <Square size={14} className="text-secondary" />
+                    <h3 className="text-lg font-bold tracking-tight text-primary">Icons</h3>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-8">
+                  <div>
+                    <div className="flex flex-col gap-3 mb-4">
+                      <button
+                        className="flex w-fit items-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold text-white"
+                        style={{ background: card.accentColor }}
+                        type="button"
+                      >
+                        <ArrowLeft size={13} /> Primary <ArrowRight size={13} />
+                      </button>
+                      <button
+                        className="flex w-fit items-center gap-2 rounded-lg border border-medium px-5 py-3 text-sm font-medium text-primary"
+                        type="button"
+                      >
+                        <ArrowLeft size={13} /> Secondary <ArrowRight size={13} />
+                      </button>
                     </div>
-                    <div>
-                      <div className="mb-6 flex items-center gap-2">
-                        <Square size={14} className="text-secondary" />
-                        <h3 className="text-base font-bold tracking-tight text-primary">Icons</h3>
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        <span
-                          className="inline-block w-fit rounded-lg border px-4 py-2 text-base font-black"
-                          style={{
-                            background: card.accentColor + "18",
-                            borderColor: card.accentColor + "40",
-                            color: card.accentColor,
-                          }}
-                        >
-                          {card.name}
+                    <p className="text-sm leading-relaxed text-secondary">
+                      Anchor interactions to the detected button styles. Reuse existing card surfaces.
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex flex-col gap-3 mb-4">
+                      <span
+                        className="inline-block w-fit rounded-full border px-4 py-2 text-base font-black"
+                        style={{
+                          background: card.accentColor + "18",
+                          borderColor: card.accentColor + "40",
+                          color: card.accentColor,
+                        }}
+                      >
+                        {card.name}
+                      </span>
+                      <div className="flex gap-2">
+                        <span className="flex items-center gap-1.5 rounded-full border border-medium bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white">
+                          <Apple size={14} /> Apple
                         </span>
-                        <div className="flex gap-2">
-                          <span className="flex items-center gap-1.5 rounded-full border border-medium bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white">
-                            <Apple size={14} /> Apple
-                          </span>
-                          <span className="flex items-center justify-center rounded-full border border-medium bg-surface-soft px-3 py-1.5 text-primary">
-                            <Bell size={14} />
-                          </span>
-                        </div>
+                        <span className="flex items-center justify-center rounded-full border border-medium bg-surface-soft px-3 py-1.5 text-primary">
+                          <Bell size={14} />
+                        </span>
                       </div>
-                      <span className="mt-4 inline-block rounded bg-blue-100 px-2 py-1 text-[8px] font-bold text-blue-600">SOLAR</span>
                     </div>
+                    <span className="inline-block rounded bg-blue-100 px-2 py-1 text-[8px] font-bold text-blue-600">SOLAR</span>
                   </div>
                 </div>
               </section>
@@ -444,7 +459,7 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
                     { label: "GAP", sublabel: "COMPONENTS", value: "8px" },
                     { label: "SECTION", sublabel: "PAGE", value: "32px" },
                   ].map((item) => (
-                    <div key={item.label} className="rounded-lg bg-gradient-to-br from-blue-50 to-white border border-blue-100 p-4">
+                    <div key={item.label} className="rounded-lg bg-surface border border-light p-4">
                       <p className="text-[7px] font-semibold uppercase tracking-wider text-secondary mb-2">{item.label}</p>
                       <p className="mb-1 text-4xl font-black text-accent-blue">{item.value}</p>
                       <p className="text-[8px] text-secondary">{item.sublabel}</p>
