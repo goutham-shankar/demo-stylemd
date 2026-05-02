@@ -91,7 +91,7 @@ const svgLogos = [
   //"/logos/Replit--Streamline-Svg-Logos.svg",
   "/logos/emergent-logo-new 1.svg",
   "/logos/Base44-logo_brandlogos.net_1a9f67 1.svg",
-  "/logos/logoblack 1.svg",
+  "/logos/lovable.svg",
 ];
 
 export default function Hero() {
