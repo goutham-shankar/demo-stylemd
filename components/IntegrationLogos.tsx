@@ -10,7 +10,7 @@ export default function IntegrationLogos() {
   ];
 
   return (
-    <section className="py-12 md:py-8 bg-paper">
+    <section className="py-12 md:py-8" style={{ backgroundColor: "#f6f8fa" }}>
       <div className="container-custom">
         <div className="text-center mb-8">
           <p className="text-secondary text-sm md:text-base font-bold tracking-[0.18em] uppercase inline-flex items-center justify-center gap-2">
