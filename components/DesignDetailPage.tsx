@@ -262,9 +262,9 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
                   card.logo
                 )}
               </div>
-              <h1 className="text-3xl font-black tracking-tight text-primary">
-                {card.name}
-              </h1>
+               <h1 className="heading-h2 tracking-tight">
+                 {card.name}
+               </h1>
             </div>
 
             <div className="mb-3 flex flex-wrap gap-2">
@@ -317,7 +317,7 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
                   {/* Left: Title & Description */}
                   <div className="bg-surface p-8 flex flex-col justify-between">
                     <div>
-                      <h2 className="mb-3 text-2xl font-black tracking-tight text-primary">Typography</h2>
+                      <h2 className="heading-h3 mb-3 tracking-tight">Typography</h2>
                       <p className="mb-4 text-sm leading-relaxed text-secondary">A composed hierarchy for page storytelling</p>
                       <p className="text-xs leading-relaxed text-secondary">Orchestrate Systems Intelligently. Used for secondary heading moments and supporting display contrasts. Used for summarizing...</p>
                     </div>
@@ -333,10 +333,10 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
                         }`}
                         style={{ background: font.dark ? "#1067FE" : "#DFE9FA" }}
                       >
-                        <div>
-                          <p className={`mb-2 text-[9px] font-semibold uppercase tracking-wider ${font.dark ? "text-blue-100" : "text-secondary"}`}>
-                            {font.name}
-                          </p>
+                         <div>
+                           <p className={`mb-2 text-2xs uppercase tracking-wider ${font.dark ? "text-blue-100" : "text-secondary"}`}>
+                             {font.name}
+                           </p>
                           <p className={`font-black tracking-tight leading-tight ${font.dark ? "text-white text-6xl" : "text-primary text-7xl"}`}>
                             {font.sample}
                           </p>
@@ -366,19 +366,19 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
               {/* Color Palette */}
               <section className="overflow-hidden rounded-2xl bg-[#0d0d1a] p-8">
                 <div className="mb-3 grid grid-cols-[90px_repeat(10,1fr)] gap-1 text-center">
-                  <div />
-                  {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"].map((s) => (
-                    <div key={s} className="text-[8px] font-semibold text-secondary">{s}</div>
-                  ))}
+                   <div />
+                   {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"].map((s) => (
+                     <div key={s} className="text-2xs">{s}</div>
+                   ))}
                 </div>
                 {card.palette.map((palette, index) => (
                   <div key={palette.name} className="mb-4">
                     <div className="grid grid-cols-[90px_repeat(10,1fr)] items-center gap-1">
                       <div>
-                        <p className="text-[9px] font-semibold text-secondary">D{index + 1}</p>
-                        <p className="text-[10px] font-bold text-white">{palette.name}</p>
-                        <p className="font-mono text-[8px] text-secondary">{palette.hex}</p>
-                      </div>
+                         <p className="text-2xs text-secondary">D{index + 1}</p>
+                         <p className="text-xs font-bold text-white">{palette.name}</p>
+                         <p className="font-mono text-2xs text-secondary">{palette.hex}</p>
+                       </div>
                       {palette.swatches.map((swatch, i) => (
                         <div key={i} className="h-9 rounded-sm" style={{ background: swatch }} />
                       ))}
@@ -391,15 +391,15 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
               <section className="rounded-2xl border border-light bg-surface p-8">
                 {/* Side-by-side section headers */}
                 <div className="mb-6 grid grid-cols-2 gap-8">
-                  <div className="flex items-center gap-2">
-                    <MousePointerClick size={14} className="text-secondary" />
-                    <h2 className="text-lg font-bold tracking-tight text-primary">Buttons</h2>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Square size={14} className="text-secondary" />
-                    <h3 className="text-lg font-bold tracking-tight text-primary">Icons</h3>
-                  </div>
-                </div>
+                   <div className="flex items-center gap-2">
+                     <MousePointerClick size={14} className="text-secondary" />
+                     <h2 className="heading-h4 tracking-tight">Buttons</h2>
+                   </div>
+                   <div className="flex items-center gap-2">
+                     <Square size={14} className="text-secondary" />
+                     <h3 className="heading-h4 tracking-tight">Icons</h3>
+                   </div>
+                 </div>
                 <div className="grid grid-cols-2 gap-8">
                   <div>
                     <div className="flex flex-col gap-3 mb-4">
@@ -450,69 +450,69 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
               {/* Spacing */}
               <section className="rounded-2xl border border-light bg-surface p-8">
                 <div className="mb-6 flex items-center gap-2">
-                  <Ruler size={14} className="text-secondary" />
-                  <h2 className="text-lg font-bold tracking-tight text-primary">Spacing</h2>
-                </div>
+                   <Ruler size={14} className="text-secondary" />
+                   <h2 className="heading-h4 tracking-tight">Spacing</h2>
+                 </div>
                 <div className="mb-8 grid grid-cols-3 gap-4">
-                  {[
-                    { label: "BASE", sublabel: "RHYTHM", value: "4px" },
-                    { label: "GAP", sublabel: "COMPONENTS", value: "8px" },
-                    { label: "SECTION", sublabel: "PAGE", value: "32px" },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-lg bg-surface border border-light p-4">
-                      <p className="text-[7px] font-semibold uppercase tracking-wider text-secondary mb-2">{item.label}</p>
-                      <p className="mb-1 text-4xl font-black text-accent-blue">{item.value}</p>
-                      <p className="text-[8px] text-secondary">{item.sublabel}</p>
-                    </div>
-                  ))}
+                   {[
+                     { label: "BASE", sublabel: "RHYTHM", value: "4px" },
+                     { label: "GAP", sublabel: "COMPONENTS", value: "8px" },
+                     { label: "SECTION", sublabel: "PAGE", value: "32px" },
+                   ].map((item) => (
+                     <div key={item.label} className="rounded-lg bg-surface border border-light p-4">
+                       <p className="text-3xs uppercase tracking-wider text-secondary mb-2">{item.label}</p>
+                       <p className="mb-1 text-4xl font-bold text-accent-blue">{item.value}</p>
+                       <p className="text-2xs text-secondary">{item.sublabel}</p>
+                     </div>
+                   ))}
                 </div>
                 <div className="mb-6 space-y-2">
-                  {[
-                    { label: "STEP 1", pct: "20%", value: "4px" },
-                    { label: "STEP 2", pct: "40%", value: "8px" },
-                    { label: "STEP 3", pct: "60%", value: "12px" },
-                    { label: "STEP 4", pct: "80%", value: "14px" },
-                  ].map((step) => (
-                    <div key={step.label} className="flex items-center gap-3">
-                      <span className="w-12 text-[8px] font-semibold text-secondary">{step.label}</span>
+                   {[
+                     { label: "STEP 1", pct: "20%", value: "4px" },
+                     { label: "STEP 2", pct: "40%", value: "8px" },
+                     { label: "STEP 3", pct: "60%", value: "12px" },
+                     { label: "STEP 4", pct: "80%", value: "14px" },
+                   ].map((step) => (
+                     <div key={step.label} className="flex items-center gap-3">
+                       <span className="w-12 text-2xs text-secondary">{step.label}</span>
                       <div className="flex-1 rounded-full bg-surface-soft">
                         <div className="h-2 rounded-full bg-accent-blue" style={{ width: step.pct }} />
                       </div>
-                      <span className="w-8 text-right text-[8px] text-secondary">{step.value}</span>
+                       <span className="w-8 text-right text-2xs text-secondary">{step.value}</span>
                     </div>
                   ))}
                 </div>
-                <p className="mb-3 text-[8px] font-semibold uppercase tracking-wider text-secondary">BASE RHYTHM: 4PX</p>
-                <div className="flex flex-wrap gap-4">
-                  <p className="text-[8px] text-secondary">SECTION PADDING: 32PX, 56PX</p>
-                  <p className="text-[8px] text-secondary">CARD PADDING: 32PX, 56PX</p>
-                  <p className="text-[8px] text-secondary">GAPS: 8PX, 32PX</p>
-                </div>
+                 <p className="mb-3 text-2xs uppercase tracking-wider text-secondary">BASE RHYTHM: 4PX</p>
+                 <div className="flex flex-wrap gap-4">
+                   <p className="text-2xs text-secondary">SECTION PADDING: 32PX, 56PX</p>
+                   <p className="text-2xs text-secondary">CARD PADDING: 32PX, 56PX</p>
+                   <p className="text-2xs text-secondary">GAPS: 8PX, 32PX</p>
+                 </div>
               </section>
 
               {/* Elevation & Depth */}
               <section className="rounded-2xl border border-light bg-surface p-8">
                 <div className="mb-6 flex items-center gap-2">
-                  <Layers size={14} className="text-secondary" />
-                  <h2 className="text-lg font-bold tracking-tight text-primary">Elevation &amp; Depth</h2>
-                </div>
+                   <Layers size={14} className="text-secondary" />
+                   <h2 className="heading-h4 tracking-tight">Elevation &amp; Depth</h2>
+                 </div>
                 <p className="mb-6 max-w-lg text-sm leading-relaxed text-secondary">
                   Depth is communicated through glass, border, contrast, and reusable shadow or blur treatments. Keep those recipes consistent across hero panels, cards, and controls so the page reads as one material system.
                 </p>
                 <div className="mb-6 divide-y divide-light rounded-lg border border-light overflow-hidden">
-                  <div className="flex items-center gap-4 px-5 py-4">
-                    <span className="w-20 text-[8px] font-semibold uppercase tracking-wider text-secondary">SURFACE</span>
-                    <span className="text-sm font-semibold text-primary">Glass</span>
-                  </div>
-                  <div className="flex items-center gap-4 px-5 py-4">
-                    <span className="w-20 text-[8px] font-semibold uppercase tracking-wider text-secondary">BORDER</span>
-                    <span className="font-mono text-xs text-primary">1px #FFFFFF</span>
-                  </div>
-                  <div className="flex items-start gap-4 px-5 py-4">
-                    <span className="w-20 flex-shrink-0 text-[8px] font-semibold uppercase tracking-wider text-secondary">SHADOW</span>
-                    <span className="font-mono text-xs text-primary">rgba(25, 28, 33, 0.02) 0px 1px 0px...</span>
-                  </div>
-                </div>
+                   <div className="flex items-center gap-4 px-5 py-4">
+                     <span className="w-20 text-2xs uppercase tracking-wider text-secondary">SURFACE</span>
+                     <span className="text-sm font-semibold text-primary">Glass</span>
+                   </div>
+                   <div className="flex items-center gap-4 px-5 py-4">
+                     <span className="w-20 text-2xs uppercase tracking-wider text-secondary">BORDER</span>
+                     <span className="font-mono text-xs text-primary">1px #FFFFFF</span>
+                   </div>
+                   <div className="flex items-start gap-4 px-5 py-4">
+                     <span className="w-20 flex-shrink-0 text-2xs uppercase tracking-wider text-secondary">SHADOW</span>
+                     <span className="font-mono text-xs text-primary">rgba(25, 28, 33, 0.02) 0px 1px 0px...</span>
+                   </div>
+                 </div>
                 <div className="flex flex-wrap gap-2">
                   {["GLASS", "1PX #FFFFFF", "rgba(0, 0, 0) 0px...", "rgba(25, 28, 33, 0.08) 0px..."].map((tag) => (
                     <span key={tag} className="rounded bg-surface-soft px-2.5 py-1.5 font-mono text-[8px] text-secondary">{tag}</span>
@@ -523,9 +523,9 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
               {/* Shapes */}
               <section className="rounded-2xl border border-light bg-surface p-8">
                 <div className="mb-6 flex items-center gap-2">
-                  <Square size={14} className="text-secondary" />
-                  <h2 className="text-lg font-bold tracking-tight text-primary">Shapes</h2>
-                </div>
+                   <Square size={14} className="text-secondary" />
+                   <h2 className="heading-h4 tracking-tight">Shapes</h2>
+                 </div>
                 <div className="grid grid-cols-2 gap-8">
                   <div>
                     <p className="mb-4 text-sm leading-relaxed text-secondary">
@@ -550,22 +550,22 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
               {/* Motion */}
               <section className="rounded-2xl border border-light bg-surface p-8">
                 <div className="mb-6 flex items-center gap-2">
-                  <Clock size={14} className="text-secondary" />
-                  <h2 className="text-lg font-bold tracking-tight text-primary">Motion</h2>
-                </div>
+                   <Clock size={14} className="text-secondary" />
+                   <h2 className="heading-h4 tracking-tight">Motion</h2>
+                 </div>
                 <div className="mb-6 flex flex-wrap gap-2">
                   {["150MS", "200MS", "EASE", "CUBIC-BEZIER(0.4..."].map((tag) => (
                     <span key={tag} className="rounded bg-blue-100 px-2 py-1 text-[8px] font-bold text-blue-600">{tag}</span>
                   ))}
                 </div>
                 <div className="mb-6 space-y-2">
-                  {[
-                    { label: "TEXT", pct: "40%" },
-                    { label: "COLOR", pct: "60%" },
-                    { label: "STROKE", pct: "50%" },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-3">
-                      <span className="w-14 text-[8px] font-semibold text-secondary">{item.label}</span>
+                   {[
+                     { label: "TEXT", pct: "40%" },
+                     { label: "COLOR", pct: "60%" },
+                     { label: "STROKE", pct: "50%" },
+                   ].map((item) => (
+                     <div key={item.label} className="flex items-center gap-3">
+                       <span className="w-14 text-2xs text-secondary">{item.label}</span>
                       <div className="flex-1 rounded-full bg-surface-soft">
                         <div className="h-2 rounded-full bg-accent-blue" style={{ width: item.pct }} />
                       </div>
@@ -573,12 +573,12 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  {[["STEP 1", "150ms"], ["STEP 2", "200ms"]].map(([step, val]) => (
-                    <div key={step} className="rounded-lg border border-light bg-surface-soft p-4">
-                      <p className="mb-2 text-[8px] font-semibold text-secondary">{step}</p>
-                      <p className="text-2xl font-black text-primary">{val}</p>
-                    </div>
-                  ))}
+                   {[["STEP 1", "150ms"], ["STEP 2", "200ms"]].map(([step, val]) => (
+                     <div key={step} className="rounded-lg border border-light bg-surface-soft p-4">
+                       <p className="mb-2 text-2xs text-secondary">{step}</p>
+                       <p className="text-2xl font-bold text-primary">{val}</p>
+                     </div>
+                   ))}
                 </div>
                 <span className="mt-4 inline-block rounded bg-blue-100 px-2 py-1 text-[8px] font-bold text-blue-600">MODERATE</span>
               </section>
@@ -586,9 +586,9 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
               {/* Do's and Don'ts */}
               <section className="rounded-2xl border border-light bg-surface p-8">
                 <div className="mb-6 flex items-center gap-2">
-                  <AlertCircle size={14} className="text-secondary" />
-                  <h2 className="text-lg font-bold tracking-tight text-primary">Do&apos;s and Don&apos;ts</h2>
-                </div>
+                   <AlertCircle size={14} className="text-secondary" />
+                   <h2 className="heading-h4 tracking-tight">Do&apos;s and Don&apos;ts</h2>
+                 </div>
                 <p className="mb-6 max-w-lg text-sm leading-relaxed text-secondary">
                   Use these constraints to keep future generations aligned with the current system instead of drifting into adjacent styles.
                 </p>
@@ -596,32 +596,32 @@ export default function DesignDetailPage({ card }: DesignDetailPageProps) {
                   <div>
                     <span className="mb-4 inline-block rounded px-3 py-1.5 bg-blue-100 text-[8px] font-bold text-accent-blue uppercase tracking-wider">✓ Do</span>
                     <div className="space-y-3">
-                      {[
-                        "Use the primary palette as the main accent for emphasis and action states.",
-                        "Keep spacing aligned to the detected 4px rhythm.",
-                        "Reuse the Glass surface treatment consistently across cards and controls.",
-                        "Keep corner radii within the detected 2px, 4px, 20px, 9999px family.",
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-2.5">
-                          <Check size={13} className="mt-0.5 flex-shrink-0 text-accent-blue" />
-                          <p className="text-[10px] leading-relaxed text-secondary">{item}</p>
-                        </div>
-                      ))}
+                       {[
+                         "Use the primary palette as the main accent for emphasis and action states.",
+                         "Keep spacing aligned to the detected 4px rhythm.",
+                         "Reuse the Glass surface treatment consistently across cards and controls.",
+                         "Keep corner radii within the detected 2px, 4px, 20px, 9999px family.",
+                       ].map((item, i) => (
+                         <div key={i} className="flex items-start gap-2.5">
+                           <Check size={13} className="mt-0.5 flex-shrink-0 text-accent-blue" />
+                           <p className="text-xs leading-relaxed text-secondary">{item}</p>
+                         </div>
+                       ))}
                     </div>
                   </div>
                   <div>
                     <span className="mb-4 inline-block rounded px-3 py-1.5 bg-red-100 text-[8px] font-bold text-red-600 uppercase tracking-wider">✕ Don&apos;t</span>
                     <div className="space-y-3">
-                      {[
-                        "Do not introduce extra accent colors outside the core palette roles unless...",
-                        "Do not mix unrelated shadow or blur recipes that break the current depth...",
-                        "Do not exceed the detected moderate motion intensity without a deliberate...",
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-2.5">
-                          <X size={13} className="mt-0.5 flex-shrink-0 text-red-500" />
-                          <p className="text-[10px] leading-relaxed text-secondary">{item}</p>
-                        </div>
-                      ))}
+                       {[
+                         "Do not introduce extra accent colors outside the core palette roles unless...",
+                         "Do not mix unrelated shadow or blur recipes that break the current depth...",
+                         "Do not exceed the detected moderate motion intensity without a deliberate...",
+                       ].map((item, i) => (
+                         <div key={i} className="flex items-start gap-2.5">
+                           <X size={13} className="mt-0.5 flex-shrink-0 text-red-500" />
+                           <p className="text-xs leading-relaxed text-secondary">{item}</p>
+                         </div>
+                       ))}
                     </div>
                   </div>
                 </div>
