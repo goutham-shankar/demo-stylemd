@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback } from "react";
 const navLinks = [
   { label: "How it Works", href: "/#how-it-works" },
   { label: "Style Library", href: "/styles" },
-  { label: "Generate", href: "/#generate" },
+  { label: "Generate", href: "/generate" },
   { label: "FAQs", href: "/#faqs" },
   { label: "About", href: "/#about" },
 ];
