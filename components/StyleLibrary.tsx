@@ -1,8 +1,105 @@
 "use client";
 
+import React, { useState } from "react";
 import { Search } from "lucide-react";
-import { useState } from "react";
 import Link from "next/link";
+import { useSSE } from "@/lib/sse-context";
+import type { RunSummary } from "@/lib/api-types";
+
+// ── Recent Runs Grid ──────────────────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: RunSummary["status"] }) {
+  const map: Record<string, string> = {
+    running: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    completed: "bg-green-50 text-green-700 border-green-200",
+    failed: "bg-red-50 text-red-700 border-red-200",
+    pending: "bg-gray-50 text-gray-600 border-gray-200",
+  };
+  return (
+    <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold font-manrope border ${map[status] ?? map.pending}`}>
+      {status}
+    </span>
+  );
+}
+
+function RunCard({ run, onView }: { run: RunSummary; onView: (id: string) => void }) {
+  let hostname = run.url;
+  try { hostname = new URL(run.url).hostname; } catch { /* leave as-is */ }
+
+  const dateStr = new Date(run.createdAt).toLocaleDateString(undefined, {
+    month: "short", day: "numeric", year: "numeric",
+  });
+
+  const isClickable = run.status === "completed";
+
+  return (
+    <div
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={() => isClickable && onView(run.slug || run.id)}
+      onKeyDown={(e) => e.key === "Enter" && isClickable && onView(run.slug || run.id)}
+      className={`group overflow-hidden border border-light bg-surface shadow-sm transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${
+        isClickable ? "hover:border-dark hover:shadow-md cursor-pointer" : "cursor-default opacity-80"
+      }`}
+      style={{ borderRadius: 16 }}
+      aria-label={isClickable ? `View result for ${hostname}` : undefined}
+    >
+      {/* Thumbnail */}
+      <div className="h-32 bg-page flex items-center justify-center overflow-hidden relative">
+        {run.status === "running" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-page/80 z-10">
+            <span className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }} />
+          </div>
+        )}
+        <div
+          className="w-full h-full flex items-center justify-center text-4xl font-bold font-magnetik text-secondary/30 uppercase select-none"
+          style={{ letterSpacing: "0.05em" }}
+        >
+          {hostname.replace("www.", "").slice(0, 2)}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-3 flex items-center justify-between bg-surface gap-2">
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-primary font-manrope truncate">{hostname}</p>
+          <p className="text-xs text-secondary font-manrope">{dateStr}</p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <StatusBadge status={run.status} />
+          {isClickable && (
+            <span className="px-3 py-1.5 rounded-[10px] text-white font-semibold text-xs shadow-sm group-hover:opacity-90 group-hover:shadow-md transition-all duration-150"
+              style={{ backgroundColor: "var(--cta)" }}>
+              View
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RecentRuns() {
+  const { runs, viewRun } = useSSE();
+
+  if (runs.length === 0) return null;
+
+  return (
+    <section className="pb-8 bg-page">
+      <div className="container-custom max-w-6xl mx-auto px-6">
+        <h2 className="heading-h2 text-primary mb-6">Recent Runs</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {runs.map((run) => (
+            <RunCard key={run.id} run={run} onView={viewRun} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Catalog Library ───────────────────────────────────────────────────────────
 
 type Card = {
   title: string;
@@ -66,8 +163,7 @@ export default function StyleLibrary() {
           <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
             <path
               d="M1.22541 61.5228c-.2225-.9485.90748-1.5459 1.59638-.857l36.3024 36.3024c.6889.6889.0915 1.8189-.857 1.5964C20.0515 94.0514 5.9486 79.9485 1.22541 61.5228zM.00189135 46.8891c-.01764375.2652.08641935.5244.28127.7073l52.1148 52.1148c.1829.1949.4421.2989.7073.2813C74.2964 97.8443 97.8443 74.2964 99.7924 47.1124c.0177-.2652-.0864-.5244-.2813-.7073L47.3963.281271c-.1829-.194937-.4421-.298983-.7073-.281271C20.0515 2.15568-2.15568 20.0515.00189135 46.8891z"
-              fill="white"
-              opacity=".4"
+              fill="white" opacity=".4"
             />
             <path d="M4.83896 78.9088L78.9088 4.83896c8.5657 5.50186 15.6845 13.04654 20.4821 22.05974L26.9685 99.3911C17.9553 94.5935 10.3407 87.4746 4.83896 78.9088z" fill="white"/>
           </svg>
@@ -183,7 +279,6 @@ export default function StyleLibrary() {
     },
   ];
 
-  // Filter by tab and search query
   const filteredCards = cards.filter((card) => {
     const matchesSearch =
       !searchQuery || card.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -195,99 +290,95 @@ export default function StyleLibrary() {
   });
 
   return (
-    <section className="py-12 md:py-16 bg-page">
-      <div className="container-custom max-w-6xl mx-auto px-6">
+    <>
+      {/* Recent API runs (if any) */}
+      <RecentRuns />
 
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
-          <div>
-            <h2 className="heading-h2 text-primary">Style Library</h2>
+      {/* Catalog */}
+      <section className="py-12 md:py-16 bg-page">
+        <div className="container-custom max-w-6xl mx-auto px-6">
+
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
+            <div>
+              <h2 className="heading-h2 text-primary">Style Library</h2>
+            </div>
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-4 top-3 text-secondary" size={18} aria-hidden />
+              <input
+                type="search"
+                aria-label="Search styles"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-2.5 bg-surface border border-medium rounded-[10px] text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light"
+              />
+            </div>
           </div>
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-4 top-3 text-secondary" size={18} aria-hidden />
-            <input
-              type="search"
-              aria-label="Search styles"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-2.5 bg-surface border border-medium rounded-[10px] text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light"
-            />
+
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+            <div className="flex items-center gap-2 bg-surface border border-medium rounded-[12px] p-1">
+              {leftTabs.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab.toLowerCase())}
+                  aria-pressed={activeTab === tab.toLowerCase()}
+                  className={`px-5 py-1.5 rounded-[12px] text-sm font-semibold transition-all duration-150 ${
+                    activeTab === tab.toLowerCase() ? "bg-cta text-white" : "text-muted hover:bg-[#f7f4ee]"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {rightTabs.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab.toLowerCase())}
+                  aria-pressed={activeTab === tab.toLowerCase()}
+                  className={`px-4 py-1.5 text-sm font-semibold transition-all border rounded-[10px] ${
+                    activeTab === tab.toLowerCase()
+                      ? "bg-cta text-white border-transparent"
+                      : "bg-surface text-muted border-medium hover:bg-[#f7f4ee]"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {filteredCards.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <p className="text-lg font-semibold text-primary mb-2">No styles found</p>
+              <p className="text-sm text-secondary">Try a different search term or filter.</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCards.map((card) => (
+                <Link
+                  key={card.title}
+                  href={`/styles/${card.slug}`}
+                  className="group block overflow-hidden border border-light bg-surface shadow-sm hover:border-dark hover:shadow-md transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
+                  style={{ borderRadius: 16 }}
+                >
+                  <div className="h-48 overflow-hidden">{card.preview}</div>
+                  <div className="px-5 py-4 flex items-center justify-between bg-surface">
+                    <h3 className="text-lg font-bold text-primary">{card.title}</h3>
+                    <span className="px-5 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:opacity-90 group-hover:shadow-md transition-all duration-150">
+                      View now
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
         </div>
-
-        {/* Tabs */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-          <div className="flex items-center gap-2 bg-surface border border-medium rounded-[12px] p-1">
-            {leftTabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab.toLowerCase())}
-                aria-pressed={activeTab === tab.toLowerCase()}
-                className={`px-5 py-1.5 rounded-[12px] text-sm font-semibold transition-all duration-150 ${
-                  activeTab === tab.toLowerCase() ? "bg-cta text-white" : "text-muted hover:bg-surface-soft"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {rightTabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab.toLowerCase())}
-                aria-pressed={activeTab === tab.toLowerCase()}
-                className={`px-4 py-1.5 text-sm font-semibold transition-all border rounded-[10px] ${
-                  activeTab === tab.toLowerCase()
-                    ? "bg-cta text-white border-transparent"
-                    : "bg-surface text-muted border-medium hover:bg-surface-soft"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Cards Grid */}
-        {filteredCards.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-lg font-semibold text-primary mb-2">No styles found</p>
-            <p className="text-sm text-secondary">
-              Try a different search term or filter.
-            </p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCards.map((card) => (
-              <Link
-                key={card.title}
-                href={`/styles/${card.slug}`}
-                className="group block overflow-hidden border border-light bg-surface shadow-sm hover:border-dark hover:shadow-md transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{ borderRadius: 16 }}
-              >
-                {/* Preview area */}
-                <div className="h-48 overflow-hidden">
-                  {card.preview}
-                </div>
-
-                {/* Card footer */}
-                <div className="px-5 py-4 flex items-center justify-between bg-surface">
-                  <h3 className="text-lg font-bold text-primary">{card.title}</h3>
-                  <span className="px-5 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:opacity-90 group-hover:shadow-md transition-all duration-150">
-                    View now
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

@@ -1,7 +1,5 @@
 "use client";
 
-import { Scale } from "lucide-react";
-
 export default function IntegrationLogos() {
   const logos = [
     { name: "Replit", src: "/logos/Replit--Streamline-Svg-Logos.svg", w: 128, h: 100 , Scale: 1},
