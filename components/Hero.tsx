@@ -155,7 +155,7 @@ export default function Hero() {
 
       {/* Cards outside section — logos cannot reach */}
       <div className="bg-page w-full px-4 pb-10 pt-3">
-        <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
           <div className="bg-surface rounded-2xl p-5 border border-medium shadow-sm h-[200px] flex flex-col">
             <h3 className="heading-h3 font-bold text-primary mb-4 leading-snug text-left">
               Start with a<br />reference website
