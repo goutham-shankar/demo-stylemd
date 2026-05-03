@@ -31,23 +31,44 @@ export interface RunSummary {
   createdAt: string;
 }
 
-/** Row from `GET /api/scraped-data` (subset used by the UI). */
+/**
+ * Row from the `scraped_data` MongoDB collection.
+ * Returned by GET /api/scrape or POST /api/scrape.
+ */
 export interface ScrapedDataRecord {
+  _id?: string;
   url: string;
-  images: string[];
   title?: string | null;
+  description?: string | null;
+  h1?: string | null;
+  canonical?: string | null;
+  images: string[];
+  contentText?: string | null;
+  rawHtml?: string | null;
+  /** base64 data:image/png;base64,... (900px wide preview) */
+  screenshot?: string | null;
+  /** server path e.g. /styleguide-files/<runId>/full_screenshot.png */
+  screenshotUrl?: string | null;
+  createdAt?: string;
 }
 
+/**
+ * Row from the `stylemd_runs` MongoDB collection.
+ * Returned by GET /api/stylemd/by-slug/:slug and POST /api/stylemd/run.
+ */
 export interface RunData {
+  _id?: string;
   url: string;
   slug: string;
   runId: string;
-  styleMd: string;
-  screenshot: string;
-  screenshotUrl?: string;
-  showcaseUrl?: string;
   provider: Provider;
   model: string;
+  styleMd: string;
+  /** base64 data:image/png;base64,... (900px wide) */
+  screenshot: string;
+  /** server path e.g. /styleguide-files/<runId>/full_screenshot.png */
+  screenshotUrl?: string;
+  showcaseUrl?: string;
   /** Mirrors `stylemd_runs.status` from the API. */
   status: RunStatus | string;
   createdAt: string;

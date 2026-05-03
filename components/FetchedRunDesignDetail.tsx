@@ -19,6 +19,7 @@ import { WebsitePreview } from "@/components/WebsitePreview";
 import { CatalogMainSections } from "@/components/CatalogMainSections";
 import type { DesignCard } from "@/lib/design-cards";
 import { isFixtureRunId } from "@/lib/fixture-runs";
+import type { StyleMdUiPayload } from "@/lib/stylemd-structured-view";
 
 function hostnameFromUrl(url?: string): string {
   if (!url) return "";
@@ -66,11 +67,17 @@ function resolvePageImageSrc(pageUrl: string, src: string): string {
 function DbCapturePreview({
   pageUrl,
   title,
+  description,
+  h1,
+  canonical,
   screenshotSrc,
   scrapedImages,
 }: {
   pageUrl: string;
   title: string;
+  description?: string | null;
+  h1?: string | null;
+  canonical?: string | null;
   screenshotSrc: string;
   scrapedImages: string[];
 }) {
@@ -85,7 +92,6 @@ function DbCapturePreview({
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {screenshotSrc ? (
               <div className="min-h-0 flex-1 overflow-auto bg-[#0f0f12] p-2">
-                {/* Full-page captures are very tall; width-fill + natural height avoids object-contain + max-h shrinking them to a thin strip. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={screenshotSrc}
@@ -93,6 +99,27 @@ function DbCapturePreview({
                   className="block h-auto w-full max-w-full rounded-lg shadow-sm"
                   decoding="async"
                 />
+              </div>
+            ) : null}
+
+            {/* Metadata strip */}
+            {(h1 || description || canonical) ? (
+              <div className="flex-shrink-0 border-t border-white bg-surface px-3 py-2 space-y-1">
+                {h1 && (
+                  <p className="text-[11px] font-semibold text-primary truncate font-manrope">
+                    {h1}
+                  </p>
+                )}
+                {description && (
+                  <p className="text-[11px] text-secondary line-clamp-2 font-manrope">
+                    {description}
+                  </p>
+                )}
+                {canonical && (
+                  <p className="text-[10px] text-blue-500 truncate font-manrope">
+                    {canonical}
+                  </p>
+                )}
               </div>
             ) : null}
 
@@ -130,12 +157,15 @@ function DbCapturePreview({
   );
 }
 
+
 export type FetchedRunDesignDetailProps = {
   run: RunData;
   isGenerating: boolean;
   onBack: () => void;
   onRunAgain?: () => void;
   isRunBusy?: boolean;
+  useDynamicUITemplate?: boolean;
+  templateRunId?: string;
 };
 
 export function FetchedRunDesignDetail({
@@ -144,11 +174,24 @@ export function FetchedRunDesignDetail({
   onBack,
   onRunAgain,
   isRunBusy,
+  useDynamicUITemplate = false,
+  templateRunId = "levainbakery-2",
 }: FetchedRunDesignDetailProps) {
   const [tab, setTab] = useState<"stylemd" | "source" | "showcase">("stylemd");
   const [styleDocView, setStyleDocView] = useState<"live" | "designmd">("live");
   const [copied, setCopied] = useState(false);
   const [scrapedImages, setScrapedImages] = useState<string[]>([]);
+  const [scrapedMeta, setScrapedMeta] = useState<{
+    description?: string | null;
+    h1?: string | null;
+    canonical?: string | null;
+    screenshotSrc?: string;
+  }>({});
+  const [templateDesign, setTemplateDesign] = useState<{
+    card: DesignCard;
+    payload: StyleMdUiPayload;
+  } | null>(null);
+  const [templateLoading, setTemplateLoading] = useState(useDynamicUITemplate);
 
   const host = hostnameFromUrl(run.url ?? run.slug ?? run.runId ?? "");
   const initials = host.replace("www.", "").slice(0, 2).toUpperCase();
@@ -163,25 +206,178 @@ export function FetchedRunDesignDetail({
   useEffect(() => {
     if (!API_BASE || !run.url?.trim()) {
       setScrapedImages([]);
+      setScrapedMeta({});
       return;
     }
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/scraped-data`);
+        // GET /api/scrape?url=... returns the cached scrape doc
+        const encoded = encodeURIComponent(run.url);
+        const res = await fetch(`${API_BASE}/api/scrape?url=${encoded}`);
         if (!res.ok || cancelled) return;
-        const j = (await res.json()) as { ok?: boolean; data?: ScrapedDataRecord[] };
-        const rows = Array.isArray(j.data) ? j.data : [];
-        const row = rows.find((r) => samePageUrl(run.url, r.url));
-        if (!cancelled) setScrapedImages(row?.images ?? []);
+        const j = (await res.json()) as {
+          ok?: boolean;
+          data?: import("@/lib/api-types").ScrapedDataRecord;
+          // some backends return array shape
+          rows?: import("@/lib/api-types").ScrapedDataRecord[];
+        };
+        // Support both { data: doc } and { rows: [doc, ...] } shapes
+        let row: import("@/lib/api-types").ScrapedDataRecord | null = null;
+        if (j.data && typeof j.data === "object" && !Array.isArray(j.data)) {
+          row = j.data;
+        } else if (Array.isArray(j.rows)) {
+          row = j.rows.find((r) => samePageUrl(run.url, r.url)) ?? null;
+        }
+        if (!cancelled && row) {
+          setScrapedImages(row.images ?? []);
+          // Prefer the scrape doc's own screenshot over the run screenshot
+          const scrapedShot = row.screenshot?.trim() ?? "";
+          const scrapedShotUrl = row.screenshotUrl?.trim() ?? "";
+          const metaShot =
+            scrapedShot.startsWith("data:") || scrapedShot.startsWith("http")
+              ? scrapedShot
+              : scrapedShot && API_BASE
+                ? `${API_BASE}${scrapedShot.startsWith("/") ? "" : "/"}${scrapedShot}`
+                : scrapedShotUrl.startsWith("http")
+                  ? scrapedShotUrl
+                  : scrapedShotUrl && API_BASE
+                    ? `${API_BASE}${scrapedShotUrl.startsWith("/") ? "" : "/"}${scrapedShotUrl}`
+                    : "";
+          setScrapedMeta({
+            description: row.description,
+            h1: row.h1,
+            canonical: row.canonical,
+            screenshotSrc: metaShot || undefined,
+          });
+        }
       } catch {
-        if (!cancelled) setScrapedImages([]);
+        if (!cancelled) {
+          setScrapedImages([]);
+          setScrapedMeta({});
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [run.url]);
+
+
+  // Fetch template design - try API first, then fall back to static fixture
+  useEffect(() => {
+    if (!useDynamicUITemplate) {
+      setTemplateLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    // Try to load from fixture files (static assets) as fallback
+    const loadFromFixture = async (): Promise<RunData | null> => {
+      try {
+        const fixturePaths: Record<string, string> = {
+          "levainbakery-2": "/fixtures/stylemd/levainbakery-2-style.md",
+          "levainbakery": "/fixtures/stylemd/levainbakery-2-style.md",
+        };
+        const fixturePath = fixturePaths[templateRunId] || fixturePaths["levainbakery-2"];
+        
+        console.log(`[TEMPLATE] Trying static fixture: ${fixturePath}`);
+        
+        const response = await fetch(fixturePath, { cache: "force-cache" });
+        if (!response.ok) return null;
+        
+        const styleMd = await response.text();
+        if (!styleMd.trim()) return null;
+        
+        return {
+          url: "https://levainbakery.com/",
+          slug: templateRunId,
+          runId: `fixture-${templateRunId}`,
+          styleMd,
+          screenshot: "",
+          provider: "kimi",
+          model: "static-fixture",
+          status: "completed",
+          createdAt: new Date().toISOString(),
+        };
+      } catch {
+        return null;
+      }
+    };
+
+    (async () => {
+      try {
+        setTemplateLoading(true);
+        
+        console.log(`[TEMPLATE] Attempting to load template: ${templateRunId}`);
+        
+        // Try API first
+        let templateRun: RunData | null = null;
+        
+        if (API_BASE) {
+          try {
+            console.log(`[TEMPLATE] Trying API: ${API_BASE}/api/stylemd/by-slug/${encodeURIComponent(templateRunId)}`);
+            const apiResponse = await fetch(
+              `${API_BASE}/api/stylemd/by-slug/${encodeURIComponent(templateRunId)}`
+            );
+            
+            if (apiResponse.ok) {
+              const json = (await apiResponse.json()) as { ok?: boolean; data?: RunData };
+              if (json.ok && json.data) {
+                templateRun = json.data;
+                console.log(`[TEMPLATE] Found in database API`);
+              }
+            }
+          } catch (apiErr) {
+            console.log(`[TEMPLATE] API fetch failed:`, apiErr);
+          }
+        }
+
+        // If not found in API, try static fixture
+        if (!templateRun) {
+          console.log(`[TEMPLATE] Not in DB, trying static fixture...`);
+          templateRun = await loadFromFixture();
+        }
+
+        // If still no template, just skip template sidebar
+        if (!templateRun) {
+          console.log(`[TEMPLATE] No template found, displaying without template sidebar`);
+          if (!cancelled) setTemplateLoading(false);
+          return;
+        }
+
+        const parsedTemplate = extractStyleMdUi(templateRun.styleMd || "");
+        
+        if (!parsedTemplate.payload) {
+          console.log(`[TEMPLATE] Could not parse style.md`);
+          if (!cancelled) setTemplateLoading(false);
+          return;
+        }
+
+        const card = styleMdUiPayloadToDesignCard(parsedTemplate.payload, {
+          id: templateRunId,
+          url: templateRun.url || "",
+        });
+
+        console.log(`[TEMPLATE] Loaded successfully: ${parsedTemplate.payload.brand || "Unknown"}`);
+        
+        if (!cancelled) {
+          setTemplateDesign({ card, payload: parsedTemplate.payload });
+          setTemplateLoading(false);
+        }
+      } catch (err) {
+        console.error(`[TEMPLATE] Error:`, err);
+        if (!cancelled) {
+          setTemplateLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [useDynamicUITemplate, templateRunId]);
   const st = String(run.status ?? "");
 
   const isTerminalStatus =
@@ -227,6 +423,197 @@ export function FetchedRunDesignDetail({
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  // Render dynamic UI template if enabled and loaded
+  if (useDynamicUITemplate && templateLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-page">
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+            style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }}
+          />
+          <p className="text-sm text-secondary font-manrope">
+            Loading dynamic UI template…
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (useDynamicUITemplate && templateDesign) {
+    const { card: templateCard, payload: templatePayload } = templateDesign;
+    return (
+      <div className="flex min-h-screen flex-col bg-page">
+        {/* Header with Back and Actions */}
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-medium bg-[#F6F8FA] px-4 py-3 md:px-6">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 rounded-lg border border-gray-900 bg-gray-900 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-gray-800"
+            type="button"
+          >
+            <ArrowLeft size={14} /> Back
+          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleCopy}
+              disabled={!run.styleMd?.trim()}
+              className="flex items-center gap-2 rounded-lg border border-medium bg-surface px-4 py-1.5 text-sm font-medium text-primary transition-colors duration-150 hover:bg-surface-soft disabled:opacity-50"
+              type="button"
+            >
+              {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
+              {copied ? "Copied!" : "Copy style.md"}
+            </button>
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-2 rounded-lg border border-gray-900 bg-gray-900 px-4 py-1.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-gray-800"
+              type="button"
+            >
+              <Download size={13} /> Download
+            </button>
+          </div>
+        </div>
+
+        {/* Hero Section with Template Design */}
+        <div className="bg-surface border-b border-medium">
+          <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-black tracking-tight">
+                  {parsedStyle.payload?.brand || host || "Generated Design"}
+                </h1>
+                {parsedStyle.payload?.description && (
+                  <p className="mt-3 max-w-2xl text-base text-secondary leading-relaxed">
+                    {parsedStyle.payload.description}
+                  </p>
+                )}
+                {parsedStyle.payload?.tags?.length ? (
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {parsedStyle.payload.tags.map((tag) => {
+                      const label = typeof tag === "string" ? tag : tag.label;
+                      const accentColor = catalogCard?.accentColor ?? "#0a73eb";
+                      return (
+                        <span
+                          key={label}
+                          className="rounded-[16px] border px-3 py-1 text-xs font-medium"
+                          style={{
+                            borderColor: `${accentColor}55`,
+                            color: accentColor,
+                            backgroundColor: `${accentColor}14`,
+                          }}
+                        >
+                          {label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+              {catalogCard?.logo && (
+                <div
+                  className="flex h-32 w-32 flex-shrink-0 items-center justify-center rounded-[9px] text-lg font-black text-white overflow-hidden"
+                  style={{ backgroundColor: catalogCard?.accentColor ?? "var(--cta)" }}
+                >
+                  {catalogCard.logo.startsWith("/") || /^https?:/i.test(catalogCard.logo) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={catalogCard.logo} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-5xl">{catalogCard.logo}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content with Template Design System on Side */}
+        <div className="flex flex-1 flex-col lg:flex-row">
+          {/* Template Design System Reference - Sidebar */}
+          <aside className="hidden lg:flex lg:w-1/3 border-r border-medium overflow-y-auto bg-surface-soft flex-col">
+            <div className="sticky top-0 bg-surface-soft border-b border-medium p-6">
+              <h2 className="heading-h3 tracking-tight text-primary">
+                {templatePayload?.brand || "Design System Reference"}
+              </h2>
+            </div>
+            <div className="p-8 space-y-8 overflow-y-auto">
+              <CatalogMainSections card={templateCard} extras={templatePayload} />
+            </div>
+          </aside>
+
+          {/* Generated Page Content - Main */}
+          <main className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-12">
+            <div className="space-y-8 max-w-4xl">
+              {/* Style.md Display */}
+              <div className="space-y-4">
+                {!isGenerating && catalogCard && parsedStyle.payload ? (
+                  <>
+                    <div className="inline-flex h-[48px] flex-wrap items-center gap-0 rounded-[12px] border border-medium bg-surface-soft p-1">
+                      <button
+                        onClick={() => setStyleDocView("live")}
+                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all md:px-5 ${
+                          styleDocView === "live" ? "bg-accent-blue text-white shadow-md" : "text-secondary hover:text-primary"
+                        }`}
+                        type="button"
+                      >
+                        <Monitor size={14} /> Live Preview
+                      </button>
+                      <button
+                        onClick={() => setStyleDocView("designmd")}
+                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all md:px-5 ${
+                          styleDocView === "designmd" ? "bg-accent-blue text-white shadow-md" : "text-secondary hover:text-primary"
+                        }`}
+                        type="button"
+                      >
+                        <Code2 size={14} /> STYLE.md
+                      </button>
+                    </div>
+                    <div
+                      className="relative overflow-y-auto rounded-2xl border border-medium bg-transparent shadow-sm"
+                      style={{ maxHeight: "none" }}
+                    >
+                      {styleDocView === "live" ? (
+                        <CatalogMainSections card={catalogCard} extras={parsedStyle.payload} />
+                      ) : (
+                        <section className="rounded-2xl border border-medium bg-surface p-6">
+                          <pre className="overflow-x-auto rounded-xl bg-[#1a1a1a] p-5 font-mono text-xs leading-relaxed text-gray-100">
+                            {run.styleMd || ""}
+                          </pre>
+                        </section>
+                      )}
+                    </div>
+                  </>
+                ) : null}
+
+                {(!catalogCard || !parsedStyle.payload || isGenerating) && (
+                  <div
+                    className="relative overflow-y-auto rounded-2xl border border-medium bg-surface p-6 shadow-sm md:p-8"
+                    style={{ maxHeight: "70vh" }}
+                  >
+                    {isGenerating && (
+                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-surface/90 backdrop-blur-sm">
+                        <div
+                          className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+                          style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }}
+                        />
+                        <p className="px-4 text-center text-sm font-semibold text-secondary font-manrope">
+                          Generating style.md… This can take several minutes.
+                        </p>
+                      </div>
+                    )}
+                    {!isGenerating && !run.styleMd?.trim() && (
+                      <p className="text-sm text-secondary font-manrope">
+                        No style.md was produced for this run
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-page">
@@ -277,10 +664,14 @@ export function FetchedRunDesignDetail({
             <DbCapturePreview
               pageUrl={run.url}
               title={host}
-              screenshotSrc={screenshotSrc}
+              description={scrapedMeta.description}
+              h1={scrapedMeta.h1}
+              canonical={scrapedMeta.canonical}
+              screenshotSrc={scrapedMeta.screenshotSrc || screenshotSrc}
               scrapedImages={scrapedImages}
             />
           )}
+
         </div>
 
         <div className="overflow-y-auto px-4 py-6 pb-24 md:px-8 md:py-7">
@@ -292,10 +683,14 @@ export function FetchedRunDesignDetail({
                 <DbCapturePreview
                   pageUrl={run.url}
                   title={host}
-                  screenshotSrc={screenshotSrc}
+                  description={scrapedMeta.description}
+                  h1={scrapedMeta.h1}
+                  canonical={scrapedMeta.canonical}
+                  screenshotSrc={scrapedMeta.screenshotSrc || screenshotSrc}
                   scrapedImages={scrapedImages}
                 />
               )}
+
             </div>
           </div>
 

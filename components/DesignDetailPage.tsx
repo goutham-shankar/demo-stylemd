@@ -18,6 +18,8 @@ export type DesignDetailPageProps =
       onBack: () => void;
       onRunAgain?: () => void;
       isRunBusy?: boolean;
+      useDynamicUITemplate?: boolean;
+      templateRunId?: string;
     };
 
 export default function DesignDetailPage(props: DesignDetailPageProps) {
@@ -31,6 +33,8 @@ export default function DesignDetailPage(props: DesignDetailPageProps) {
       onBack={props.onBack}
       onRunAgain={props.onRunAgain}
       isRunBusy={props.isRunBusy}
+      useDynamicUITemplate={props.useDynamicUITemplate}
+      templateRunId={props.templateRunId}
     />
   );
 }

@@ -39,6 +39,8 @@ function FetchedResultView() {
       run={resultData}
       isGenerating={isGenerating}
       isRunBusy={isRunning && !isFixtureDemo}
+      useDynamicUITemplate={true}
+      templateRunId="levainbakery-2"
       onBack={() => {
         goHome();
         router.push("/");

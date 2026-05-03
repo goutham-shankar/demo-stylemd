@@ -54,7 +54,8 @@ function mapApiSummary(raw: Record<string, unknown>): RunSummary {
             ? "completed_with_warnings"
             : "completed";
   return {
-    id: String(raw.id ?? raw.runId ?? ""),
+    // prefer runId (business key) over MongoDB _id
+    id: String(raw.runId ?? raw.id ?? raw._id ?? ""),
     url: String(raw.url ?? ""),
     slug: String(raw.slug ?? ""),
     provider: (raw.provider as Provider) ?? "kimi",
@@ -68,6 +69,7 @@ function mapApiSummary(raw: Record<string, unknown>): RunSummary {
           : "",
   };
 }
+
 
 /** Keep polling until the run is no longer in-flight or we have markdown (or a terminal status). */
 function runNeedsPoll(d: RunData): boolean {
@@ -284,17 +286,28 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       if (!API_BASE) return;
       const res = await fetch(`${API_BASE}/api/stylemd/runs`);
       if (!res.ok) return;
-      const data = (await res.json()) as { ok?: boolean; summaries?: Record<string, unknown>[] };
-      if (data.ok && Array.isArray(data.summaries)) {
+      const data = (await res.json()) as {
+        ok?: boolean;
+        summaries?: Record<string, unknown>[];
+        data?: Record<string, unknown>[];
+      };
+      // Backend may return either { summaries: [...] } or { data: [...] }
+      const list = Array.isArray(data.summaries)
+        ? data.summaries
+        : Array.isArray(data.data)
+          ? data.data
+          : [];
+      if (list.length > 0 || data.ok) {
         dispatch({
           type: "SET_RUNS",
-          runs: data.summaries.map((s) => mapApiSummary(s)),
+          runs: list.map((s) => mapApiSummary(s)),
         });
       }
     } catch {
       // silently ignore; not critical
     }
   }, []);
+
 
   // SSE connection – defined once after mount
   useEffect(() => {
@@ -484,7 +497,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       });
 
       try {
-        const res = await fetch(`${API_BASE}/api/stylemd-artifacts/run`, {
+        const res = await fetch(`${API_BASE}/api/stylemd/run`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url, provider }),
@@ -571,12 +584,10 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const runAgain = useCallback(async () => {
     if (!state.resultData) return;
     const { url, provider } = state.resultData;
-    try {
-      await fetch(`${API_BASE}/api/stylemd`, { method: "DELETE" });
-    } catch { /* ignore */ }
     dispatch({ type: "GO_HOME" });
     await startRun(url, provider);
   }, [state.resultData, startRun]);
+
 
   const dismissNetworkError = useCallback(() => {
     dispatch({ type: "NETWORK_ERROR", error: null });
