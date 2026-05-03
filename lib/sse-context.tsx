@@ -380,15 +380,15 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
               };
 
               // Immediately show the result using data from the SSE event + activeRun.
-              // This ensures the result is visible even if the DB hasn't been updated yet.
+              // Use slug:"" so GeneratePageContent uses runId as the URL key — the
+              // backend's by-slug route can always resolve a runId, whereas a hostname
+              // slug (e.g. "levainbakery.com") won't match the DB slug ("levainbakery").
               const cur = activeRunRef.current;
               if (cur && data.styleMd) {
-                let slug = cur.url;
-                try { slug = new URL(cur.url).hostname; } catch { /* leave as-is */ }
                 finish({
                   runId,
                   url: cur.url,
-                  slug,
+                  slug: "",
                   styleMd: data.styleMd,
                   screenshot: "",
                   provider: cur.provider,

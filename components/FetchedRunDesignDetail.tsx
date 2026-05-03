@@ -18,6 +18,7 @@ import { styleMdUiPayloadToDesignCard } from "@/lib/stylemd-to-design-card";
 import { WebsitePreview } from "@/components/WebsitePreview";
 import { CatalogMainSections } from "@/components/CatalogMainSections";
 import type { DesignCard } from "@/lib/design-cards";
+import { isFixtureRunId } from "@/lib/fixture-runs";
 
 function hostnameFromUrl(url: string): string {
   try {
@@ -189,8 +190,10 @@ export function FetchedRunDesignDetail({
     st === "completed_with_warnings";
 
   const showcaseUrl =
-    run.showcaseUrl ||
-    (API_BASE ? `${API_BASE}/styleguide/${encodeURIComponent(run.runId)}` : "");
+    isFixtureRunId(run.runId)
+      ? ""
+      : run.showcaseUrl ||
+        (API_BASE ? `${API_BASE}/styleguide/${encodeURIComponent(run.runId)}` : "");
 
   const handleCopy = async () => {
     if (!run.styleMd?.trim()) return;
