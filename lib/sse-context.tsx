@@ -223,67 +223,84 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       const es = new EventSource(`${API_BASE}/api/session/events`);
       esRef.current = es;
 
-      es.addEventListener("state_sync", () => {
-        fetchRuns();
-      });
+      // All events arrive as unnamed "message" events wrapped in an envelope:
+      // { type: "event", payload: PlaygroundEvent } or { type: "state_sync", payload: ... }
+      es.onmessage = (e: MessageEvent) => {
+        if (deadRef.current) return;
+        let envelope: { type: string; payload: Record<string, unknown> };
+        try { envelope = JSON.parse(e.data); } catch { return; }
 
-      es.addEventListener("stylemd_run_started", (e: MessageEvent) => {
-        const data: SSERunStarted = JSON.parse(e.data);
-        dispatch({
-          type: "SET_ACTIVE_RUN",
-          run: {
-            runId: data.runId,
-            url: data.url,
-            provider: data.provider,
-            model: data.model,
-            stages: initStages(),
-            logs: [],
-            startedAt: data.startedAt,
-          },
-        });
-      });
-
-      es.addEventListener("stylemd_stage_started", (e: MessageEvent) => {
-        const data: SSEStageStarted = JSON.parse(e.data);
-        dispatch({ type: "STAGE_STARTED", stage: data.stage });
-      });
-
-      es.addEventListener("stylemd_stage_completed", (e: MessageEvent) => {
-        const data: SSEStageCompleted = JSON.parse(e.data);
-        dispatch({ type: "STAGE_COMPLETED", stage: data.stage, durationMs: data.durationMs });
-      });
-
-      es.addEventListener("stylemd_stage_failed", (e: MessageEvent) => {
-        const data: SSEStageFailed = JSON.parse(e.data);
-        dispatch({ type: "STAGE_FAILED", stage: data.stage, error: data.error });
-      });
-
-      es.addEventListener("stylemd_action", (e: MessageEvent) => {
-        const data: SSEAction = JSON.parse(e.data);
-        dispatch({ type: "LOG_ADDED", entry: { ...data, timestamp: Date.now() } });
-      });
-
-      es.addEventListener("stylemd_run_completed", async (e: MessageEvent) => {
-        const data: SSERunCompleted = JSON.parse(e.data);
-        if (data.status === "completed") {
-          try {
-            const res = await fetch(`${API_BASE}/api/stylemd/by-slug/${data.runId}`);
-            const runRes = await res.json();
-            if (runRes.ok && !deadRef.current) {
-              setTimeout(() => {
-                if (!deadRef.current) {
-                  dispatch({ type: "SET_RESULT", data: runRes.data });
-                  fetchRuns();
-                }
-              }, 1500);
-            }
-          } catch {
-            dispatch({ type: "RUN_ERROR", error: "Run completed but failed to fetch results" });
-          }
-        } else {
-          dispatch({ type: "RUN_ERROR", error: data.error ?? "Pipeline failed" });
+        if (envelope.type === "state_sync") {
+          fetchRuns();
+          return;
         }
-      });
+        if (envelope.type !== "event") return;
+
+        const event = envelope.payload as Record<string, unknown> & { type: string };
+        switch (event.type) {
+          case "stylemd_run_started": {
+            const data = event as unknown as SSERunStarted;
+            dispatch({
+              type: "SET_ACTIVE_RUN",
+              run: {
+                runId: data.runId,
+                url: data.url,
+                provider: data.provider,
+                model: data.model,
+                stages: initStages(),
+                logs: [],
+                startedAt: data.startedAt,
+              },
+            });
+            break;
+          }
+          case "stylemd_stage_started": {
+            const data = event as unknown as SSEStageStarted;
+            dispatch({ type: "STAGE_STARTED", stage: data.stage });
+            break;
+          }
+          case "stylemd_stage_completed": {
+            const data = event as unknown as SSEStageCompleted;
+            dispatch({ type: "STAGE_COMPLETED", stage: data.stage, durationMs: data.durationMs });
+            break;
+          }
+          case "stylemd_stage_failed": {
+            const data = event as unknown as SSEStageFailed;
+            dispatch({ type: "STAGE_FAILED", stage: data.stage, error: data.error });
+            break;
+          }
+          case "stylemd_action": {
+            const data = event as unknown as SSEAction;
+            dispatch({ type: "LOG_ADDED", entry: { ...data, timestamp: Date.now() } });
+            break;
+          }
+          case "stylemd_run_completed": {
+            const data = event as unknown as SSERunCompleted;
+            if (data.status === "completed") {
+              const showcaseUrl = data.showcase?.canonicalUrl;
+              fetch(`${API_BASE}/api/stylemd/by-slug/${data.runId}`)
+                .then((r) => r.json())
+                .then((runRes) => {
+                  if (runRes.ok && !deadRef.current) {
+                    setTimeout(() => {
+                      if (!deadRef.current) {
+                        const runData = { ...runRes.data, ...(showcaseUrl ? { showcaseUrl } : {}) };
+                        dispatch({ type: "SET_RESULT", data: runData });
+                        fetchRuns();
+                      }
+                    }, 1500);
+                  }
+                })
+                .catch(() => {
+                  dispatch({ type: "RUN_ERROR", error: "Run completed but failed to fetch results" });
+                });
+            } else {
+              dispatch({ type: "RUN_ERROR", error: data.error ?? "Pipeline failed" });
+            }
+            break;
+          }
+        }
+      };
 
       es.onerror = () => {
         es.close();

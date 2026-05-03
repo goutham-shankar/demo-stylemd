@@ -30,6 +30,8 @@ export interface RunData {
   runId: string;
   styleMd: string;
   screenshot: string;
+  screenshotUrl?: string;
+  showcaseUrl?: string;
   provider: Provider;
   model: string;
   status: RunStatus;
@@ -91,7 +93,7 @@ export interface SSERunCompleted {
   runId: string;
   status: RunStatus;
   styleMd: string;
-  showcaseUrl: string;
+  showcase: { available: boolean; canonicalUrl: string; latestUrl: string };
   error?: string;
   warnings?: string[];
 }

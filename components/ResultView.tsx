@@ -120,7 +120,7 @@ export default function ResultView() {
   let hostname = resultData.url;
   try { hostname = new URL(resultData.url).hostname; } catch { /* leave as-is */ }
 
-  const showcaseUrl = `${API_BASE}/styleguide/${resultData.runId}`;
+  const showcaseUrl = resultData.showcaseUrl || `${API_BASE}/styleguide/${resultData.runId}`;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-8">
