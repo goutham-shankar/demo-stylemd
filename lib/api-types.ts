@@ -1,5 +1,12 @@
 export type Provider = "claude" | "kimi";
-export type RunStatus = "pending" | "running" | "completed" | "failed";
+/** UI + API — backend may also send `completed_with_warnings` or `canceled`. */
+export type RunStatus =
+  | "pending"
+  | "running"
+  | "completed"
+  | "completed_with_warnings"
+  | "failed"
+  | "canceled";
 export type StageStatus = "pending" | "running" | "completed" | "failed";
 export type Screen = "home" | "running" | "result";
 
@@ -24,6 +31,13 @@ export interface RunSummary {
   createdAt: string;
 }
 
+/** Row from `GET /api/scraped-data` (subset used by the UI). */
+export interface ScrapedDataRecord {
+  url: string;
+  images: string[];
+  title?: string | null;
+}
+
 export interface RunData {
   url: string;
   slug: string;
@@ -34,7 +48,8 @@ export interface RunData {
   showcaseUrl?: string;
   provider: Provider;
   model: string;
-  status: RunStatus;
+  /** Mirrors `stylemd_runs.status` from the API. */
+  status: RunStatus | string;
   createdAt: string;
 }
 
@@ -91,7 +106,7 @@ export interface SSEArtifactReady {
 
 export interface SSERunCompleted {
   runId: string;
-  status: RunStatus;
+  status: RunStatus | "completed_with_warnings";
   styleMd: string;
   showcase: { available: boolean; canonicalUrl: string; latestUrl: string };
   error?: string;

@@ -26,8 +26,70 @@ import {
   type StageState,
   type StageStatus,
 } from "./api-types";
+import { API_BASE } from "./api-config";
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
+export { API_BASE };
+
+/** Non-terminal API statuses that should keep polling until markdown appears (legacy / unknown). */
+function isTerminalApiRunStatus(st: string): boolean {
+  return (
+    st === "failed" ||
+    st === "canceled" ||
+    st === "completed" ||
+    st === "completed_with_warnings"
+  );
+}
+
+function mapApiSummary(raw: Record<string, unknown>): RunSummary {
+  const st = String(raw.status ?? "completed");
+  const status: RunSummary["status"] =
+    st === "running"
+      ? "running"
+      : st === "failed"
+        ? "failed"
+        : st === "canceled"
+          ? "canceled"
+          : st === "completed_with_warnings"
+            ? "completed_with_warnings"
+            : "completed";
+  return {
+    id: String(raw.id ?? raw.runId ?? ""),
+    url: String(raw.url ?? ""),
+    slug: String(raw.slug ?? ""),
+    provider: (raw.provider as Provider) ?? "kimi",
+    model: String(raw.model ?? ""),
+    status,
+    createdAt:
+      typeof raw.createdAt === "string"
+        ? raw.createdAt
+        : raw.createdAt instanceof Date
+          ? raw.createdAt.toISOString()
+          : "",
+  };
+}
+
+/** Keep polling until the run is no longer in-flight or we have markdown (or a terminal status). */
+function runNeedsPoll(d: RunData): boolean {
+  const st = String(d.status ?? "");
+  if (isTerminalApiRunStatus(st)) return false;
+  if (st === "running") return true;
+  return !d.styleMd?.trim();
+}
+
+async function fetchRunBySlugOrId(slugOrId: string): Promise<RunData | null> {
+  if (!API_BASE) return null;
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/stylemd/by-slug/${encodeURIComponent(slugOrId)}`
+    );
+    if (!res.ok) return null;
+    const j = (await res.json()) as { ok?: boolean; data?: RunData };
+    if (!j.ok || !j.data) return null;
+    return j.data;
+  } catch {
+    return null;
+  }
+}
 
 function initStages(): Record<Stage, StageState> {
   return Object.fromEntries(
@@ -142,18 +204,31 @@ function reducer(state: AppState, action: AppAction): AppState {
         },
       };
 
-    case "SET_RESULT":
+    case "SET_RESULT": {
+      const stillRunning = action.data.status === "running";
       return {
         ...state,
         resultData: action.data,
-        isRunning: false,
+        isRunning: stillRunning,
         screen: "result",
         runs: state.runs.map((r) =>
           r.id === action.data.runId || r.slug === action.data.slug
-            ? { ...r, status: "completed" }
+            ? {
+                ...r,
+                status: stillRunning
+                  ? "running"
+                  : action.data.status === "failed"
+                    ? "failed"
+                    : action.data.status === "canceled"
+                      ? "canceled"
+                      : action.data.status === "completed_with_warnings"
+                        ? "completed_with_warnings"
+                        : "completed",
+              }
             : r
         ),
       };
+    }
 
     case "NETWORK_ERROR":
       return { ...state, networkError: action.error };
@@ -199,14 +274,19 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const esRef = useRef<EventSource | null>(null);
   const deadRef = useRef(false);
+  const viewPollGenRef = useRef(0);
 
   const fetchRuns = useCallback(async () => {
     try {
+      if (!API_BASE) return;
       const res = await fetch(`${API_BASE}/api/stylemd/runs`);
       if (!res.ok) return;
-      const data = await res.json();
+      const data = (await res.json()) as { ok?: boolean; summaries?: Record<string, unknown>[] };
       if (data.ok && Array.isArray(data.summaries)) {
-        dispatch({ type: "SET_RUNS", runs: data.summaries });
+        dispatch({
+          type: "SET_RUNS",
+          runs: data.summaries.map((s) => mapApiSummary(s)),
+        });
       }
     } catch {
       // silently ignore; not critical
@@ -219,6 +299,11 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
 
     function connect() {
       if (deadRef.current) return;
+
+      if (!API_BASE) {
+        console.warn("[SSE] NEXT_PUBLIC_API_BASE is unset and dev fallback failed; event stream disabled.");
+        return;
+      }
 
       const es = new EventSource(`${API_BASE}/api/session/events`);
       esRef.current = es;
@@ -276,24 +361,33 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
           }
           case "stylemd_run_completed": {
             const data = event as unknown as SSERunCompleted;
-            if (data.status === "completed") {
+            const ok =
+              data.status === "completed" || data.status === "completed_with_warnings";
+            if (ok) {
               const showcaseUrl = data.showcase?.canonicalUrl;
-              fetch(`${API_BASE}/api/stylemd/by-slug/${data.runId}`)
-                .then((r) => r.json())
-                .then((runRes) => {
-                  if (runRes.ok && !deadRef.current) {
-                    setTimeout(() => {
-                      if (!deadRef.current) {
-                        const runData = { ...runRes.data, ...(showcaseUrl ? { showcaseUrl } : {}) };
-                        dispatch({ type: "SET_RESULT", data: runData });
-                        fetchRuns();
-                      }
-                    }, 1500);
-                  }
-                })
-                .catch(() => {
-                  dispatch({ type: "RUN_ERROR", error: "Run completed but failed to fetch results" });
+              const runId = data.runId;
+
+              const finish = (runData: RunData) => {
+                if (deadRef.current) return;
+                dispatch({
+                  type: "SET_RESULT",
+                  data: { ...runData, ...(showcaseUrl ? { showcaseUrl } : {}) },
                 });
+                fetchRuns();
+              };
+
+              void (async () => {
+                for (let attempt = 0; attempt < 90 && !deadRef.current; attempt++) {
+                  const runData = await fetchRunBySlugOrId(runId);
+                  if (runData && !runNeedsPoll(runData)) {
+                    finish(runData);
+                    return;
+                  }
+                  await new Promise((r) => setTimeout(r, 1500));
+                }
+                const last = await fetchRunBySlugOrId(runId);
+                if (last && !deadRef.current) finish(last);
+              })();
             } else {
               dispatch({ type: "RUN_ERROR", error: data.error ?? "Pipeline failed" });
             }
@@ -382,11 +476,32 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   );
 
   const viewRun = useCallback(async (slugOrId: string) => {
+    dispatch({ type: "NETWORK_ERROR", error: null });
+    const gen = ++viewPollGenRef.current;
     try {
-      const res = await fetch(`${API_BASE}/api/stylemd/by-slug/${slugOrId}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data.ok) dispatch({ type: "SET_RESULT", data: data.data });
+      const data = await fetchRunBySlugOrId(slugOrId);
+      if (!data) throw new Error(`HTTP 404`);
+
+      dispatch({ type: "SET_RESULT", data });
+
+      if (runNeedsPoll(data)) {
+        void (async () => {
+          for (let i = 0; i < 120 && gen === viewPollGenRef.current; i++) {
+            await new Promise((r) => setTimeout(r, 2000));
+            const next = await fetchRunBySlugOrId(data.runId || slugOrId);
+            if (!next || gen !== viewPollGenRef.current) return;
+            dispatch({ type: "SET_RESULT", data: next });
+            if (!runNeedsPoll(next)) return;
+          }
+          if (gen === viewPollGenRef.current) {
+            dispatch({
+              type: "NETWORK_ERROR",
+              error:
+                "Still generating… If this persists, confirm the API at NEXT_PUBLIC_API_BASE is running.",
+            });
+          }
+        })();
+      }
     } catch (err) {
       dispatch({
         type: "NETWORK_ERROR",

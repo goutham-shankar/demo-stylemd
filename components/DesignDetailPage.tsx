@@ -21,8 +21,36 @@ import {
   Layers,
 } from "lucide-react";
 import type { DesignCard } from "@/lib/design-cards";
+import type { RunData } from "@/lib/api-types";
+import { FetchedRunDesignDetail } from "@/components/FetchedRunDesignDetail";
 
-type DesignDetailPageProps = {
+export type DesignDetailPageProps =
+  | { card: DesignCard; run?: never }
+  | {
+      run: RunData;
+      card?: never;
+      isGenerating: boolean;
+      onBack: () => void;
+      onRunAgain?: () => void;
+      isRunBusy?: boolean;
+    };
+
+export default function DesignDetailPage(props: DesignDetailPageProps) {
+  if ("card" in props) {
+    return <CatalogDesignDetailPage card={props.card} />;
+  }
+  return (
+    <FetchedRunDesignDetail
+      run={props.run}
+      isGenerating={props.isGenerating}
+      onBack={props.onBack}
+      onRunAgain={props.onRunAgain}
+      isRunBusy={props.isRunBusy}
+    />
+  );
+}
+
+type CatalogProps = {
   card: DesignCard;
 };
 
@@ -155,9 +183,9 @@ function WebsitePreview({ card }: { card: DesignCard }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main page                                                           */
+/*  Catalog design cards (/styles/[slug])                               */
 /* ------------------------------------------------------------------ */
-export default function DesignDetailPage({ card }: DesignDetailPageProps) {
+function CatalogDesignDetailPage({ card }: CatalogProps) {
   const [activeTab, setActiveTab] = useState<"preview" | "code">("preview");
   const [copied, setCopied] = useState(false);
   const router = useRouter();

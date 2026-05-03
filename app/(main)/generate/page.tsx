@@ -1,25 +1,21 @@
-"use client";
+import { Suspense } from "react";
+import GeneratePageContent from "./GeneratePageContent";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import PipelineView from "@/components/PipelineView";
-import ResultView from "@/components/ResultView";
-import { useSSE } from "@/lib/sse-context";
+function GenerateFallback() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <div
+        className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+        style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }}
+      />
+    </div>
+  );
+}
 
 export default function GeneratePage() {
-  const { screen } = useSSE();
-  const router = useRouter();
-
-  // Redirect to home if nothing is running (e.g. direct navigation)
-  useEffect(() => {
-    if (screen === "home") {
-      router.replace("/");
-    }
-  }, [screen, router]);
-
-  if (screen === "running") return <PipelineView />;
-  if (screen === "result") return <ResultView />;
-
-  // Redirecting — show nothing
-  return null;
+  return (
+    <Suspense fallback={<GenerateFallback />}>
+      <GeneratePageContent />
+    </Suspense>
+  );
 }

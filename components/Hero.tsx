@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSSE } from "@/lib/sse-context";
-import type { Provider } from "@/lib/api-types";
 
 // Floating logo decorations — desktop only
 
@@ -66,7 +65,6 @@ const svgLogos = [
 export default function Hero() {
   const [logoIdx, setLogoIdx] = useState(0);
   const [url, setUrl] = useState("");
-  const [provider, setProvider] = useState<Provider>("kimi");
   const [urlError, setUrlError] = useState("");
 
   const { startRun, isRunning, runError } = useSSE();
@@ -104,10 +102,10 @@ export default function Hero() {
         return;
       }
 
-      await startRun(normalised, provider);
+      await startRun(normalised, "kimi");
       router.push("/generate");
     },
-    [url, provider, startRun, router]
+    [url, startRun, router]
   );
 
   return (
@@ -176,27 +174,6 @@ export default function Hero() {
                 className="w-full px-3 py-2.5 border border-medium rounded-xl text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light mb-2 disabled:opacity-60"
                 style={{ background: "var(--bg-page)" }}
               />
-
-              {/* Provider toggle */}
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-semibold text-secondary font-manrope">Provider:</span>
-                <div className="flex border border-medium rounded-lg overflow-hidden">
-                  {(["kimi", "claude"] as Provider[]).map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setProvider(p)}
-                      disabled={isRunning}
-                      className={`px-3 py-1 text-xs font-semibold font-manrope transition-all duration-150 capitalize disabled:opacity-60 ${
-                        provider === p ? "text-white" : "text-secondary bg-surface hover:bg-[#f7f4ee]"
-                      }`}
-                      style={provider === p ? { backgroundColor: "var(--cta)" } : {}}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               {/* Inline errors */}
               {(urlError || runError) && (

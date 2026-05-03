@@ -3,102 +3,6 @@
 import React, { useState } from "react";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { useSSE } from "@/lib/sse-context";
-import type { RunSummary } from "@/lib/api-types";
-
-// ── Recent Runs Grid ──────────────────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: RunSummary["status"] }) {
-  const map: Record<string, string> = {
-    running: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    completed: "bg-green-50 text-green-700 border-green-200",
-    failed: "bg-red-50 text-red-700 border-red-200",
-    pending: "bg-gray-50 text-gray-600 border-gray-200",
-  };
-  return (
-    <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold font-manrope border ${map[status] ?? map.pending}`}>
-      {status}
-    </span>
-  );
-}
-
-function RunCard({ run, onView }: { run: RunSummary; onView: (id: string) => void }) {
-  let hostname = run.url;
-  try { hostname = new URL(run.url).hostname; } catch { /* leave as-is */ }
-
-  const dateStr = new Date(run.createdAt).toLocaleDateString(undefined, {
-    month: "short", day: "numeric", year: "numeric",
-  });
-
-  const isClickable = run.status === "completed";
-
-  return (
-    <div
-      role={isClickable ? "button" : undefined}
-      tabIndex={isClickable ? 0 : undefined}
-      onClick={() => isClickable && onView(run.slug || run.id)}
-      onKeyDown={(e) => e.key === "Enter" && isClickable && onView(run.slug || run.id)}
-      className={`group overflow-hidden border border-light bg-surface shadow-sm transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${
-        isClickable ? "hover:border-dark hover:shadow-md cursor-pointer" : "cursor-default opacity-80"
-      }`}
-      style={{ borderRadius: 16 }}
-      aria-label={isClickable ? `View result for ${hostname}` : undefined}
-    >
-      {/* Thumbnail */}
-      <div className="h-32 bg-page flex items-center justify-center overflow-hidden relative">
-        {run.status === "running" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-page/80 z-10">
-            <span className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
-              style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }} />
-          </div>
-        )}
-        <div
-          className="w-full h-full flex items-center justify-center text-4xl font-bold font-magnetik text-secondary/30 uppercase select-none"
-          style={{ letterSpacing: "0.05em" }}
-        >
-          {hostname.replace("www.", "").slice(0, 2)}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="px-4 py-3 flex items-center justify-between bg-surface gap-2">
-        <div className="min-w-0">
-          <p className="text-sm font-bold text-primary font-manrope truncate">{hostname}</p>
-          <p className="text-xs text-secondary font-manrope">{dateStr}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <StatusBadge status={run.status} />
-          {isClickable && (
-            <span className="px-3 py-1.5 rounded-[10px] text-white font-semibold text-xs shadow-sm group-hover:opacity-90 group-hover:shadow-md transition-all duration-150"
-              style={{ backgroundColor: "var(--cta)" }}>
-              View
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RecentRuns() {
-  const { runs, viewRun } = useSSE();
-
-  if (runs.length === 0) return null;
-
-  return (
-    <section className="pb-8 bg-page">
-      <div className="container-custom max-w-6xl mx-auto px-6">
-        <h2 className="heading-h2 text-primary mb-6">Recent Runs</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {runs.map((run) => (
-            <RunCard key={run.id} run={run} onView={viewRun} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ── Catalog Library ───────────────────────────────────────────────────────────
 
 type Card = {
@@ -291,10 +195,6 @@ export default function StyleLibrary() {
 
   return (
     <>
-      {/* Recent API runs (if any) */}
-      <RecentRuns />
-
-      {/* Catalog */}
       <section className="py-12 md:py-16 bg-page">
         <div className="container-custom max-w-6xl mx-auto px-6">
 
