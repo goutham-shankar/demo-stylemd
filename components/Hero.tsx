@@ -168,7 +168,7 @@ export default function Hero() {
             A plug-and-play Design.md file to elevate your project&apos;s design
           </p>
           <Link
-            href="#"
+            href="/styles"
             className="text-sm md:text-base font-manrope underline inline-block font-semibold"
             style={{ color: "#616161" }}
           >

@@ -420,7 +420,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                 const resultData: RunData = {
                   runId,
                   url: cur.url,
-                  slug: "",
+                  slug: runId,
                   styleMd: data.styleMd,
                   screenshot: "",
                   provider: cur.provider,

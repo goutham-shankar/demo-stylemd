@@ -50,7 +50,7 @@ export default function DesignDetailPage({
     // If we have a run (pipeline mode)
     if (run && run.styleMd) {
       const parsed = parseStyleMd(run.styleMd);
-      const preview = run.screenshot || (run.images && run.images.length > 0 ? run.images[0] : null);
+      const preview = run.screenshot || null;
       const mapped = mapToDesignCard(
         parsed,
         run.slug || run.runId,

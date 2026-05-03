@@ -44,6 +44,12 @@ export function styleMdUiPayloadToDesignCard(
       payload.logoUrl.trim()
     : payload.brand.trim().slice(0, 1).toUpperCase() || "?";
 
+  const primaryColor = palette[0]?.hex || payload.accentColor;
+  const secondaryColor = palette[1]?.hex || "#f5f8fa";
+  const headingFont = fonts.find(f => f.dark)?.name || fonts[0]?.name || "Inter";
+  const bodyFont = fonts.find(f => !f.dark)?.name || fonts[0]?.name || "Inter";
+  const baseSpacing = payload.spacing?.cards?.find(c => c.label?.toUpperCase() === "BASE")?.value || "8px";
+
   return {
     id: opts.id,
     url,
@@ -55,5 +61,20 @@ export function styleMdUiPayloadToDesignCard(
     desc: payload.description?.trim() ?? "",
     palette: palette.length ? palette : [{ name: "Accent", hex: payload.accentColor, swatches: padSwatches([payload.accentColor]) }],
     fonts,
+    tokens: {
+      colors: {
+        primary: primaryColor,
+        secondary: secondaryColor,
+        accent: payload.accentColor,
+      },
+      typography: {
+        heading: headingFont,
+        body: bodyFont,
+      },
+      spacing: baseSpacing,
+      buttons: {
+        radius: payload.shapes?.badge?.toLowerCase() === "linear" ? "0px" : "8px",
+      },
+    },
   };
 }

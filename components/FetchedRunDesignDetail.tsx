@@ -40,8 +40,12 @@ export function FetchedRunDesignDetail({
 }: FetchedRunDesignDetailProps) {
   const [copied, setCopied] = useState(false);
   const [scrapeError, setScrapeError] = useState<string | null>(null);
+  const [fetchedRun, setFetchedRun] = useState<RunData | null>(null);
 
-  const st = String(run.status ?? "");
+  // Use the richer fetched record when available, fall back to the prop
+  const effectiveRun = fetchedRun ?? run;
+
+  const st = String(effectiveRun.status ?? "");
   const isCompleted = st === "completed" || st === "completed_with_warnings";
   const isTerminalStatus =
     st === "failed" ||
@@ -49,21 +53,20 @@ export function FetchedRunDesignDetail({
     isCompleted;
 
   const parsed = useMemo(() => {
-    if (!run.styleMd?.trim()) return null;
-    return parseStyleMd(run.styleMd);
-  }, [run.styleMd]);
+    if (!effectiveRun.styleMd?.trim()) return null;
+    return parseStyleMd(effectiveRun.styleMd);
+  }, [effectiveRun.styleMd]);
 
   const card: DesignCard | null = useMemo(() => {
     if (!parsed) return null;
-    const preview = run.screenshot || (run.images && run.images.length > 0 ? run.images[0] : null);
     return mapToDesignCard(
       parsed,
-      run.slug || run.runId,
-      run.url,
-      run.brandAssets?.logo,
-      preview
+      effectiveRun.slug || effectiveRun.runId,
+      effectiveRun.url,
+      effectiveRun.brandAssets?.logo,
+      effectiveRun.screenshot || null
     );
-  }, [parsed, run.slug, run.runId, run.url, run.brandAssets?.logo, run.screenshot, run.images]);
+  }, [parsed, effectiveRun.slug, effectiveRun.runId, effectiveRun.url, effectiveRun.brandAssets?.logo, effectiveRun.screenshot]);
 
   const hasFetchedRef = useRef(false);
 
@@ -89,10 +92,11 @@ export function FetchedRunDesignDetail({
 
         if (cancelled) return;
 
-        if (!j.ok) {
+        if (!j.ok || !j.data) {
           setScrapeError(j.error || "Failed to fetch run data");
           return;
         }
+        setFetchedRun(j.data);
         setScrapeError(null);
       } catch (err) {
         if (!cancelled) {
@@ -106,19 +110,19 @@ export function FetchedRunDesignDetail({
     };
   }, [run.slug, run.runId, run.styleMd]);
 
-  if (isCompleted && card && run.styleMd) {
-    return <DesignDetailPage card={card} styleMd={run.styleMd} />;
+  if (isCompleted && card && effectiveRun.styleMd) {
+    return <DesignDetailPage card={card} styleMd={effectiveRun.styleMd} />;
   }
 
   const handleCopy = async () => {
-    if (!run.styleMd?.trim()) return;
+    if (!effectiveRun.styleMd?.trim()) return;
     try {
-      await navigator.clipboard.writeText(run.styleMd);
+      await navigator.clipboard.writeText(effectiveRun.styleMd);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       const el = document.createElement("textarea");
-      el.value = run.styleMd;
+      el.value = effectiveRun.styleMd;
       el.style.position = "fixed";
       el.style.opacity = "0";
       document.body.appendChild(el);
@@ -131,18 +135,18 @@ export function FetchedRunDesignDetail({
   };
 
   const handleDownload = () => {
-    const blob = new Blob([run.styleMd || ""], { type: "text/markdown" });
+    const blob = new Blob([effectiveRun.styleMd || ""], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${run.slug || "stylemd"}-style.md`;
+    a.download = `${effectiveRun.slug || "stylemd"}-style.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  const host = hostnameFromUrl(run.url ?? run.slug ?? run.runId ?? "");
+  const host = hostnameFromUrl(effectiveRun.url ?? effectiveRun.slug ?? effectiveRun.runId ?? "");
 
   return (
     <div className="flex min-h-screen flex-col bg-page">
@@ -157,7 +161,7 @@ export function FetchedRunDesignDetail({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleCopy}
-            disabled={!run.styleMd?.trim()}
+            disabled={!effectiveRun.styleMd?.trim()}
             className="flex items-center gap-2 rounded-lg border border-medium bg-surface px-4 py-1.5 text-sm font-medium text-primary transition-colors duration-150 hover:bg-surface-soft disabled:opacity-50"
             type="button"
           >
@@ -204,16 +208,16 @@ export function FetchedRunDesignDetail({
             </h2>
             {scrapeError ? (
               <p className="mb-6 text-red-500">{scrapeError}</p>
-            ) : !run.styleMd?.trim() && isTerminalStatus ? (
+            ) : !effectiveRun.styleMd?.trim() && isTerminalStatus ? (
               <p className="mb-6 text-secondary">No style.md was produced for this run.</p>
             ) : null}
-            
+
             <div className="rounded-2xl border border-medium bg-surface p-6 text-left">
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-secondary">
                 Raw style.md preview
               </h3>
               <pre className="max-h-[400px] overflow-auto rounded-xl bg-[#1a1a1a] p-5 font-mono text-xs leading-relaxed text-gray-100">
-                {run.styleMd || (isGenerating ? "Generating..." : "No content available")}
+                {effectiveRun.styleMd || (isGenerating ? "Generating..." : "No content available")}
               </pre>
             </div>
           </div>
