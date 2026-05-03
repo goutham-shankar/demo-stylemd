@@ -2,15 +2,14 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  ArrowLeft, 
-  Copy, 
-  Download, 
-  Monitor, 
-  Code2, 
-  Check, 
+import {
+  ArrowLeft,
+  Copy,
+  Download,
+  Monitor,
+  Code2,
+  Check,
   RefreshCw,
-  ExternalLink,
   AlertCircle
 } from "lucide-react";
 import type { DesignCard } from "@/lib/design-cards";
@@ -153,24 +152,13 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
     <div className="flex min-h-screen flex-col bg-page font-manrope">
       {/* 1. Sticky Top Bar */}
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-medium bg-white/80 px-6 py-3 backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleBack}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-medium bg-white text-primary transition-all hover:bg-page active:scale-95"
-            title="Go back"
-          >
-            <ArrowLeft size={18} />
-          </button>
-          <div className="h-4 w-[1px] bg-medium" />
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-primary">{card.name}</span>
-            {card.url && (
-              <a href={card.url} target="_blank" rel="noopener noreferrer" className="text-secondary hover:text-primary">
-                <ExternalLink size={14} />
-              </a>
-            )}
-          </div>
-        </div>
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 rounded-full border border-medium bg-white px-4 py-2 text-sm font-semibold text-primary transition-all hover:bg-page active:scale-95"
+        >
+          <ArrowLeft size={15} />
+          Back
+        </button>
 
         <div className="flex items-center gap-3">
           <button
@@ -178,9 +166,9 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
             className="group relative flex items-center gap-2 rounded-full border border-medium bg-white px-4 py-2 text-sm font-semibold text-primary transition-all hover:border-gray-400 active:scale-95"
           >
             {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-secondary group-hover:text-primary" />}
-            <span>{copied ? "Copied" : "Copy MD"}</span>
+            <span>{copied ? "Copied!" : "Copy DESIGN.md"}</span>
           </button>
-          
+
           <button
             onClick={handleDownload}
             className="flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-black active:scale-95 shadow-sm"
@@ -251,9 +239,9 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                     <h1 className="text-4xl font-black tracking-tight text-primary mb-2">{card.name}</h1>
                     <div className="flex flex-wrap gap-2">
                       {card.tags.map(tag => (
-                        <span 
-                          key={tag.label} 
-                          className="rounded-full border border-medium bg-surface-soft px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary"
+                        <span
+                          key={tag.label}
+                          className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${tag.color || "border-medium bg-surface-soft text-secondary"}`}
                         >
                           {tag.label}
                         </span>

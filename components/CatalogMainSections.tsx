@@ -79,13 +79,15 @@ export type CatalogMainSectionsProps = {
 };
 
 function generateColorScale(hex: string): string[] {
-  // Simple mock of 50-900 scale by mixing with white/black
-  // In a real app we'd use chroma-js or similar
-  return [
-    `${hex}15`, `${hex}30`, `${hex}50`, `${hex}70`, `${hex}90`,
-    hex,
-    `${hex}e0`, `${hex}cc`, `${hex}aa`, `${hex}88`
-  ];
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return Array(10).fill(hex);
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const mix = (base: number, target: number, t: number) =>
+    Math.round(base + (target - base) * t).toString(16).padStart(2, "0");
+  const shade = (t: number) => `#${mix(r, 255, t)}${mix(g, 255, t)}${mix(b, 255, t)}`;
+  const tint = (t: number) => `#${mix(r, 0, t)}${mix(g, 0, t)}${mix(b, 0, t)}`;
+  return [shade(0.92), shade(0.80), shade(0.65), shade(0.50), shade(0.35), hex, tint(0.15), tint(0.30), tint(0.45), tint(0.60)];
 }
 
 export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) {
@@ -143,39 +145,36 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
         
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {card.fonts.slice(0, 2).map((font, idx) => (
-            <div 
+          {card.fonts.slice(0, 2).map((font) => (
+            <div
               key={font.name}
               className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl p-8 transition-all hover:shadow-2xl ${
-                idx === 0 ? "bg-accent-blue text-white shadow-xl shadow-blue-500/20" : "bg-white border border-medium shadow-lg"
+                font.dark ? "text-white shadow-xl" : "bg-white border border-medium shadow-lg"
               }`}
-              style={idx === 0 ? { backgroundColor: a } : {}}
+              style={font.dark ? { backgroundColor: a } : {}}
             >
               <div className="flex flex-col items-center justify-center py-12">
-                <span 
+                <span
                   className="text-8xl font-black tracking-tighter"
                   style={{ fontFamily: fontFamilyFor(font.name) }}
                 >
-                  Aa Bb
+                  {font.sample || "Aa Bb"}
                 </span>
               </div>
-              
-              <div className="mt-4 flex flex-col gap-4">
+
+              <div className="mt-4 flex flex-col gap-3">
                 <div>
-                  <h3 className={`text-xl font-black ${idx === 0 ? "text-white" : "text-primary"}`}>{font.name}</h3>
-                  <p className={`text-xs font-bold uppercase tracking-widest opacity-70 ${idx === 0 ? "text-white" : "text-secondary"}`}>
-                    {idx === 0 ? "Primary Heading" : "Secondary Body"}
+                  <h3 className={`text-xl font-black ${font.dark ? "text-white" : "text-primary"}`}>{font.name}</h3>
+                  <p className={`text-xs font-bold uppercase tracking-widest opacity-70 ${font.dark ? "text-white" : "text-secondary"}`}>
+                    {font.dark ? "Medium" : "Regular, Medium"}
                   </p>
                 </div>
-                
-                <div className="flex items-center gap-2">
+
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter ${
-                    idx === 0 ? "bg-white/20 text-white" : "bg-page text-primary border border-medium"
+                    font.dark ? "bg-white/20 text-white" : "bg-page text-primary border border-medium"
                   }`}>
-                    {idx === 0 ? "MODERN DISPLAY" : "UI SYSTEM"}
-                  </span>
-                  <span className={`text-[10px] font-bold opacity-60 ${idx === 0 ? "text-white" : "text-secondary"}`}>
-                    Regular, Medium, Bold
+                    {font.role}
                   </span>
                 </div>
               </div>
@@ -194,22 +193,22 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
         
         <div className="divide-y divide-medium">
-          {[
-            { name: "Primary", hex: a },
-            { name: "Secondary", hex: s },
-            { name: "Tertiary", hex: acc },
-            { name: "Neutral", hex: "#64748b" }
-          ].map((row) => {
-            const scale = generateColorScale(row.hex);
+          {card.palette.map((row) => {
+            const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
+            const swatches = (!row.swatches?.length || allSame)
+              ? generateColorScale(row.hex)
+              : row.swatches.slice(0, 10).concat(
+                  Array(Math.max(0, 10 - row.swatches.length)).fill(row.swatches[row.swatches.length - 1])
+                );
             return (
               <div key={row.name} className="grid grid-cols-[100px_repeat(10,1fr)] items-center">
                 <div className="flex flex-col px-4 py-4">
                   <span className="text-[10px] font-bold text-primary">{row.name}</span>
                   <span className="text-[9px] font-mono text-secondary uppercase">{row.hex}</span>
                 </div>
-                {scale.map((color, i) => (
-                  <div 
-                    key={i} 
+                {swatches.map((color, i) => (
+                  <div
+                    key={i}
                     className="group relative h-16 w-full cursor-pointer transition-transform hover:z-10 hover:scale-105"
                     style={{ backgroundColor: color }}
                   >

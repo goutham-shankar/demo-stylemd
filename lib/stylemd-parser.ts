@@ -44,6 +44,10 @@ export function parseStyleMd(styleMd: string) {
   };
 }
 
+function stripBackticks(s: string): string {
+  return s.replace(/`/g, "").trim();
+}
+
 function extractTypeScale(md: string) {
   const scale: any[] = [];
   const lines = md.split("\n");
@@ -54,7 +58,7 @@ function extractTypeScale(md: string) {
       continue;
     }
     if (inTable && line.includes("|") && !line.includes("---")) {
-      const parts = line.split("|").map(s => s.trim()).filter(Boolean);
+      const parts = line.split("|").map(s => stripBackticks(s)).filter(Boolean);
       if (parts.length >= 4) {
         scale.push({
           element: parts[0],
@@ -81,7 +85,7 @@ function extractSpacingScale(md: string) {
       continue;
     }
     if (inTable && line.includes("|") && !line.includes("---")) {
-      const parts = line.split("|").map(s => s.trim()).filter(Boolean);
+      const parts = line.split("|").map(s => stripBackticks(s)).filter(Boolean);
       if (parts.length >= 3) {
         scale.push({
           token: parts[0],
@@ -131,12 +135,20 @@ function extractClassNames(md: string): string[] | undefined {
 }
 
 function extractSpacing(md: string): string {
-  const match = md.match(/(?:Spacing|Base rhythm|Gap):\s*`?([^`\n]+)`?/i);
-  return match ? match[1].trim() : "8px";
+  // Direct mention: "Base rhythm: 4px" or "Spacing: 8px"
+  const direct = md.match(/(?:Base\s+rhythm|Spacing|Gap):\s*`?([0-9]+(?:\.[0-9]+)?(?:px|rem|em))`?/i);
+  if (direct) return direct[1].trim();
+  // From spacing section header values
+  const table = md.match(/BASE\s+RHYTHM[:\s]+([0-9]+(?:px|rem|em))/i);
+  if (table) return table[1].trim();
+  // BASE card value in spacing table
+  const baseCard = md.match(/BASE[^\n]*\n[^\n]*`?([0-9]+(?:px|rem|em))`?/i);
+  if (baseCard) return baseCard[1].trim();
+  return "8px";
 }
 
 function extractButtons(md: string): { radius: string } {
-  const match = md.match(/(?:Button Radius|Border Radius):\s*`?([^`\n]+)`?/i);
+  const match = md.match(/(?:Button\s+Radius|Corner\s+Radius|Border\s+Radius)[`:\s*]+([0-9]+(?:px|rem|em|%))/i);
   const radius = match ? match[1].trim() : "8px";
   return { radius };
 }
@@ -169,23 +181,46 @@ function extractOverview(md: string): string {
   return "";
 }
 
+function tokenToLabel(token: string): string {
+  return token
+    .replace(/^--color-/, "")
+    .replace(/^--/, "")
+    .replace(/-rgb$/, "")
+    .replace(/-\d+$/, "")
+    .replace(/-/g, " ")
+    .trim();
+}
+
 function extractColors(md: string): { name: string; hex: string }[] {
   const colors: { name: string; hex: string }[] = [];
-  
-  const regex1 = /-\s+\*\*(.+?)\*\*:\s+`?(#[0-9A-Fa-f]{3,6})`?/g;
   let match;
-  while ((match = regex1.exec(md)) !== null) {
+
+  // Bullet format: - **Name**: `#hex`
+  const bulletRegex = /-\s+\*\*(.+?)\*\*:\s+`?(#[0-9A-Fa-f]{3,6})`?/g;
+  while ((match = bulletRegex.exec(md)) !== null) {
     colors.push({ name: match[1].trim(), hex: match[2].toUpperCase() });
   }
 
+  // Table format: | `--token` | `#hex` | ...  or  | Token | #hex | ...
   if (colors.length === 0) {
-    const hexMatches = md.match(/#([0-9a-fA-F]{3,6})/g) || [];
+    const tableRegex = /\|\s*`?([^|`\n]+?)`?\s*\|\s*`?(#[0-9A-Fa-f]{6})`?\s*\|/g;
+    while ((match = tableRegex.exec(md)) !== null) {
+      const raw = match[1].trim();
+      if (raw.toLowerCase() === "value" || raw.toLowerCase() === "token") continue;
+      const name = tokenToLabel(raw);
+      if (name) colors.push({ name, hex: match[2].toUpperCase() });
+    }
+  }
+
+  // Fallback: any hex colors in the doc
+  if (colors.length === 0) {
+    const hexMatches = md.match(/#([0-9a-fA-F]{6})\b/g) || [];
     hexMatches.forEach((hex, idx) => {
-      if (idx < 5) colors.push({ name: `Color ${idx + 1}`, hex: hex.toUpperCase() });
+      if (idx < 6) colors.push({ name: `Color ${idx + 1}`, hex: hex.toUpperCase() });
     });
   }
 
-  const seen = new Set();
+  const seen = new Set<string>();
   return colors.filter(c => {
     if (seen.has(c.hex)) return false;
     seen.add(c.hex);
@@ -197,14 +232,29 @@ function extractTypography(md: string): { name: string; role: string }[] {
   const fonts: { name: string; role: string }[] = [];
   const typoSection = md.match(/## Typography\n([\s\S]+?)(?=\n##|$)/i);
   const content = typoSection ? typoSection[1] : md;
-
-  const regex = /-\s+\*\*(.+?)\*\*:\s+`?([^`\n]+)`?/g;
   let match;
-  while ((match = regex.exec(content)) !== null) {
+
+  // Bullet format: - **Role**: `font-name`
+  const bulletRegex = /-\s+\*\*(.+?)\*\*:\s+`?([^`\n]+)`?/g;
+  while ((match = bulletRegex.exec(content)) !== null) {
     const role = match[1].trim();
     const name = match[2].trim();
-    if (name.length < 40 && !name.includes("font-")) {
+    if (name.length < 60 && !name.startsWith("font-")) {
       fonts.push({ name, role });
+    }
+  }
+
+  // Table format: | **Role** | `"Font Name, fallback"` | usage |
+  if (fonts.length === 0) {
+    const tableRegex = /\|\s*\*\*([^*|]+)\*\*\s*\|\s*`?"?([^|`\n"]+)"?`?\s*\|/g;
+    while ((match = tableRegex.exec(content)) !== null) {
+      const role = match[1].trim();
+      if (role.toLowerCase() === "role" || role.toLowerCase() === "stack") continue;
+      // Take only the first font family from the stack
+      const firstName = match[2].split(",")[0].replace(/["']/g, "").trim();
+      if (firstName && firstName.length < 60) {
+        fonts.push({ name: firstName, role });
+      }
     }
   }
 
