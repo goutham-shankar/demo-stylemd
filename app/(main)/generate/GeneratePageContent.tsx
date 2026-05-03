@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PipelineView from "@/components/PipelineView";
 import DesignDetailPage from "@/components/DesignDetailPage";
@@ -94,19 +94,20 @@ export default function GeneratePageContent() {
 
   const [deepFetchSettled, setDeepFetchSettled] = useState(false);
 
+  const cancelledRef = useRef(false);
   useEffect(() => {
     if (!slug) {
       setDeepFetchSettled(false);
       return;
     }
     setDeepFetchSettled(false);
-    let cancelled = false;
+    cancelledRef.current = false;
     void (async () => {
       await viewRun(slug);
-      if (!cancelled) setDeepFetchSettled(true);
+      if (!cancelledRef.current) setDeepFetchSettled(true);
     })();
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
   }, [slug, viewRun]);
 

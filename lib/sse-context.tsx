@@ -354,6 +354,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         if (envelope.type !== "event") return;
 
         const event = envelope.payload as Record<string, unknown> & { type: string };
+        if (!event || typeof event.type !== "string") return;
         switch (event.type) {
           case "stylemd_run_started": {
             const data = event as unknown as SSERunStarted;
