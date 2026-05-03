@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import PipelineView from "@/components/PipelineView";
 import DesignDetailPage from "@/components/DesignDetailPage";
 import { useSSE } from "@/lib/sse-context";
+import { isFixtureRunId } from "@/lib/fixture-runs";
 
 function FetchedResultView() {
   const { resultData, goHome, runAgain, isRunning } = useSSE();
@@ -31,19 +32,25 @@ function FetchedResultView() {
     );
   }
 
+  const isFixtureDemo = typeof resultData.runId === "string" && isFixtureRunId(resultData.runId);
+
   return (
     <DesignDetailPage
       run={resultData}
       isGenerating={isGenerating}
-      isRunBusy={isRunning}
+      isRunBusy={isRunning && !isFixtureDemo}
       onBack={() => {
         goHome();
         router.push("/");
       }}
-      onRunAgain={async () => {
-        await runAgain();
-        router.push("/generate");
-      }}
+      onRunAgain={
+        isFixtureDemo ?
+          undefined
+        : async () => {
+            await runAgain();
+            router.push("/generate");
+          }
+      }
     />
   );
 }

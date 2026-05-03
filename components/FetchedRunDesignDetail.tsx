@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Copy,
@@ -13,6 +13,11 @@ import {
 import type { RunData, ScrapedDataRecord } from "@/lib/api-types";
 import { API_BASE } from "@/lib/api-config";
 import { renderStyleMdToHtml } from "@/lib/stylemd-markdown-html";
+import { extractStyleMdUi } from "@/lib/stylemd-structured-view";
+import { styleMdUiPayloadToDesignCard } from "@/lib/stylemd-to-design-card";
+import { WebsitePreview } from "@/components/WebsitePreview";
+import { CatalogMainSections } from "@/components/CatalogMainSections";
+import type { DesignCard } from "@/lib/design-cards";
 
 function hostnameFromUrl(url: string): string {
   try {
@@ -137,12 +142,19 @@ export function FetchedRunDesignDetail({
   isRunBusy,
 }: FetchedRunDesignDetailProps) {
   const [tab, setTab] = useState<"stylemd" | "source" | "showcase">("stylemd");
+  const [styleDocView, setStyleDocView] = useState<"live" | "designmd">("live");
   const [copied, setCopied] = useState(false);
   const [scrapedImages, setScrapedImages] = useState<string[]>([]);
 
   const host = hostnameFromUrl(run.url);
   const initials = host.replace("www.", "").slice(0, 2).toUpperCase();
   const screenshotSrc = screenshotSrcForRun(run);
+
+  const parsedStyle = useMemo(() => extractStyleMdUi(run.styleMd || ""), [run.styleMd]);
+  const catalogCard: DesignCard | null =
+    parsedStyle.payload ?
+      styleMdUiPayloadToDesignCard(parsedStyle.payload, { id: run.slug || run.runId, url: run.url })
+    : null;
 
   useEffect(() => {
     if (!API_BASE || !run.url?.trim()) {
@@ -253,39 +265,58 @@ export function FetchedRunDesignDetail({
 
       <div className="grid flex-1 md:grid-cols-[40%_60%]">
         <div className="sticky top-16 hidden h-[calc(100vh-4rem)] border-r border-white md:block">
-          <DbCapturePreview
-            pageUrl={run.url}
-            title={host}
-            screenshotSrc={screenshotSrc}
-            scrapedImages={scrapedImages}
-          />
+          {catalogCard && tab === "stylemd" ? (
+            <WebsitePreview card={catalogCard} />
+          ) : (
+            <DbCapturePreview
+              pageUrl={run.url}
+              title={host}
+              screenshotSrc={screenshotSrc}
+              scrapedImages={scrapedImages}
+            />
+          )}
         </div>
 
         <div className="overflow-y-auto px-4 py-6 pb-24 md:px-8 md:py-7">
           <div className="mb-6 md:hidden">
             <div className="h-[min(75vh,560px)] min-h-[300px] overflow-hidden rounded-xl border border-white">
-              <DbCapturePreview
-                pageUrl={run.url}
-                title={host}
-                screenshotSrc={screenshotSrc}
-                scrapedImages={scrapedImages}
-              />
+              {catalogCard && tab === "stylemd" ? (
+                <WebsitePreview card={catalogCard} />
+              ) : (
+                <DbCapturePreview
+                  pageUrl={run.url}
+                  title={host}
+                  screenshotSrc={screenshotSrc}
+                  scrapedImages={scrapedImages}
+                />
+              )}
             </div>
           </div>
 
           <div className="mb-6">
             <div className="mb-3 flex flex-wrap items-center gap-3">
               <div
-                className="flex h-[60px] w-[60px] flex-shrink-0 items-center justify-center rounded-[7.2px] text-lg font-black text-white"
-                style={{ backgroundColor: "var(--cta)" }}
+                className="flex h-[60px] w-[60px] flex-shrink-0 items-center justify-center rounded-[7.2px] text-lg font-black text-white overflow-hidden"
+                style={{ backgroundColor: catalogCard?.accentColor ?? "var(--cta)" }}
               >
-                {initials}
+                {catalogCard && (catalogCard.logo.startsWith("/") || /^https?:/i.test(catalogCard.logo)) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={catalogCard.logo} alt="" className="h-full w-full object-cover" />
+                ) : catalogCard ?
+                  <span className="text-xl">{catalogCard.logo}</span>
+                : initials}
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="heading-h2 tracking-tight truncate">{host}</h1>
+                <h1 className="heading-h2 tracking-tight truncate">
+                  {parsedStyle.payload?.brand.trim() ? parsedStyle.payload.brand : host}
+                </h1>
                 <p className="text-xs text-secondary font-manrope truncate">{run.url}</p>
               </div>
             </div>
+
+            {parsedStyle.payload?.description?.trim() ? (
+              <p className="mb-4 max-w-2xl text-sm leading-relaxed text-secondary">{parsedStyle.payload.description.trim()}</p>
+            ) : null}
 
             <div className="mb-4 flex flex-wrap gap-2">
               <span className="rounded-[16px] border border-medium bg-surface px-3 py-1 text-xs font-medium text-primary">
@@ -304,6 +335,21 @@ export function FetchedRunDesignDetail({
                   {run.slug}
                 </span>
               ) : null}
+              {parsedStyle.payload?.tags?.length ?
+                parsedStyle.payload.tags.map((tag) => {
+                  const label = typeof tag === "string" ? tag : tag.label;
+                  const a = catalogCard?.accentColor ?? "#0a73eb";
+                  return (
+                    <span
+                      key={label}
+                      className="rounded-[16px] border px-3 py-1 text-xs font-medium"
+                      style={{ borderColor: `${a}55`, color: a, backgroundColor: `${a}14` }}
+                    >
+                      {label}
+                    </span>
+                  );
+                })
+              : null}
             </div>
 
             <div className="inline-flex h-[48px] flex-wrap items-center gap-0 rounded-[12px] border border-medium bg-surface-soft p-1">
@@ -338,31 +384,74 @@ export function FetchedRunDesignDetail({
           </div>
 
           {tab === "stylemd" && (
-            <div
-              className="relative overflow-y-auto rounded-2xl border border-medium bg-surface p-6 shadow-sm md:p-8"
-              style={{ maxHeight: "70vh" }}
-            >
-              {isGenerating && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-surface/90 backdrop-blur-sm">
+            <div className="space-y-4">
+              {!isGenerating && catalogCard && parsedStyle.payload ? (
+                <>
+                  <div className="inline-flex h-[48px] flex-wrap items-center gap-0 rounded-[12px] border border-medium bg-surface-soft p-1">
+                    <button
+                      onClick={() => setStyleDocView("live")}
+                      className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all md:px-5 ${
+                        styleDocView === "live" ? "bg-accent-blue text-white shadow-md" : "text-secondary hover:text-primary"
+                      }`}
+                      type="button"
+                    >
+                      <Monitor size={14} /> Live Preview
+                    </button>
+                    <button
+                      onClick={() => setStyleDocView("designmd")}
+                      className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all md:px-5 ${
+                        styleDocView === "designmd" ? "bg-accent-blue text-white shadow-md" : "text-secondary hover:text-primary"
+                      }`}
+                      type="button"
+                    >
+                      <Code2 size={14} /> DESIGN.md
+                    </button>
+                  </div>
                   <div
-                    className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-                    style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }}
-                  />
-                  <p className="px-4 text-center text-sm font-semibold text-secondary font-manrope">
-                    Generating style.md… This can take several minutes.
-                  </p>
-                </div>
-              )}
-              {!isGenerating && !run.styleMd?.trim() && isTerminalStatus ? (
-                <p className="text-sm text-secondary font-manrope">
-                  No style.md was produced for this run
-                  {st === "failed" || st === "canceled" ? " (run did not complete successfully)." : "."}
-                </p>
-              ) : (
+                    className="relative overflow-y-auto rounded-2xl border border-medium bg-transparent shadow-sm pb-8"
+                    style={{ maxHeight: "none" }}
+                  >
+                    {styleDocView === "live" ? (
+                      <CatalogMainSections card={catalogCard} extras={parsedStyle.payload} />
+                    ) : (
+                      <section className="rounded-2xl border border-medium bg-surface p-6">
+                        <pre className="overflow-x-auto rounded-xl bg-[#1a1a1a] p-5 font-mono text-xs leading-relaxed text-gray-100">
+                          {run.styleMd || ""}
+                        </pre>
+                      </section>
+                    )}
+                  </div>
+                </>
+              ) : null}
+
+              {(!catalogCard || !parsedStyle.payload || isGenerating) && (
                 <div
-                  className="prose-stylemd"
-                  dangerouslySetInnerHTML={{ __html: renderStyleMdToHtml(run.styleMd || "") }}
-                />
+                  className="relative overflow-y-auto rounded-2xl border border-medium bg-surface p-6 shadow-sm md:p-8"
+                  style={{ maxHeight: "70vh" }}
+                >
+                  {isGenerating && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-surface/90 backdrop-blur-sm">
+                      <div
+                        className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+                        style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }}
+                      />
+                      <p className="px-4 text-center text-sm font-semibold text-secondary font-manrope">
+                        Generating style.md… This can take several minutes.
+                      </p>
+                    </div>
+                  )}
+                  {!isGenerating && !run.styleMd?.trim() && isTerminalStatus ? (
+                    <p className="text-sm text-secondary font-manrope">
+                      No style.md was produced for this run
+                      {st === "failed" || st === "canceled" ? " (run did not complete successfully)." : "."}
+                    </p>
+                  ) : catalogCard ? null : (
+                    <div
+                      className="prose-stylemd"
+                      dangerouslySetInnerHTML={{ __html: renderStyleMdToHtml(run.styleMd || "") }}
+                    />
+                  )}
+                </div>
               )}
             </div>
           )}

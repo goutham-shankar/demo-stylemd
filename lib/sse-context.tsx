@@ -27,6 +27,7 @@ import {
   type StageStatus,
 } from "./api-types";
 import { API_BASE } from "./api-config";
+import { fetchFixtureRun, fillRunWithFixtureMarkdownIfEmpty, isFixtureRunId } from "./fixture-runs";
 
 export { API_BASE };
 
@@ -479,12 +480,20 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "NETWORK_ERROR", error: null });
     const gen = ++viewPollGenRef.current;
     try {
-      const data = await fetchRunBySlugOrId(slugOrId);
+      let data = await fetchRunBySlugOrId(slugOrId);
+      if (typeof window !== "undefined" && typeof window.location?.origin === "string") {
+        const origin = window.location.origin;
+        if (data) {
+          data = await fillRunWithFixtureMarkdownIfEmpty(slugOrId, data, origin);
+        } else {
+          data = await fetchFixtureRun(slugOrId, origin);
+        }
+      }
       if (!data) throw new Error(`HTTP 404`);
 
       dispatch({ type: "SET_RESULT", data });
 
-      if (runNeedsPoll(data)) {
+      if (runNeedsPoll(data) && !isFixtureRunId(data.runId)) {
         void (async () => {
           for (let i = 0; i < 120 && gen === viewPollGenRef.current; i++) {
             await new Promise((r) => setTimeout(r, 2000));

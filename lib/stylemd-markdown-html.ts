@@ -1,8 +1,11 @@
 /**
  * Lightweight markdown → HTML for in-app style.md preview (not full CommonMark).
+ * Optional ```stylemd-ui JSON renders a rich layout (see stylemd-structured-view.ts).
  */
 
-function escHtml(s: string): string {
+import { extractStyleMdUi, renderStructuredDesignHtml } from "./stylemd-structured-view";
+
+export function escHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -21,7 +24,8 @@ function processInline(raw: string): string {
   return s;
 }
 
-export function renderStyleMdToHtml(md: string): string {
+/** Plain markdown fragments only (no structured fences — strip those before calling). */
+export function renderPlainStyleMd(md: string): string {
   const lines = md.split("\n");
   const out: string[] = [];
   let inCodeBlock = false;
@@ -104,4 +108,24 @@ export function renderStyleMdToHtml(md: string): string {
   }
   closeList();
   return out.join("");
+}
+
+export function renderStyleMdToHtml(md: string): string {
+  const { payload, remainder } = extractStyleMdUi(md);
+  const parts: string[] = [];
+
+  if (payload) {
+    parts.push(renderStructuredDesignHtml(payload));
+  }
+
+  if (remainder.trim()) {
+    if (payload) {
+      parts.push(
+        '<hr style="border:none;border-top:1px solid var(--border-medium);margin:28px 0" />',
+      );
+    }
+    parts.push(renderPlainStyleMd(remainder));
+  }
+
+  return parts.join("");
 }
