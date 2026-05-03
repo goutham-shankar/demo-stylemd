@@ -20,11 +20,12 @@ import { CatalogMainSections } from "@/components/CatalogMainSections";
 import type { DesignCard } from "@/lib/design-cards";
 import { isFixtureRunId } from "@/lib/fixture-runs";
 
-function hostnameFromUrl(url: string): string {
+function hostnameFromUrl(url?: string): string {
+  if (!url) return "";
   try {
     return new URL(url).hostname;
   } catch {
-    return url;
+    return String(url);
   }
 }
 
@@ -149,7 +150,7 @@ export function FetchedRunDesignDetail({
   const [copied, setCopied] = useState(false);
   const [scrapedImages, setScrapedImages] = useState<string[]>([]);
 
-  const host = hostnameFromUrl(run.url);
+  const host = hostnameFromUrl(run.url ?? run.slug ?? run.runId ?? "");
   const initials = host.replace("www.", "").slice(0, 2).toUpperCase();
   const screenshotSrc = screenshotSrcForRun(run);
 

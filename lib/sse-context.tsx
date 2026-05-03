@@ -385,7 +385,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
               // slug (e.g. "levainbakery.com") won't match the DB slug ("levainbakery").
               const cur = activeRunRef.current;
               if (cur && data.styleMd) {
-                finish({
+                const resultData: RunData = {
                   runId,
                   url: cur.url,
                   slug: "",
@@ -395,10 +395,33 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                   model: cur.model,
                   status: data.status,
                   createdAt: cur.startedAt,
-                });
+                };
+                finish(resultData);
+
+                // PERSIST TO DATABASE immediately – don't rely on polling
+                void (async () => {
+                  try {
+                    if (!API_BASE) return;
+                    const saveRes = await fetch(`${API_BASE}/api/stylemd/persist`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(resultData),
+                    });
+                    if (saveRes.ok) {
+                      // Data persisted successfully
+                      const persisted = await saveRes.json() as RunData;
+                      if (!deadRef.current) {
+                        finish(persisted);
+                        fetchRuns();
+                      }
+                    }
+                  } catch {
+                    // If persist fails, continue with polling fallback
+                  }
+                })();
               }
 
-              // Continue polling the DB to get the full record (screenshot, persisted slug, etc.)
+              // Continue polling the DB as fallback to get the full record (screenshot, persisted slug, etc.)
               void (async () => {
                 for (let attempt = 0; attempt < 90 && !deadRef.current; attempt++) {
                   const runData = await fetchRunBySlugOrId(runId);
