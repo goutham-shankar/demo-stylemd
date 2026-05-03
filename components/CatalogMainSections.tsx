@@ -78,6 +78,16 @@ export type CatalogMainSectionsProps = {
   extras: StyleMdUiPayload | null;
 };
 
+function generateColorScale(hex: string): string[] {
+  // Simple mock of 50-900 scale by mixing with white/black
+  // In a real app we'd use chroma-js or similar
+  return [
+    `${hex}15`, `${hex}30`, `${hex}50`, `${hex}70`, `${hex}90`,
+    hex,
+    `${hex}e0`, `${hex}cc`, `${hex}aa`, `${hex}88`
+  ];
+}
+
 export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) {
   const { tokens } = card;
   const a = tokens.colors.primary;
@@ -86,9 +96,6 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
 
   const typoTitle = extras?.typographyTitle ?? "Typography";
   const typoIntro = extras?.typographyIntro ?? "A composed hierarchy for page storytelling";
-  const typoAside =
-    extras?.typographyAside ??
-    `Design system built around ${tokens.typography.heading} and ${tokens.typography.body}.`;
 
   const spacingValue = tokens.spacing || "8px";
   const spacingCards = extras?.spacing?.cards?.length ? extras.spacing.cards : [
@@ -127,88 +134,96 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
     extras?.buttonsBlurb ?? `Anchor interactions to the detected button styles with ${tokens.buttons.radius} radius.`;
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-2xl border border-light bg-surface">
-        <div className="grid h-[360px] grid-cols-1 gap-0 md:grid-cols-[1fr_2fr]">
-          <div className="flex flex-col justify-between bg-surface p-8">
-            <div>
-              <h2 className="heading-h3 mb-3 tracking-tight">{typoTitle}</h2>
-              <p className="mb-4 text-sm leading-relaxed text-secondary">{typoIntro}</p>
-              <p className="text-xs leading-relaxed text-secondary">{typoAside}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-0">
-            {card.fonts.map((font) => {
-              const ext = extras?.fonts?.find((f) => f.name === font.name);
-              const weights = ext?.weights ?? (font.dark ? "Medium" : "Regular, Medium");
-              const badge = ext?.badge ?? (font.dark ? "HEADING SYSTEM" : "BODY SYSTEM");
-              const body =
-                ext?.body ??
-                (font.dark ? "Used for titles and heading text" : "Used for secondary heading and body copy...");
-              return (
-                <div
-                  key={font.name}
-                  className={`flex flex-col justify-between p-6 transition-all ${font.dark ? "shadow-md border" : ""}`}
-                  style={font.dark ? { background: a, borderColor: `${a}cc` } : { background: `${a}14` }}
-                >
-                  <div>
-                    <p
-                      className={`mb-2 text-2xs uppercase tracking-wider ${font.dark ? "text-white/90" : "text-secondary"}`}
-                    >
-                      {font.name}
-                    </p>
-                    <p
-                      className={`font-black tracking-tight leading-tight ${font.dark ? "text-white text-6xl" : "text-primary text-7xl"}`}
-                      style={{ fontFamily: fontFamilyFor(font.name) }}
-                    >
-                      {font.sample}
-                    </p>
-                  </div>
-                  <div>
-                    <p className={`mb-1 text-base font-bold ${font.dark ? "text-white" : "text-primary"}`}>{font.role}</p>
-                    <p className={`mb-3 text-[10px] ${font.dark ? "text-white/90" : "text-secondary"}`}>{weights}</p>
-                    <span
-                      className={`inline-block rounded px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${
-                        font.dark ? "bg-white/20 text-white" : "text-white"
-                      }`}
-                      style={font.dark ? undefined : { backgroundColor: a }}
-                    >
-                      {badge}
-                    </span>
-                    <p className={`mt-3 text-[10px] leading-relaxed ${font.dark ? "text-white/85" : "text-secondary"}`}>
-                      {body}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+    <div className="space-y-10">
+      {/* 1. Pro Typography Section */}
+      <section className="space-y-6">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-3xl font-black tracking-tighter text-primary">{typoTitle}</h2>
+          <p className="text-sm text-secondary font-medium">{typoIntro}</p>
         </div>
-      </section>
-
-      <section className="overflow-hidden rounded-2xl bg-[#0d0d1a] p-8">
-        <div className="mb-3 grid grid-cols-[90px_repeat(10,1fr)] gap-1 text-center">
-          <div />
-          {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"].map((s) => (
-            <div key={s} className="text-2xs text-secondary">
-              {s}
+        
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {card.fonts.slice(0, 2).map((font, idx) => (
+            <div 
+              key={font.name}
+              className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl p-8 transition-all hover:shadow-2xl ${
+                idx === 0 ? "bg-accent-blue text-white shadow-xl shadow-blue-500/20" : "bg-white border border-medium shadow-lg"
+              }`}
+              style={idx === 0 ? { backgroundColor: a } : {}}
+            >
+              <div className="flex flex-col items-center justify-center py-12">
+                <span 
+                  className="text-8xl font-black tracking-tighter"
+                  style={{ fontFamily: fontFamilyFor(font.name) }}
+                >
+                  Aa Bb
+                </span>
+              </div>
+              
+              <div className="mt-4 flex flex-col gap-4">
+                <div>
+                  <h3 className={`text-xl font-black ${idx === 0 ? "text-white" : "text-primary"}`}>{font.name}</h3>
+                  <p className={`text-xs font-bold uppercase tracking-widest opacity-70 ${idx === 0 ? "text-white" : "text-secondary"}`}>
+                    {idx === 0 ? "Primary Heading" : "Secondary Body"}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter ${
+                    idx === 0 ? "bg-white/20 text-white" : "bg-page text-primary border border-medium"
+                  }`}>
+                    {idx === 0 ? "MODERN DISPLAY" : "UI SYSTEM"}
+                  </span>
+                  <span className={`text-[10px] font-bold opacity-60 ${idx === 0 ? "text-white" : "text-secondary"}`}>
+                    Regular, Medium, Bold
+                  </span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
-        {card.palette.map((palette, index) => (
-          <div key={palette.name} className="mb-4">
-            <div className="grid grid-cols-[90px_repeat(10,1fr)] items-center gap-1">
-              <div>
-                <p className="text-2xs text-secondary">D{index + 1}</p>
-                <p className="text-xs font-bold text-white">{palette.name}</p>
-                <p className="font-mono text-2xs text-secondary">{palette.hex}</p>
+      </section>
+
+      {/* 2. Pro Color Palette Grid */}
+      <section className="rounded-3xl border border-medium bg-white p-1 overflow-hidden shadow-sm">
+        <div className="grid grid-cols-[100px_repeat(10,1fr)] bg-gray-50 border-b border-medium py-3 text-center">
+          <div />
+          {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"].map((step) => (
+            <span key={step} className="text-[10px] font-black text-secondary/60">{step}</span>
+          ))}
+        </div>
+        
+        <div className="divide-y divide-medium">
+          {[
+            { name: "Primary", hex: a },
+            { name: "Secondary", hex: s },
+            { name: "Tertiary", hex: acc },
+            { name: "Neutral", hex: "#64748b" }
+          ].map((row) => {
+            const scale = generateColorScale(row.hex);
+            return (
+              <div key={row.name} className="grid grid-cols-[100px_repeat(10,1fr)] items-center">
+                <div className="flex flex-col px-4 py-4">
+                  <span className="text-[10px] font-bold text-primary">{row.name}</span>
+                  <span className="text-[9px] font-mono text-secondary uppercase">{row.hex}</span>
+                </div>
+                {scale.map((color, i) => (
+                  <div 
+                    key={i} 
+                    className="group relative h-16 w-full cursor-pointer transition-transform hover:z-10 hover:scale-105"
+                    style={{ backgroundColor: color }}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10">
+                      <span className="text-[8px] font-mono font-bold text-white drop-shadow-md">
+                        {color.substring(0, 7)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-              {palette.swatches.slice(0, 10).map((swatch, i) => (
-                <div key={i} className="h-9 rounded-sm" style={{ background: swatch }} />
-              ))}
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </section>
 
       <section className="rounded-2xl border border-light bg-surface p-8">
