@@ -33,7 +33,7 @@ export interface RunSummary {
 
 /**
  * Row from the `scraped_data` MongoDB collection.
- * Returned by GET /api/scrape or POST /api/scrape.
+ * Returned by POST /api/scraped-data.
  */
 export interface ScrapedDataRecord {
   _id?: string;
@@ -42,19 +42,19 @@ export interface ScrapedDataRecord {
   description?: string | null;
   h1?: string | null;
   canonical?: string | null;
+  /** Array of base64 strings: data:image/jpeg;base64,... */
   images: string[];
   contentText?: string | null;
   rawHtml?: string | null;
-  /** base64 data:image/png;base64,... (900px wide preview) */
+  /** base64 data:image/jpeg;base64,... (900px wide preview) */
   screenshot?: string | null;
-  /** server path e.g. /styleguide-files/<runId>/full_screenshot.png */
-  screenshotUrl?: string | null;
   createdAt?: string;
 }
 
+
 /**
  * Row from the `stylemd_runs` MongoDB collection.
- * Returned by GET /api/stylemd/by-slug/:slug and POST /api/stylemd/run.
+ * Returned by GET /api/stylemd/by-slug/:slug and POST /api/stylemd.
  */
 export interface RunData {
   _id?: string;
@@ -64,15 +64,28 @@ export interface RunData {
   provider: Provider;
   model: string;
   styleMd: string;
-  /** base64 data:image/png;base64,... (900px wide) */
+  /** base64 data:image/jpeg;base64,... (900px wide) */
   screenshot: string;
-  /** server path e.g. /styleguide-files/<runId>/full_screenshot.png */
-  screenshotUrl?: string;
+  
+  // Metadata fields
+  title?: string;
+  description?: string;
+  h1?: string;
+  canonical?: string;
+  
+  brandAssets?: {
+    logo?: string;
+    favicon?: string;
+    appleIcon?: string;
+    ogImage?: string;
+  };
+  
   showcaseUrl?: string;
   /** Mirrors `stylemd_runs.status` from the API. */
   status: RunStatus | string;
   createdAt: string;
 }
+
 
 export interface StageState {
   status: StageStatus;

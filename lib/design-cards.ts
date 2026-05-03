@@ -9,6 +9,39 @@ export type DesignCard = {
   desc: string;
   palette: { name: string; hex: string; swatches: string[] }[];
   fonts: { name: string; sample: string; role: string; dark: boolean }[];
+  preview?: string | null;
+  tokens: {
+    colors: {
+      primary: string;
+      secondary: string;
+      accent: string;
+      usage?: Record<string, string>;
+    };
+    typography: {
+      heading: string;
+      body: string;
+      scale?: {
+        element: string;
+        size: string;
+        lineHeight: string;
+        letterSpacing: string;
+        weight: string;
+      }[];
+    };
+    spacing: string;
+    spacingScale?: {
+      token: string;
+      value: string;
+      usage: string;
+    }[];
+    buttons: {
+      radius: string;
+    };
+    implementation?: {
+      cssVariables?: string;
+      classNames?: string[];
+    };
+  };
 };
 
 export const designCards: DesignCard[] = [
@@ -37,6 +70,12 @@ export const designCards: DesignCard[] = [
       { name: "Tertiary", hex: "#2d2bb5", swatches: ["#f5f5ff", "#e8eaf6", "#c5cae9", "#9fa8da", "#7986cb", "#5c6bc0", "#3f51b5", "#3949ab", "#2d2bb5", "#1a178a"] },
       { name: "Neutral", hex: "#f9c74f", swatches: ["#fffef5", "#fffde7", "#fff9c4", "#fff59d", "#fff176", "#ffee58", "#ffeb3b", "#fdd835", "#f9c74f", "#c8a200"] },
     ],
+    tokens: {
+      colors: { primary: "#000000", secondary: "#fafafa", accent: "#e8006f" },
+      typography: { heading: "Platform", body: "National" },
+      spacing: "4px",
+      buttons: { radius: "0px" }
+    }
   },
   {
     url: "/spotify",
@@ -61,6 +100,12 @@ export const designCards: DesignCard[] = [
       { name: "White", hex: "#ffffff", swatches: ["#ffffff", "#b3b3b3", "#cbcbcb", "#fdfdfd"] },
       { name: "Semantic", hex: "#f3727f", swatches: ["#f3727f", "#ffa42b", "#539df5"] },
     ],
+    tokens: {
+      colors: { primary: "#1ed760", secondary: "#121212", accent: "#1ed760" },
+      typography: { heading: "SpotifyMixUITitle", body: "SpotifyMixUI" },
+      spacing: "8px",
+      buttons: { radius: "500px" }
+    }
   },
 ];
 

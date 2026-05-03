@@ -7,6 +7,7 @@ import { styleMdUiPayloadToDesignCard } from "@/lib/stylemd-to-design-card";
 import type { DesignCard } from "@/lib/design-cards";
 import { CatalogMainSections } from "@/components/CatalogMainSections";
 import type { StyleMdUiPayload } from "@/lib/stylemd-structured-view";
+import { API_BASE } from "@/lib/api-config";
 
 /**
  * DynamicUIWrapper wraps generated pages with the levainbakery-2 dynamic UI
@@ -35,20 +36,19 @@ export function DynamicUIWrapper({
     const fetchTemplate = async () => {
       try {
         setIsLoading(true);
-        // Fetch the template design (levainbakery-2 or specified runId)
-        const response = await fetch(`/generate?run=${templateRunId}`);
+        // Fetch the template design via the API
+        const response = await fetch(`${API_BASE}/api/stylemd/by-slug/${encodeURIComponent(templateRunId)}`);
         if (!response.ok) throw new Error("Failed to fetch template design");
 
-        const html = await response.text();
-        // Extract the JSON payload from the HTML response
-        // The template design data should be embedded in the page
-        const jsonMatch = html.match(/{"version":\s*1[^}]*}/);
-        if (!jsonMatch) throw new Error("Could not extract design data from template");
+        const json = await response.json();
+        if (!json.ok || !json.data) throw new Error("Could not extract design data from template");
 
-        const payload = JSON.parse(jsonMatch[0]) as StyleMdUiPayload;
+        const payload = extractStyleMdUi(json.data.styleMd || "").payload;
+        if (!payload) throw new Error("Template does not contain valid design system data");
+
         const card = styleMdUiPayloadToDesignCard(payload, {
           id: templateRunId,
-          url: "",
+          url: json.data.url || "",
         });
 
         setTemplateDesign({ card, payload });

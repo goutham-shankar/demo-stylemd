@@ -4,8 +4,8 @@
  * Defaults to port 3002 in development (the Express backend default).
  */
 export const API_BASE =
-  typeof process.env.NEXT_PUBLIC_API_BASE === "string" && process.env.NEXT_PUBLIC_API_BASE.trim() !== ""
-    ? process.env.NEXT_PUBLIC_API_BASE.trim()
-    : process.env.NODE_ENV === "development"
-      ? "http://localhost:3002"
-      : "";
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3002"
+    : (typeof process.env.NEXT_PUBLIC_API_BASE === "string" && process.env.NEXT_PUBLIC_API_BASE.trim() !== ""
+        ? process.env.NEXT_PUBLIC_API_BASE.trim()
+        : "http://localhost:3002");

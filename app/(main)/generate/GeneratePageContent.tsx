@@ -39,18 +39,17 @@ function FetchedResultView() {
       run={resultData}
       isGenerating={isGenerating}
       isRunBusy={isRunning && !isFixtureDemo}
-      useDynamicUITemplate={true}
-      templateRunId="levainbakery-2"
       onBack={() => {
         goHome();
-        router.push("/");
+        router.replace("/");
       }}
+
       onRunAgain={
         isFixtureDemo ?
           undefined
         : async () => {
             await runAgain();
-            router.push("/generate");
+            router.replace("/generate");
           }
       }
     />
@@ -82,46 +81,47 @@ export default function GeneratePageContent() {
   const { screen, resultData, viewRun, networkError, dismissNetworkError, goHome } = useSSE();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const runParam = searchParams.get("run")?.trim() ?? "";
+  const slug = searchParams.get("run")?.trim() ?? "";
 
   useEffect(() => {
     if (screen !== "result" || !resultData) return;
-    const key = resultData.slug?.trim() || resultData.runId?.trim();
-    if (!key) return;
+    const activeSlug = resultData.slug?.trim();
+    if (!activeSlug) return;
     const current = searchParams.get("run")?.trim();
-    if (current === key) return;
-    router.replace(`/generate?run=${encodeURIComponent(key)}`, { scroll: false });
+    if (current === activeSlug) return;
+    router.replace(`/generate?run=${encodeURIComponent(activeSlug)}`, { scroll: false });
   }, [screen, resultData, searchParams, router]);
 
   const [deepFetchSettled, setDeepFetchSettled] = useState(false);
 
   useEffect(() => {
-    if (!runParam) {
+    if (!slug) {
       setDeepFetchSettled(false);
       return;
     }
     setDeepFetchSettled(false);
     let cancelled = false;
     void (async () => {
-      await viewRun(runParam);
+      await viewRun(slug);
       if (!cancelled) setDeepFetchSettled(true);
     })();
     return () => {
       cancelled = true;
     };
-  }, [runParam, viewRun]);
+  }, [slug, viewRun]);
 
   useEffect(() => {
-    if (runParam) return;
+    if (slug) return;
     if (screen === "home") {
       router.replace("/");
     }
-  }, [screen, router, runParam]);
+  }, [screen, router, slug]);
 
-  if (screen === "running") return <PipelineView />;
-  if (screen === "result") return <FetchedResultView />;
+  if (screen === "running") return <div className="animate-fade-in"><PipelineView /></div>;
+  if (screen === "result") return <div className="animate-fade-in"><FetchedResultView /></div>;
 
-  if (runParam) {
+
+  if (slug) {
     if (!deepFetchSettled) {
       return (
         <div className="flex min-h-[50vh] items-center justify-center">

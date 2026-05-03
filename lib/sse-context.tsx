@@ -27,19 +27,15 @@ import {
   type StageStatus,
 } from "./api-types";
 import { API_BASE } from "./api-config";
-import { fetchFixtureRun, fillRunWithFixtureMarkdownIfEmpty, isFixtureRunId } from "./fixture-runs";
+
 
 export { API_BASE };
 
 /** Non-terminal API statuses that should keep polling until markdown appears (legacy / unknown). */
 function isTerminalApiRunStatus(st: string): boolean {
-  return (
-    st === "failed" ||
-    st === "canceled" ||
-    st === "completed" ||
-    st === "completed_with_warnings"
-  );
+  return ["completed", "failed", "canceled", "completed_with_warnings"].includes(st);
 }
+
 
 function mapApiSummary(raw: Record<string, unknown>): RunSummary {
   const st = String(raw.status ?? "completed");
@@ -110,7 +106,9 @@ interface AppState {
   isRunning: boolean;
   networkError: string | null;
   runError: string | null;
+  lastRunSlug: string | null;
 }
+
 
 type AppAction =
   | { type: "SET_SCREEN"; screen: Screen }
@@ -124,7 +122,9 @@ type AppAction =
   | { type: "SET_RESULT"; data: RunData }
   | { type: "NETWORK_ERROR"; error: string | null }
   | { type: "RUN_ERROR"; error: string | null }
+  | { type: "SET_LAST_RUN"; slug: string | null }
   | { type: "GO_HOME" };
+
 
 const initialState: AppState = {
   screen: "home",
@@ -134,7 +134,9 @@ const initialState: AppState = {
   isRunning: false,
   networkError: null,
   runError: null,
+  lastRunSlug: null,
 };
+
 
 function reducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -239,7 +241,11 @@ function reducer(state: AppState, action: AppAction): AppState {
     case "RUN_ERROR":
       return { ...state, runError: action.error, isRunning: false };
 
+    case "SET_LAST_RUN":
+      return { ...state, lastRunSlug: action.slug };
+
     case "GO_HOME":
+
       return {
         ...state,
         screen: "home",
@@ -312,8 +318,18 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   // SSE connection – defined once after mount
   useEffect(() => {
     deadRef.current = false;
+    const LAST_ID_KEY = "stylemd_last_run_id";
+
+    // Load last run ID from localStorage on mount
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(LAST_ID_KEY);
+      if (saved) dispatch({ type: "SET_LAST_RUN", slug: saved });
+    }
+
+    let timeoutId: NodeJS.Timeout;
 
     function connect() {
+
       if (deadRef.current) return;
 
       if (!API_BASE) {
@@ -390,12 +406,15 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                   data: { ...runData, ...(showcaseUrl ? { showcaseUrl } : {}) },
                 });
                 fetchRuns();
+
+                const finalSlug = runData.slug || runData.runId;
+                if (finalSlug && typeof window !== "undefined") {
+                  localStorage.setItem(LAST_ID_KEY, finalSlug);
+                  dispatch({ type: "SET_LAST_RUN", slug: finalSlug });
+                }
               };
 
               // Immediately show the result using data from the SSE event + activeRun.
-              // Use slug:"" so GeneratePageContent uses runId as the URL key — the
-              // backend's by-slug route can always resolve a runId, whereas a hostname
-              // slug (e.g. "levainbakery.com") won't match the DB slug ("levainbakery").
               const cur = activeRunRef.current;
               if (cur && data.styleMd) {
                 const resultData: RunData = {
@@ -410,35 +429,18 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                   createdAt: cur.startedAt,
                 };
                 finish(resultData);
-
-                // PERSIST TO DATABASE immediately – don't rely on polling
-                void (async () => {
-                  try {
-                    if (!API_BASE) return;
-                    const saveRes = await fetch(`${API_BASE}/api/stylemd/persist`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(resultData),
-                    });
-                    if (saveRes.ok) {
-                      // Data persisted successfully
-                      const persisted = await saveRes.json() as RunData;
-                      if (!deadRef.current) {
-                        finish(persisted);
-                        fetchRuns();
-                      }
-                    }
-                  } catch {
-                    // If persist fails, continue with polling fallback
-                  }
-                })();
               }
 
-              // Continue polling the DB as fallback to get the full record (screenshot, persisted slug, etc.)
+
+
+              // Continue polling the DB as fallback to get the full record (screenshot, persisted slug, metadata, etc.)
               void (async () => {
+                console.log(`[SSE] Finalizing run ${runId}, polling DB for full record...`);
                 for (let attempt = 0; attempt < 90 && !deadRef.current; attempt++) {
                   const runData = await fetchRunBySlugOrId(runId);
-                  if (runData && !runNeedsPoll(runData)) {
+                  // 🔴 FIX: Transition if we have terminal status OR styleMd
+                  if (runData && (isTerminalApiRunStatus(runData.status) || runData.styleMd)) {
+                    console.log(`[SSE] Run ${runId} settled in DB, finishing.`);
                     finish(runData);
                     return;
                   }
@@ -455,11 +457,25 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         }
       };
 
+      es.onopen = () => {
+        clearTimeout(timeoutId);
+        // If no event for 45s, consider connection lost
+        timeoutId = setTimeout(() => {
+          if (!deadRef.current) {
+            console.warn("[SSE] Heartbeat lost, reconnecting...");
+            es.close();
+            connect();
+          }
+        }, 45000);
+      };
+
       es.onerror = () => {
         es.close();
+        clearTimeout(timeoutId);
         setTimeout(connect, 3000);
       };
     }
+
 
     fetchRuns();
     connect();
@@ -476,11 +492,47 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     async (url: string, provider: Provider) => {
       if (state.isRunning) return;
 
+      const handleExistingRun = async (targetUrl: string) => {
+        try {
+          // Normalize for comparison
+          const normalizedTarget = targetUrl.toLowerCase().replace(/\/$/, "");
+          
+          const runsRes = await fetch(`${API_BASE}/api/stylemd/runs`);
+          if (!runsRes.ok) return;
+          const data = await runsRes.json();
+          const list = Array.isArray(data.data) ? data.data : [];
+          
+          const existing = list.find((r: any) => {
+            const rUrl = String(r.url || "").toLowerCase().replace(/\/$/, "");
+            return rUrl === normalizedTarget && r.status === "running";
+          });
+
+          if (existing) {
+            dispatch({
+              type: "SET_ACTIVE_RUN",
+              run: {
+                runId: existing.runId || existing.id,
+                url: existing.url,
+                provider: existing.provider || "kimi",
+                model: existing.model || "",
+                stages: initStages(),
+                logs: [],
+                startedAt: existing.createdAt || new Date().toISOString(),
+              },
+            });
+            return true;
+          }
+        } catch (e) {
+          console.error("Failed to resume existing run:", e);
+        }
+        return false;
+      };
+
       dispatch({ type: "NETWORK_ERROR", error: null });
       dispatch({ type: "RUN_ERROR", error: null });
 
       // Optimistic: add to library immediately with "running" status
-      let hostname = url;
+      let hostname = url.toLowerCase().replace(/\/$/, "");
       try { hostname = new URL(url).hostname; } catch { /* leave as-is */ }
 
       dispatch({
@@ -497,13 +549,17 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       });
 
       try {
-        const res = await fetch(`${API_BASE}/api/stylemd/run`, {
+        const res = await fetch(`${API_BASE}/api/stylemd`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url, provider }),
         });
 
-        if (res.status === 409) {
+        if (res.status === 409 || (res.status === 400 && (await res.clone().json())?.error?.includes("already in progress"))) {
+          // 🟠 STEP 1: HANDLE "ALREADY IN PROGRESS"
+          const resumed = await handleExistingRun(url);
+          if (resumed) return;
+          
           dispatch({ type: "RUN_ERROR", error: "Pipeline busy, try again shortly" });
           return;
         }
@@ -538,20 +594,13 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "NETWORK_ERROR", error: null });
     const gen = ++viewPollGenRef.current;
     try {
-      let data = await fetchRunBySlugOrId(slugOrId);
-      if (typeof window !== "undefined" && typeof window.location?.origin === "string") {
-        const origin = window.location.origin;
-        if (data) {
-          data = await fillRunWithFixtureMarkdownIfEmpty(slugOrId, data, origin);
-        } else {
-          data = await fetchFixtureRun(slugOrId, origin);
-        }
-      }
+      const data = await fetchRunBySlugOrId(slugOrId);
       if (!data) throw new Error(`HTTP 404`);
+
 
       dispatch({ type: "SET_RESULT", data });
 
-      if (runNeedsPoll(data) && !isFixtureRunId(data.runId)) {
+      if (runNeedsPoll(data)) {
         void (async () => {
           for (let i = 0; i < 120 && gen === viewPollGenRef.current; i++) {
             await new Promise((r) => setTimeout(r, 2000));

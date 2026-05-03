@@ -95,9 +95,8 @@ From `lib/api-types.ts`:
 
 **SSE Context (`lib/sse-context.tsx`)**
 - Manages global state for generation pipeline
-- Connects to backend SSE endpoint and updates state with events
-- Methods:
-  - `startRun(url, provider)` – POST to `/api/stylemd-artifacts/run`
+- Connects to backend SSE endpoint. Backend pipeline starts (POST /api/stylemd)
+  - `startRun(url, provider)` – POST to `/api/stylemd`
   - `viewRun(slugOrId)` – Fetch run by slug/ID, with fallback to fixtures
   - `runAgain()` – Restart last run
   - `goHome()` – Reset to home screen
@@ -297,11 +296,11 @@ When rendered, the page shows:
 |----------|--------|---------|---------|
 | `/api/stylemd/runs` | GET | List all past runs | `{ ok: bool, summaries: RunSummary[] }` |
 | `/api/stylemd/by-slug/{slugOrId}` | GET | Fetch a specific run by slug or ID | `{ ok: bool, data: RunData }` |
-| `/api/stylemd-artifacts/run` | POST | Start a new generation run | `{ ok: bool, runId: string }` (or 409 if busy) |
+| `/api/stylemd` | POST | Start a new generation run | `{ ok: bool, runId: string }` (or 409 if busy) |
 | `/api/stylemd/persist` | POST | Save run results to DB | `RunData` |
 | `/api/session/events` | GET (SSE) | Stream pipeline events | SSE stream of events |
 | `/api/stylemd` | DELETE | Clear current run | (clears state) |
-| `/api/scraped-data` | GET | Fetch scraped page content | `{ url, images, title }` |
+| `/api/scraped-data` | POST | Fetch scraped page content | `{ ok: bool, data: ScrapedDataRecord }` |
 
 ### SSE Event Types
 

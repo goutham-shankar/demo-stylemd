@@ -26,9 +26,10 @@
         │  BACKEND API                             │
         │  (Express @ localhost:3002)              │
         │  Handles:                                │
+        │  ├─ /api/stylemd                         │
         │  ├─ /api/stylemd/runs                    │
         │  ├─ /api/stylemd/by-slug/{id}            │
-        │  ├─ /api/stylemd-artifacts/run           │
+        │  ├─ /api/scraped-data                    │
         │  ├─ /api/session/events (SSE)            │
         │  └─ /api/stylemd/persist                 │
         │                                          │
@@ -60,7 +61,7 @@
                      │
                      ▼
         ┌─────────────────────────────────────┐
-        │  POST /api/stylemd-artifacts/run    │
+        │  POST /api/stylemd                  │
         │  Payload: { url, provider }         │
         │  Response: { ok, runId }            │
         └────────────┬────────────────────────┘
@@ -318,7 +319,7 @@
                         METHODS:
         ┌─────────────────────────────────────────┐
         │ startRun(url, provider)                 │
-        │  → POST /api/stylemd-artifacts/run      │
+        │  → POST /api/stylemd                    │
         │  → Open SSE connection                  │
         │  → Set screen:"running"                 │
         │                                         │

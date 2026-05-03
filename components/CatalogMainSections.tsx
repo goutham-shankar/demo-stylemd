@@ -79,37 +79,52 @@ export type CatalogMainSectionsProps = {
 };
 
 export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) {
-  const a = card.accentColor;
+  const { tokens } = card;
+  const a = tokens.colors.primary;
+  const s = tokens.colors.secondary;
+  const acc = tokens.colors.accent;
+
   const typoTitle = extras?.typographyTitle ?? "Typography";
   const typoIntro = extras?.typographyIntro ?? "A composed hierarchy for page storytelling";
   const typoAside =
     extras?.typographyAside ??
-    "Orchestrate Systems Intelligently. Used for secondary heading moments and supporting display contrasts. Used for summarizing...";
-  const spacingCards = extras?.spacing?.cards?.length ? extras.spacing.cards : DEFAULT_SPACING_CARDS;
+    `Design system built around ${tokens.typography.heading} and ${tokens.typography.body}.`;
+
+  const spacingValue = tokens.spacing || "8px";
+  const spacingCards = extras?.spacing?.cards?.length ? extras.spacing.cards : [
+    { label: "BASE", sublabel: "RHYTHM", value: spacingValue },
+    { label: "GAP", sublabel: "COMPONENTS", value: `calc(${spacingValue} * 2)` },
+    { label: "SECTION", sublabel: "PAGE", value: `calc(${spacingValue} * 8)` },
+  ];
+
   const spacingSteps = extras?.spacing?.steps?.length ? extras.spacing.steps : DEFAULT_SPACING_STEPS;
   const spacingRules =
-    extras?.spacing?.rules?.length ? extras.spacing.rules : [...DEFAULT_SPACING_RULES.map((r) => r)];
+    extras?.spacing?.rules?.length ? extras.spacing.rules : [`SECTION PADDING: ${spacingValue}`, `CARD PADDING: ${spacingValue}`, `GAPS: ${spacingValue}`];
+
   const elevIntro =
     extras?.elevation?.intro ??
-    "Depth is communicated through glass, border, contrast, and reusable shadow or blur treatments. Keep those recipes consistent across hero panels, cards, and controls so the page reads as one material system.";
+    "Depth is communicated through glass, border, contrast, and reusable shadow or blur treatments.";
   const elevRows = extras?.elevation?.rows?.length ? extras.elevation.rows : DEFAULT_ELEVATION_ROWS;
   const elevChips = extras?.elevation?.chips?.length ? extras.elevation.chips : DEFAULT_ELEVATION_CHIPS;
+
   const shapeIntro =
     extras?.shapes?.intro ??
-    "Shapes rely on a tight radius system anchored by 2px and scaled across cards, buttons, and supporting surfaces. Icon geometry should stay compatible with that soft-to-controlled silhouette.";
+    `Shapes rely on a tight radius system anchored by ${tokens.buttons.radius}.`;
   const shapeBadge = extras?.shapes?.badge ?? "Linear";
   const shapeItems = extras?.shapes?.items?.length ? extras.shapes!.items! : DEFAULT_SHAPE_ITEMS;
+
   const motionTags = extras?.motion?.tags?.length ? extras.motion.tags : DEFAULT_MOTION_TAGS;
   const motionBars = extras?.motion?.bars?.length ? extras.motion.bars : DEFAULT_MOTION_BARS;
   const motionSteps = extras?.motion?.steps?.length ? extras.motion.steps : DEFAULT_MOTION_STEPS;
   const motionBadge = extras?.motion?.badge ?? "MODERATE";
+
   const guideIntro =
     extras?.guidelines?.intro ??
-    "Use these constraints to keep future generations aligned with the current system instead of drifting into adjacent styles.";
+    "Use these constraints to keep future generations aligned with the current system.";
   const dos = extras?.guidelines?.dos?.length ? extras.guidelines.dos : DEFAULT_DOS;
   const donts = extras?.guidelines?.donts?.length ? extras.guidelines.donts : DEFAULT_DONT;
   const buttonsBlurb =
-    extras?.buttonsBlurb ?? "Anchor interactions to the detected button styles. Reuse existing card surfaces.";
+    extras?.buttonsBlurb ?? `Anchor interactions to the detected button styles with ${tokens.buttons.radius} radius.`;
 
   return (
     <div className="space-y-6">
@@ -211,15 +226,15 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
           <div>
             <div className="mb-4 flex flex-col gap-3">
               <button
-                className="flex w-fit items-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold text-white"
-                style={{ background: a }}
+                className="flex w-fit items-center gap-2 px-5 py-3 text-sm font-semibold text-white"
+                style={{ background: a, borderRadius: tokens.buttons.radius }}
                 type="button"
               >
                 <ArrowLeft size={13} /> Primary <ArrowRight size={13} />
               </button>
               <button
-                className="flex w-fit items-center gap-2 rounded-lg px-5 py-3 text-sm font-medium text-primary bg-surface"
-                style={{ borderWidth: 1, borderStyle: "solid", borderColor: `${a}99` }}
+                className="flex w-fit items-center gap-2 px-5 py-3 text-sm font-medium text-primary"
+                style={{ borderWidth: 1, borderStyle: "solid", borderColor: `${a}99`, borderRadius: tokens.buttons.radius, backgroundColor: s }}
                 type="button"
               >
                 <ArrowLeft size={13} /> Secondary <ArrowRight size={13} />
@@ -333,8 +348,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             {shapeItems.map((label) => (
               <button
                 key={label}
-                className="rounded-lg border border-medium bg-surface-soft px-4 py-8 text-sm font-semibold text-primary transition-all hover:shadow-sm"
-                style={{ borderColor: `${a}33` }}
+                className="border border-medium px-4 py-8 text-sm font-semibold text-primary transition-all hover:shadow-sm"
+                style={{ borderColor: `${a}33`, borderRadius: tokens.buttons.radius, backgroundColor: s }}
                 type="button"
               >
                 {label}
@@ -414,6 +429,73 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
           </div>
         </div>
       </section>
+
+      {(tokens.typography.scale || tokens.spacingScale || tokens.implementation) && (
+        <section className="rounded-2xl border border-light bg-surface p-8">
+          <div className="mb-6 flex items-center gap-2">
+            <Layers size={14} className="text-secondary" />
+            <h2 className="heading-h4 tracking-tight">Engineering Specs</h2>
+          </div>
+          
+          <div className="space-y-8">
+            {tokens.typography.scale && (
+              <div>
+                <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-secondary">Type Scale</h3>
+                <div className="overflow-x-auto rounded-lg border border-light">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-light bg-surface-soft">
+                        <th className="px-4 py-2 font-bold">Element</th>
+                        <th className="px-4 py-2 font-bold">Size</th>
+                        <th className="px-4 py-2 font-bold">Line Height</th>
+                        <th className="px-4 py-2 font-bold">Letter Spacing</th>
+                        <th className="px-4 py-2 font-bold">Weight</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tokens.typography.scale.map((row, i) => (
+                        <tr key={i} className="border-b border-light last:border-0">
+                          <td className="px-4 py-3 font-semibold">{row.element}</td>
+                          <td className="px-4 py-3 font-mono">{row.size}</td>
+                          <td className="px-4 py-3 font-mono">{row.lineHeight}</td>
+                          <td className="px-4 py-3 font-mono">{row.letterSpacing}</td>
+                          <td className="px-4 py-3 font-mono">{row.weight}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {tokens.spacingScale && (
+              <div>
+                <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-secondary">Spacing Scale</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {tokens.spacingScale.map((s, i) => (
+                    <div key={i} className="flex items-center gap-3 rounded-lg border border-light p-3">
+                      <div className="flex-shrink-0 font-mono text-[10px] text-secondary w-20">{s.token}</div>
+                      <div className="font-bold text-primary w-12 text-right">{s.value}</div>
+                      <div className="text-xs text-secondary truncate">{s.usage}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {tokens.implementation?.cssVariables && (
+              <div>
+                <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-secondary">Implementation Notes</h3>
+                <div className="rounded-xl bg-gray-900 p-5">
+                  <pre className="overflow-x-auto font-mono text-[10px] leading-relaxed text-gray-100">
+                    <code>{tokens.implementation.cssVariables}</code>
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

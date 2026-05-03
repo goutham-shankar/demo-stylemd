@@ -62,14 +62,30 @@ const svgLogos = [
   "/logos/lovable.svg",
 ];
 
+function hostnameFromUrl(url?: string): string {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return String(url);
+  }
+}
+
 export default function Hero() {
   const [logoIdx, setLogoIdx] = useState(0);
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { startRun, isRunning, runError } = useSSE();
+  const { startRun, isRunning, runError, lastRunSlug, runs, viewRun } = useSSE();
   const router = useRouter();
+
+  // Pre-fill last URL or handle deep link recovery
+  useEffect(() => {
+    const lastUrl = localStorage.getItem("stylemd_last_url");
+    if (lastUrl && !url) setUrl(lastUrl);
+  }, []);
+
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -105,11 +121,13 @@ export default function Hero() {
 
       setIsSubmitting(true);
       try {
+        localStorage.setItem("stylemd_last_url", normalised);
         await startRun(normalised, "kimi");
         router.push("/generate");
       } finally {
         setIsSubmitting(false);
       }
+
     },
     [url, startRun, router]
   );
@@ -160,8 +178,9 @@ export default function Hero() {
       </section>
 
       {/* Cards */}
+      {/* Cards */}
       <div className="bg-page w-full px-4 pb-10 pt-3">
-        <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-10">
 
           {/* URL input card */}
           <div className="bg-surface rounded-2xl p-5 border border-medium shadow-sm flex flex-col">
@@ -221,7 +240,61 @@ export default function Hero() {
           </Link>
 
         </div>
+
+        {/* Recent Runs Section */}
+        {runs.length > 0 && (
+          <div className="max-w-3xl mx-auto mt-12 mb-8 px-2">
+            <h3 className="text-xs font-bold text-secondary uppercase tracking-widest mb-4 font-manrope">
+              Your Recent Runs
+            </h3>
+            <div className="grid gap-3">
+              {runs.slice(0, 3).map((run) => (
+                <button
+                  key={run.id}
+                  onClick={() => {
+                    viewRun(run.slug || run.id);
+                    router.push("/generate");
+                  }}
+                  className="flex items-center justify-between p-4 bg-surface rounded-xl border border-medium hover:border-dark transition-all duration-150 group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-page flex items-center justify-center text-secondary font-bold text-[10px] uppercase">
+                      {hostnameFromUrl(run.url).slice(0, 2) || "UR"}
+                    </div>
+                    <div className="text-left min-w-0">
+                      <p className="text-sm font-bold text-primary truncate">
+                        {run.url || run.slug}
+                      </p>
+                      <p className="text-[10px] text-secondary font-manrope">
+                        {new Date(run.createdAt).toLocaleDateString()} • {run.status}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-accent-blue opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    View result →
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Continue Last Run */}
+          {lastRunSlug && !isRunning && (
+          <div className="max-w-3xl mx-auto mt-6 px-2">
+            <Link
+              href={`/generate?run=${encodeURIComponent(lastRunSlug)}`}
+              className="block p-4 bg-blue-50 border border-blue-100 rounded-xl text-center hover:bg-blue-100 transition-all duration-150"
+            >
+              <span className="text-sm font-bold text-accent-blue">
+                ✨ Continue where you left off →
+              </span>
+            </Link>
+          </div>
+        )}
       </div>
+
+
     </>
   );
 }

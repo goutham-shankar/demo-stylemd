@@ -127,6 +127,7 @@ export default function StyleLibrary() {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-purple-500" />
             <span className="text-white text-xl font-bold">Lovable</span>
           </div>
+
           <p className="text-white/70 text-xs mb-4">Build apps and websites by chatting with AI</p>
           <div className="w-full bg-white/10 backdrop-blur rounded-xl px-3 py-2 flex items-center justify-between">
             <span className="text-white/60 text-xs">Build something lovable</span>
@@ -200,8 +201,10 @@ export default function StyleLibrary() {
 
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
             <div>
-              <h2 className="heading-h2 text-primary">Style Library</h2>
+              <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-1 font-manrope">Reference Library</p>
+              <h2 className="heading-h2 text-primary">Example styles</h2>
             </div>
+
             <div className="relative w-full md:w-72">
               <Search className="absolute left-4 top-3 text-secondary" size={18} aria-hidden />
               <input
