@@ -276,6 +276,8 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const esRef = useRef<EventSource | null>(null);
   const deadRef = useRef(false);
   const viewPollGenRef = useRef(0);
+  const activeRunRef = useRef<ActiveRun | null>(null);
+  activeRunRef.current = state.activeRun;
 
   const fetchRuns = useCallback(async () => {
     try {
@@ -377,6 +379,26 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                 fetchRuns();
               };
 
+              // Immediately show the result using data from the SSE event + activeRun.
+              // This ensures the result is visible even if the DB hasn't been updated yet.
+              const cur = activeRunRef.current;
+              if (cur && data.styleMd) {
+                let slug = cur.url;
+                try { slug = new URL(cur.url).hostname; } catch { /* leave as-is */ }
+                finish({
+                  runId,
+                  url: cur.url,
+                  slug,
+                  styleMd: data.styleMd,
+                  screenshot: "",
+                  provider: cur.provider,
+                  model: cur.model,
+                  status: data.status,
+                  createdAt: cur.startedAt,
+                });
+              }
+
+              // Continue polling the DB to get the full record (screenshot, persisted slug, etc.)
               void (async () => {
                 for (let attempt = 0; attempt < 90 && !deadRef.current; attempt++) {
                   const runData = await fetchRunBySlugOrId(runId);

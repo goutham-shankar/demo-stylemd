@@ -28,8 +28,10 @@ function hostnameFromUrl(url: string): string {
 }
 
 function screenshotSrcForRun(run: RunData): string {
+  const shot = run.screenshot?.trim() ?? "";
   const raw = run.screenshotUrl?.trim() ?? "";
-  if (run.screenshot) return run.screenshot;
+  if (shot.startsWith("data:") || shot.startsWith("http")) return shot;
+  if (shot && API_BASE) return `${API_BASE}${shot.startsWith("/") ? "" : "/"}${shot}`;
   if (raw.startsWith("http")) return raw;
   if (raw && API_BASE) return `${API_BASE}${raw.startsWith("/") ? "" : "/"}${raw}`;
   return "";

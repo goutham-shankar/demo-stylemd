@@ -66,6 +66,7 @@ export default function Hero() {
   const [logoIdx, setLogoIdx] = useState(0);
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { startRun, isRunning, runError } = useSSE();
   const router = useRouter();
@@ -102,8 +103,13 @@ export default function Hero() {
         return;
       }
 
-      await startRun(normalised, "kimi");
-      router.push("/generate");
+      setIsSubmitting(true);
+      try {
+        await startRun(normalised, "kimi");
+        router.push("/generate");
+      } finally {
+        setIsSubmitting(false);
+      }
     },
     [url, startRun, router]
   );
@@ -185,14 +191,14 @@ export default function Hero() {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  disabled={isRunning}
+                  disabled={isRunning || isSubmitting}
                   className="px-4 py-2.5 text-white rounded-xl font-bold text-sm shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                   style={{ backgroundColor: "var(--cta)" }}
                 >
-                  {isRunning && (
+                  {(isRunning || isSubmitting) && (
                     <span className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin border-white" />
                   )}
-                  {isRunning ? "Running…" : "Generate DESIGN.md"}
+                  {isRunning || isSubmitting ? "Running…" : "Generate DESIGN.md"}
                 </button>
               </div>
             </form>
