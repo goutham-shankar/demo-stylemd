@@ -3,8 +3,6 @@
 import Hero from "@/components/Hero";
 import IntegrationLogos from "@/components/IntegrationLogos";
 import StyleLibrary from "@/components/StyleLibrary";
-import PipelineView from "@/components/PipelineView";
-import ResultView from "@/components/ResultView";
 import { useSSE } from "@/lib/sse-context";
 
 function NetworkErrorBanner() {
@@ -28,20 +26,12 @@ function NetworkErrorBanner() {
 }
 
 export default function Home() {
-  const { screen } = useSSE();
-
   return (
     <main className="w-full">
       <NetworkErrorBanner />
-      {screen === "home" && (
-        <>
-          <Hero />
-          <IntegrationLogos />
-          <StyleLibrary />
-        </>
-      )}
-      {screen === "running" && <PipelineView />}
-      {screen === "result" && <ResultView />}
+      <Hero />
+      <IntegrationLogos />
+      <StyleLibrary />
     </main>
   );
 }

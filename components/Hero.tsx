@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSSE } from "@/lib/sse-context";
 import type { Provider } from "@/lib/api-types";
 
@@ -69,6 +70,7 @@ export default function Hero() {
   const [urlError, setUrlError] = useState("");
 
   const { startRun, isRunning, runError } = useSSE();
+  const router = useRouter();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -103,8 +105,9 @@ export default function Hero() {
       }
 
       await startRun(normalised, provider);
+      router.push("/generate");
     },
-    [url, provider, startRun]
+    [url, provider, startRun, router]
   );
 
   return (

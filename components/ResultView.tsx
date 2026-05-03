@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useSSE, API_BASE } from "@/lib/sse-context";
 
 // ── Markdown renderer ─────────────────────────────────────────────────────────
@@ -96,8 +97,14 @@ function renderMarkdown(md: string): string {
 
 export default function ResultView() {
   const { resultData, goHome, runAgain, isRunning } = useSSE();
+  const router = useRouter();
   const [tab, setTab] = useState<"preview" | "source" | "showcase">("preview");
   const [copied, setCopied] = useState(false);
+
+  const handleGoHome = useCallback(() => {
+    goHome();
+    router.push("/");
+  }, [goHome, router]);
 
   const handleCopy = useCallback(async () => {
     if (!resultData?.styleMd) return;
@@ -158,7 +165,7 @@ export default function ResultView() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
-            onClick={goHome}
+            onClick={handleGoHome}
             className="px-3 py-2 text-sm font-semibold font-manrope border border-medium rounded-xl text-secondary bg-surface hover:bg-[#f7f4ee] transition-all duration-150"
           >
             ← Back
@@ -180,7 +187,7 @@ export default function ResultView() {
           </a>
           <button
             type="button"
-            onClick={runAgain}
+            onClick={async () => { await runAgain(); router.push("/generate"); }}
             disabled={isRunning}
             className="px-3 py-2 text-sm font-semibold font-manrope rounded-xl text-white transition-all duration-150 disabled:opacity-50"
             style={{ backgroundColor: "var(--cta)" }}
