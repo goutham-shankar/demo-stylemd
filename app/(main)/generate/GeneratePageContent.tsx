@@ -85,7 +85,7 @@ export default function GeneratePageContent() {
 
   useEffect(() => {
     if (screen !== "result" || !resultData) return;
-    const activeSlug = resultData.slug?.trim();
+    const activeSlug = resultData.slug?.trim() || resultData.runId?.trim();
     if (!activeSlug) return;
     const current = searchParams.get("run")?.trim();
     if (current === activeSlug) return;

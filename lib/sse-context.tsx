@@ -404,7 +404,11 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                 if (deadRef.current) return;
                 dispatch({
                   type: "SET_RESULT",
-                  data: { ...runData, ...(showcaseUrl ? { showcaseUrl } : {}) },
+                  data: {
+                    ...runData,
+                    slug: runData.slug || runId,
+                    ...(showcaseUrl ? { showcaseUrl } : {}),
+                  },
                 });
                 fetchRuns();
 
@@ -599,7 +603,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       if (!data) throw new Error(`HTTP 404`);
 
 
-      dispatch({ type: "SET_RESULT", data });
+      dispatch({ type: "SET_RESULT", data: { ...data, slug: data.slug || slugOrId } });
 
       if (runNeedsPoll(data)) {
         void (async () => {
