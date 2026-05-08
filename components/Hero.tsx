@@ -1,9 +1,12 @@
 "use client";
 
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSSE } from "@/lib/sse-context";
 
-// Left logos use `left` px, Right logos use `right` px from edge
+// Floating logo decorations — desktop only
+
 const leftLogos = [
   { src: "Group 47374.svg",  size: 54,  left: 188, top: 41  },
   { src: "Group 47344.svg",  size: 58,  left: 4,   top: 83  },
@@ -24,28 +27,6 @@ const rightLogos = [
   { src: "Group 47361.svg",  size: 54,  right: 30,  top: 370 },
 ];
 
-function FloatingLogo({ src, size, left, right, top }: {
-  src: string; size: number; left?: number; right?: number; top: number;
-}) {
-  return (
-    <img
-      src={`/icons/left/${src}`}
-      alt=""
-      aria-hidden="true"
-      className="absolute object-contain pointer-events-none select-none z-30"
-      style={{
-        width: size,
-        height: size,
-        ...(left !== undefined ? { left } : {}),
-        ...(right !== undefined ? { right } : {}),
-        top,
-        transform: "translate(-50%, -50%)",
-      }}
-    />
-  );
-}
-
-// For right-anchored logos, translate should only affect Y not X
 function FloatingLogoRight({ src, size, right, top }: {
   src: string; size: number; right: number; top: number;
 }) {
@@ -55,13 +36,7 @@ function FloatingLogoRight({ src, size, right, top }: {
       alt=""
       aria-hidden="true"
       className="absolute object-contain pointer-events-none select-none z-30"
-      style={{
-        width: size,
-        height: size,
-        right,
-        top,
-        transform: "translateY(-50%)",
-      }}
+      style={{ width: size, height: size, right, top, transform: "translateY(-50%)" }}
     />
   );
 }
@@ -75,38 +50,87 @@ function FloatingLogoLeft({ src, size, left, top }: {
       alt=""
       aria-hidden="true"
       className="absolute object-contain pointer-events-none select-none z-30"
-      style={{
-        width: size,
-        height: size,
-        left,
-        top,
-        transform: "translateY(-50%)",
-      }}
+      style={{ width: size, height: size, left, top, transform: "translateY(-50%)" }}
     />
   );
 }
 
 const svgLogos = [
   "/logos/claude 1.svg",
-  //"/logos/Replit--Streamline-Svg-Logos.svg",
   "/logos/emergent-logo-new 1.svg",
   "/logos/Base44-logo_brandlogos.net_1a9f67 1.svg",
   "/logos/lovable.svg",
 ];
 
+function hostnameFromUrl(url?: string): string {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return String(url);
+  }
+}
+
 export default function Hero() {
   const [logoIdx, setLogoIdx] = useState(0);
+  const [url, setUrl] = useState("");
+  const [urlError, setUrlError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { startRun, isRunning, runError, lastRunSlug, runs, viewRun } = useSSE();
+  const router = useRouter();
+
+  // Pre-fill last URL or handle deep link recovery
+  useEffect(() => {
+    const lastUrl = localStorage.getItem("stylemd_last_url");
+    if (lastUrl && !url) setUrl(lastUrl);
+  }, []);
+
 
   useEffect(() => {
-    // Respect user's reduced-motion preference
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (mediaQuery.matches) return;
-
     const interval = setInterval(() => {
       setLogoIdx((idx) => (idx + 1) % svgLogos.length);
     }, 1200);
     return () => clearInterval(interval);
   }, []);
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setUrlError("");
+
+      const trimmed = url.trim();
+      if (!trimmed) {
+        setUrlError("Please enter a URL");
+        return;
+      }
+
+      // Loose URL validation — accept URLs with or without protocol
+      let normalised = trimmed;
+      if (!/^https?:\/\//i.test(normalised)) {
+        normalised = `https://${normalised}`;
+      }
+      try {
+        new URL(normalised);
+      } catch {
+        setUrlError("Please enter a valid URL");
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        localStorage.setItem("stylemd_last_url", normalised);
+        await startRun(normalised, "kimi");
+        router.push("/generate");
+      } finally {
+        setIsSubmitting(false);
+      }
+
+    },
+    [url, startRun, router]
+  );
 
   return (
     <>
@@ -114,7 +138,7 @@ export default function Hero() {
         className="relative bg-page flex flex-col items-center justify-center overflow-visible"
         style={{ minHeight: "360px" }}
       >
-        {/* Floating logos hidden on mobile to avoid overlap with heading text */}
+        {/* Floating logos — hidden on mobile */}
         <div className="absolute inset-0 pointer-events-none z-30 hidden md:block">
           {leftLogos.map((logo, i) => (
             <FloatingLogoLeft key={`l${i}`} {...logo} />
@@ -138,13 +162,13 @@ export default function Hero() {
                 style={{ border: "none", height: "100%", width: "auto", maxHeight: "none" }}
               />
             </span>{" "}
-            <br/>project a design makeover
+            <br />project a design makeover
           </h1>
           <p className="text-base md:text-lg mb-2 font-manrope font-medium" style={{ color: "#616161" }}>
-            A plug-and-play Design.md file to elevate your project's design
+            A plug-and-play Design.md file to elevate your project&apos;s design
           </p>
           <Link
-            href="#"
+            href="/styles"
             className="text-sm md:text-base font-manrope underline inline-block font-semibold"
             style={{ color: "#616161" }}
           >
@@ -153,33 +177,53 @@ export default function Hero() {
         </div>
       </section>
 
-      {/* Cards outside section — logos cannot reach */}
+      {/* Cards */}
+      {/* Cards */}
       <div className="bg-page w-full px-4 pb-10 pt-3">
-        <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-          <div className="bg-surface rounded-2xl p-5 border border-medium shadow-sm h-[200px] flex flex-col">
+        <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-10">
+
+          {/* URL input card */}
+          <div className="bg-surface rounded-2xl p-5 border border-medium shadow-sm flex flex-col">
             <h3 className="heading-h3 font-bold text-primary mb-4 leading-snug text-left">
               Start with a<br />reference website
             </h3>
-            <form onSubmit={(e) => e.preventDefault()}>
+            <form onSubmit={handleSubmit} noValidate>
               <label className="sr-only" htmlFor="ref-url">Paste any website URL</label>
               <input
                 id="ref-url"
                 type="url"
+                value={url}
+                onChange={(e) => { setUrl(e.target.value); setUrlError(""); }}
                 placeholder="Paste any website URL"
-                className="w-full px-3 py-2.5 border border-medium rounded-xl text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light mb-3"
+                disabled={isRunning}
+                className="w-full px-3 py-2.5 border border-medium rounded-xl text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light mb-2 disabled:opacity-60"
                 style={{ background: "var(--bg-page)" }}
               />
+
+              {/* Inline errors */}
+              {(urlError || runError) && (
+                <p className="text-xs text-red-600 font-manrope mb-2">
+                  {urlError || runError}
+                </p>
+              )}
+
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-cta text-white rounded-xl font-bold text-sm shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150"
+                  disabled={isRunning || isSubmitting}
+                  className="px-4 py-2.5 text-white rounded-xl font-bold text-sm shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                  style={{ backgroundColor: "var(--cta)" }}
                 >
-                  Generate DESIGN.md
+                  {(isRunning || isSubmitting) && (
+                    <span className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin border-white" />
+                  )}
+                  {isRunning || isSubmitting ? "Running…" : "Generate DESIGN.md"}
                 </button>
               </div>
             </form>
           </div>
 
+          {/* Catalog card */}
           <Link
             href="/styles"
             className="bg-surface rounded-2xl border border-medium shadow-sm p-4 h-[200px] flex flex-row items-stretch gap-3 overflow-hidden transition-all duration-150 hover:shadow-md hover:border-dark"
@@ -194,8 +238,63 @@ export default function Hero() {
               </h3>
             </div>
           </Link>
+
         </div>
+
+        {/* Recent Runs Section */}
+        {runs.length > 0 && (
+          <div className="max-w-3xl mx-auto mt-12 mb-8 px-2">
+            <h3 className="text-xs font-bold text-secondary uppercase tracking-widest mb-4 font-manrope">
+              Your Recent Runs
+            </h3>
+            <div className="grid gap-3">
+              {runs.slice(0, 3).map((run) => (
+                <button
+                  key={run.id}
+                  onClick={() => {
+                    viewRun(run.slug || run.id);
+                    router.push("/generate");
+                  }}
+                  className="flex items-center justify-between p-4 bg-surface rounded-xl border border-medium hover:border-dark transition-all duration-150 group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-page flex items-center justify-center text-secondary font-bold text-[10px] uppercase">
+                      {hostnameFromUrl(run.url).slice(0, 2) || "UR"}
+                    </div>
+                    <div className="text-left min-w-0">
+                      <p className="text-sm font-bold text-primary truncate">
+                        {run.url || run.slug}
+                      </p>
+                      <p className="text-[10px] text-secondary font-manrope">
+                        {new Date(run.createdAt).toLocaleDateString()} • {run.status}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-accent-blue opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    View result →
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Continue Last Run */}
+          {lastRunSlug && !isRunning && (
+          <div className="max-w-3xl mx-auto mt-6 px-2">
+            <Link
+              href={`/generate?run=${encodeURIComponent(lastRunSlug)}`}
+              className="block p-4 bg-blue-50 border border-blue-100 rounded-xl text-center hover:bg-blue-100 transition-all duration-150"
+            >
+              <span className="text-sm font-bold text-accent-blue">
+                ✨ Continue where you left off →
+              </span>
+            </Link>
+          </div>
+        )}
       </div>
+
+
     </>
   );
 }
