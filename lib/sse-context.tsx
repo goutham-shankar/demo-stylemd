@@ -40,7 +40,7 @@ function isTerminalApiRunStatus(st: string): boolean {
 function mapApiSummary(raw: Record<string, unknown>): RunSummary {
   const st = String(raw.status ?? "completed");
   const status: RunSummary["status"] =
-    st === "running"
+    st === "running" || st === "processing" || raw.pending === true
       ? "running"
       : st === "failed"
         ? "failed"
@@ -69,7 +69,9 @@ function mapApiSummary(raw: Record<string, unknown>): RunSummary {
 
 /** Keep polling until the run is no longer in-flight or we have markdown (or a terminal status). */
 function runNeedsPoll(d: RunData): boolean {
+  if (d.pending === true) return true;
   const st = String(d.status ?? "");
+  if (st === "processing") return true;
   if (isTerminalApiRunStatus(st)) return false;
   if (st === "running") return true;
   return !d.styleMd?.trim();
@@ -210,7 +212,7 @@ function reducer(state: AppState, action: AppAction): AppState {
       };
 
     case "SET_RESULT": {
-      const stillRunning = action.data.status === "running";
+      const stillRunning = action.data.status === "running" || action.data.status === "processing" || action.data.pending === true;
       return {
         ...state,
         resultData: action.data,
@@ -443,8 +445,9 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                 console.log(`[SSE] Finalizing run ${runId}, polling DB for full record...`);
                 for (let attempt = 0; attempt < 90 && !deadRef.current; attempt++) {
                   const runData = await fetchRunBySlugOrId(runId);
-                  // 🔴 FIX: Transition if we have terminal status OR styleMd
-                  if (runData && (isTerminalApiRunStatus(runData.status) || runData.styleMd)) {
+                  const isPending = runData?.pending === true || runData?.status === "processing";
+                  // 🔴 FIX: Transition if we have terminal status OR (styleMd AND NOT pending)
+                  if (runData && (isTerminalApiRunStatus(runData.status) || (runData.styleMd && !isPending))) {
                     console.log(`[SSE] Run ${runId} settled in DB, finishing.`);
                     finish(runData);
                     return;

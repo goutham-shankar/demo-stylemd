@@ -200,6 +200,15 @@ export function FetchedRunDesignDetail({
             <p className="max-w-md text-secondary">
               We're analyzing the website and crafting a custom style guide. This usually takes 1-2 minutes.
             </p>
+            {effectiveRun.stage && (
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-medium bg-surface px-4 py-1.5 text-sm font-medium text-primary shadow-sm">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
+                </span>
+                Current step: {effectiveRun.stage.charAt(0).toUpperCase() + effectiveRun.stage.slice(1)}
+              </div>
+            )}
           </div>
         ) : (
           <div className="max-w-2xl">
@@ -212,14 +221,16 @@ export function FetchedRunDesignDetail({
               <p className="mb-6 text-secondary">No style.md was produced for this run.</p>
             ) : null}
 
-            <div className="rounded-2xl border border-medium bg-surface p-6 text-left">
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-secondary">
-                Raw style.md preview
-              </h3>
-              <pre className="max-h-[400px] overflow-auto rounded-xl bg-[#1a1a1a] p-5 font-mono text-xs leading-relaxed text-gray-100">
-                {effectiveRun.styleMd || (isGenerating ? "Generating..." : "No content available")}
-              </pre>
-            </div>
+            {!["failed", "canceled"].includes(st) && (
+              <div className="rounded-2xl border border-medium bg-surface p-6 text-left">
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-secondary">
+                  Raw style.md preview
+                </h3>
+                <pre className="max-h-[400px] overflow-auto rounded-xl bg-[#1a1a1a] p-5 font-mono text-xs leading-relaxed text-gray-100">
+                  {effectiveRun.styleMd || (isGenerating ? "Generating..." : "No content available")}
+                </pre>
+              </div>
+            )}
           </div>
         )}
       </div>

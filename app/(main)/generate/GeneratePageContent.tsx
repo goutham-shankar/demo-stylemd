@@ -13,13 +13,14 @@ function FetchedResultView() {
 
   const isGenerating = useMemo(() => {
     const st = String(resultData?.status ?? "");
+    const pendingFlag = resultData?.pending === true;
     const terminal =
       st === "failed" ||
       st === "canceled" ||
       st === "completed" ||
       st === "completed_with_warnings";
-    return st === "running" || (!terminal && !resultData?.styleMd?.trim());
-  }, [resultData?.status, resultData?.styleMd]);
+    return st === "running" || st === "processing" || pendingFlag || (!terminal && !resultData?.styleMd?.trim());
+  }, [resultData?.status, resultData?.styleMd, resultData?.pending]);
 
   if (!resultData) {
     return (

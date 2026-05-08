@@ -3,6 +3,7 @@ export type Provider = "claude" | "kimi";
 export type RunStatus =
   | "pending"
   | "running"
+  | "processing"
   | "completed"
   | "completed_with_warnings"
   | "failed"
@@ -84,6 +85,8 @@ export interface RunData {
   /** Mirrors `stylemd_runs.status` from the API. */
   status: RunStatus | string;
   createdAt: string;
+  pending?: boolean;
+  stage?: string;
 }
 
 

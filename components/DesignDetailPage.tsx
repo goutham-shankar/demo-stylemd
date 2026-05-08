@@ -135,7 +135,16 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
       <div className="flex min-h-screen flex-col items-center justify-center bg-page p-8 text-center">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-t-transparent mb-6" style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }} />
         <h2 className="text-2xl font-bold text-primary mb-2">Generating Design System</h2>
-        <p className="max-w-md text-secondary">Analyzing brand assets and mapping design tokens. This usually takes 60-90 seconds...</p>
+        <p className="max-w-md text-secondary mb-6">Analyzing brand assets and mapping design tokens. This usually takes 60-90 seconds...</p>
+        {run?.stage && (
+          <div className="inline-flex items-center gap-2 rounded-full border border-medium bg-white px-4 py-2 text-sm font-medium text-primary shadow-sm">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500"></span>
+            </span>
+            Processing: {run.stage.charAt(0).toUpperCase() + run.stage.slice(1)}
+          </div>
+        )}
       </div>
     );
   }
