@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -16,6 +17,12 @@ import {
 } from "lucide-react";
 import type { DesignCard } from "@/lib/design-cards";
 import type { StyleMdUiPayload } from "@/lib/stylemd-structured-view";
+
+function fontFamilyFor(fontName: string): string {
+  if (!fontName) return "system-ui, sans-serif";
+  const safe = fontName.replace(/"/g, "'");
+  return `'${safe}', system-ui, sans-serif`;
+}
 
 const DEFAULT_SPACING_CARDS = [
   { label: "BASE", sublabel: "RHYTHM", value: "4px" },
@@ -68,10 +75,7 @@ const DEFAULT_DONT = [
   "Do not exceed the detected moderate motion intensity without a deliberate rationale.",
 ];
 
-function fontFamilyFor(fontName: string): string {
-  const safe = fontName.replace(/"/g, "'");
-  return `'${safe}', system-ui, sans-serif`;
-}
+
 
 export type CatalogMainSectionsProps = {
   card: DesignCard;
@@ -91,10 +95,48 @@ function generateColorScale(hex: string): string[] {
 }
 
 export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) {
-  const { tokens } = card;
+  const { tokens, theme } = card;
   const a = tokens.colors.primary;
   const s = tokens.colors.secondary;
-  const acc = tokens.colors.accent;
+
+  const themeStyles = useMemo(() => {
+    if (!theme) return {};
+    return {
+      "--primary": theme.colors.primary,
+      "--secondary": theme.colors.secondary,
+      "--accent": theme.colors.accent,
+      "--background": theme.colors.background,
+      "--surface": theme.colors.surface,
+      "--surface-muted": theme.colors.surfaceMuted,
+      "--text": theme.colors.text,
+      "--text-muted": theme.colors.textMuted,
+      "--border": theme.colors.border,
+      "--canvas-bg": theme.surfaces.canvas,
+      "--card-bg": theme.surfaces.card,
+      "--hero-bg": theme.surfaces.hero,
+      "--radius": theme.buttons.radius,
+      "--spacing-base": theme.spacing.base,
+      "--spacing-card": theme.spacing.card,
+      "--spacing-section": theme.spacing.section,
+      "--font-display": fontFamilyFor(theme.typography.display),
+      "--font-body": fontFamilyFor(theme.typography.body),
+      "--buttons-shadow": theme.buttons.shadow,
+      "--buttons-border-width": theme.buttons.borderWidth,
+      "--buttons-font-weight": theme.buttons.fontWeight,
+    } as React.CSSProperties;
+  }, [theme]);
+
+  const moodClasses = useMemo(() => {
+    if (!theme) return "";
+    const m = theme.mood;
+    return [
+      m === "brutalist" ? "mood-brutalist" : "",
+      m === "luxury" ? "mood-luxury" : "",
+      m === "editorial" ? "mood-editorial" : "",
+      m === "playful" ? "mood-playful" : "",
+      m === "cinematic" ? "mood-cinematic" : "",
+    ].join(" ");
+  }, [theme]);
 
   const typoTitle = extras?.typographyTitle ?? "Typography";
   const typoIntro = extras?.typographyIntro ?? "A composed hierarchy for page storytelling";
@@ -136,22 +178,75 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
     extras?.buttonsBlurb ?? `Anchor interactions to the detected button styles with ${tokens.buttons.radius} radius.`;
 
   return (
-    <div className="space-y-10">
+    <div className={`space-y-10 ${moodClasses}`} style={themeStyles}>
+      <style jsx global>{`
+        .stylemd-theme-root {
+          --text-primary: var(--text);
+          --text-secondary: var(--text-muted);
+          --surface: var(--card-bg);
+          --border-light: var(--border);
+          --border-medium: var(--border);
+        }
+        .stylemd-theme-root h1, .stylemd-theme-root h2, .stylemd-theme-root h3 {
+          font-family: var(--font-display);
+        }
+        .stylemd-theme-root p, .stylemd-theme-root span, .stylemd-theme-root div {
+          font-family: var(--font-body);
+        }
+
+        /* Mood: Brutalist */
+        .mood-brutalist .stylemd-theme-root {
+          --border: 2px solid #000;
+          --border-light: 2px solid #000;
+          --border-medium: 2px solid #000;
+        }
+        .mood-brutalist section {
+          box-shadow: 4px 4px 0px #000;
+          border: 2px solid #000 !important;
+        }
+
+        /* Mood: Luxury */
+        .mood-luxury .stylemd-theme-root {
+          --spacing-section: 100px;
+          --spacing-card: 40px;
+        }
+        .mood-luxury h2 {
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+
+        /* Mood: Playful */
+        .mood-playful .stylemd-theme-root {
+          --radius: 32px;
+        }
+
+        /* Mood: Cinematic */
+        .mood-cinematic .stylemd-theme-root {
+          --background: #000;
+          --surface: #111;
+          --text: #fff;
+          --text-muted: rgba(255,255,255,0.6);
+        }
+      `}</style>
+      <div className="stylemd-theme-root space-y-10">
       {/* 1. Pro Typography Section */}
-      <section className="space-y-6">
+      <section style={{ gap: "var(--spacing-base)" }} className="flex flex-col">
         <div className="flex flex-col gap-1">
-          <h2 className="text-3xl font-black tracking-tighter text-primary">{typoTitle}</h2>
-          <p className="text-sm text-secondary font-medium">{typoIntro}</p>
+          <h2 className="text-3xl font-black tracking-tighter" style={{ color: "var(--primary)" }}>{typoTitle}</h2>
+          <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>{typoIntro}</p>
         </div>
         
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {card.fonts.slice(0, 2).map((font) => (
             <div
               key={font.name}
-              className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl p-8 transition-all hover:shadow-2xl ${
-                font.dark ? "text-white shadow-xl" : "bg-white border border-medium shadow-lg"
-              }`}
-              style={font.dark ? { backgroundColor: a } : {}}
+              className={`group relative flex flex-col justify-between overflow-hidden p-8 transition-all hover:shadow-2xl`}
+              style={{ 
+                backgroundColor: font.dark ? "var(--primary)" : "var(--surface)", 
+                borderRadius: "var(--radius)",
+                border: font.dark ? "none" : "1px solid var(--border)",
+                color: font.dark ? "var(--background)" : "var(--text)"
+              }}
             >
               <div className="flex flex-col items-center justify-center py-12">
                 <span
@@ -164,16 +259,19 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
 
               <div className="mt-4 flex flex-col gap-3">
                 <div>
-                  <h3 className={`text-xl font-black ${font.dark ? "text-white" : "text-primary"}`}>{font.name}</h3>
-                  <p className={`text-xs font-bold uppercase tracking-widest opacity-70 ${font.dark ? "text-white" : "text-secondary"}`}>
+                  <h3 className="text-xl font-black">{font.name}</h3>
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-70">
                     {font.dark ? "Medium" : "Regular, Medium"}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter ${
-                    font.dark ? "bg-white/20 text-white" : "bg-page text-primary border border-medium"
-                  }`}>
+                  <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter"
+                    style={{ 
+                      backgroundColor: font.dark ? "rgba(255,255,255,0.2)" : "var(--background)",
+                      border: font.dark ? "none" : "1px solid var(--border)",
+                      color: font.dark ? "white" : "var(--text)"
+                    }}>
                     {font.role}
                   </span>
                 </div>
@@ -184,15 +282,15 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       </section>
 
       {/* 2. Pro Color Palette Grid */}
-      <section className="rounded-3xl border border-medium bg-white p-1 overflow-hidden shadow-sm">
-        <div className="grid grid-cols-[100px_repeat(10,1fr)] bg-gray-50 border-b border-medium py-3 text-center">
+      <section className="overflow-hidden shadow-sm" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+        <div className="grid grid-cols-[100px_repeat(10,1fr)] py-3 text-center" style={{ backgroundColor: "var(--background)", borderBottom: "1px solid var(--border)" }}>
           <div />
           {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"].map((step) => (
-            <span key={step} className="text-[10px] font-black text-secondary/60">{step}</span>
+            <span key={step} className="text-[10px] font-black opacity-60" style={{ color: "var(--text)" }}>{step}</span>
           ))}
         </div>
         
-        <div className="divide-y divide-medium">
+        <div className="divide-y" style={{ borderColor: "var(--border)" }}>
           {card.palette.map((row) => {
             const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
             const swatches = (!row.swatches?.length || allSame)
@@ -203,8 +301,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             return (
               <div key={row.name} className="grid grid-cols-[100px_repeat(10,1fr)] items-center">
                 <div className="flex flex-col px-4 py-4">
-                  <span className="text-[10px] font-bold text-primary">{row.name}</span>
-                  <span className="text-[9px] font-mono text-secondary uppercase">{row.hex}</span>
+                  <span className="text-[10px] font-bold" style={{ color: "var(--text)" }}>{row.name}</span>
+                  <span className="text-[9px] font-mono uppercase opacity-70" style={{ color: "var(--text)" }}>{row.hex}</span>
                 </div>
                 {swatches.map((color, i) => (
                   <div
@@ -225,136 +323,155 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
       </section>
 
-      <section className="rounded-2xl border border-light bg-surface p-8">
+      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
         <div className="mb-6 grid grid-cols-2 gap-8">
           <div className="flex items-center gap-2">
-            <MousePointerClick size={14} className="text-secondary" />
-            <h2 className="heading-h4 tracking-tight">Buttons</h2>
+            <MousePointerClick size={14} style={{ color: "var(--text-muted)" }} />
+            <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Buttons</h2>
           </div>
           <div className="flex items-center gap-2">
-            <Square size={14} className="text-secondary" />
-            <h3 className="heading-h4 tracking-tight">Icons</h3>
+            <Square size={14} style={{ color: "var(--text-muted)" }} />
+            <h3 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Icons</h3>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-8">
           <div>
             <div className="mb-4 flex flex-col gap-3">
               <button
-                className="flex w-fit items-center gap-2 px-5 py-3 text-sm font-semibold text-white"
-                style={{ background: a, borderRadius: tokens.buttons.radius }}
+                className="flex w-fit items-center gap-2 px-5 py-3 text-sm"
+                style={{ 
+                  background: theme?.buttons.fill === "solid" ? "var(--primary)" : "transparent",
+                  color: theme?.buttons.fill === "solid" ? "var(--background)" : "var(--primary)",
+                  borderRadius: "var(--radius)",
+                  border: theme?.buttons.fill === "outline" ? "var(--buttons-border-width, 1px) solid var(--primary)" : "none",
+                  boxShadow: "var(--buttons-shadow, none)",
+                  fontWeight: "var(--buttons-font-weight, 600)",
+                  textTransform: theme?.buttons.textTransform as any,
+                }}
                 type="button"
               >
                 <ArrowLeft size={13} /> Primary <ArrowRight size={13} />
               </button>
               <button
-                className="flex w-fit items-center gap-2 px-5 py-3 text-sm font-medium text-primary"
-                style={{ borderWidth: 1, borderStyle: "solid", borderColor: `${a}99`, borderRadius: tokens.buttons.radius, backgroundColor: s }}
+                className="flex w-fit items-center gap-2 px-5 py-3 text-sm font-medium"
+                style={{ 
+                  border: "1px solid var(--border)", 
+                  borderRadius: "var(--radius)", 
+                  backgroundColor: "var(--surface-muted)",
+                  color: "var(--text)"
+                }}
                 type="button"
               >
                 <ArrowLeft size={13} /> Secondary <ArrowRight size={13} />
               </button>
             </div>
-            <p className="text-sm leading-relaxed text-secondary">{buttonsBlurb}</p>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{buttonsBlurb}</p>
           </div>
           <div>
             <div className="mb-4 flex flex-col gap-3">
               <span
-                className="inline-block w-fit rounded-full border px-4 py-2 text-base font-black"
-                style={{ background: `${a}18`, borderColor: `${a}40`, color: a }}
+                className="inline-block w-fit px-4 py-2 text-base font-black"
+                style={{ 
+                  background: "var(--accent-surface, var(--primary))", 
+                  opacity: 0.1,
+                  borderRadius: "var(--radius)",
+                  color: "var(--primary)" 
+                }}
               >
                 {card.name}
               </span>
               <div className="flex gap-2">
-                <span className="flex items-center gap-1.5 rounded-full border border-medium bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white">
+                <span className="flex items-center gap-1.5 rounded-full border border-medium px-3 py-1.5 text-xs font-semibold" style={{ backgroundColor: "var(--text)", color: "var(--background)" }}>
                   <Apple size={14} /> Apple
                 </span>
-                <span className="flex items-center justify-center rounded-full border border-medium bg-surface-soft px-3 py-1.5 text-primary">
+                <span className="flex items-center justify-center rounded-full border border-medium px-3 py-1.5" style={{ backgroundColor: "var(--surface-muted)", color: "var(--text)" }}>
                   <Bell size={14} />
                 </span>
               </div>
             </div>
-            <span className="inline-block rounded px-2 py-1 text-[8px] font-bold text-white" style={{ backgroundColor: `${a}cc` }}>
+            <span className="inline-block rounded px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: "var(--background)" }}>
               BRAND
             </span>
           </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-light bg-surface p-8">
+      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <Ruler size={14} className="text-secondary" />
-          <h2 className="heading-h4 tracking-tight">Spacing</h2>
+          <Ruler size={14} style={{ color: "var(--text-muted)" }} />
+          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Spacing</h2>
         </div>
         <div className="mb-8 grid grid-cols-3 gap-4">
           {spacingCards.map((item) => (
-            <div key={item.label} className="rounded-lg border border-light bg-surface p-4">
-              <p className="text-3xs mb-2 uppercase tracking-wider text-secondary">{item.label}</p>
-              <p className="mb-1 text-4xl font-bold" style={{ color: a }}>
+            <div key={item.label} className="p-4" style={{ backgroundColor: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+              <p className="mb-2 text-[8px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{item.label}</p>
+              <p className="mb-1 text-4xl font-black" style={{ color: "var(--primary)" }}>
                 {item.value}
               </p>
-              <p className="text-2xs text-secondary">{item.sublabel}</p>
+              <p className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>{item.sublabel}</p>
             </div>
           ))}
         </div>
         <div className="mb-6 space-y-2">
           {spacingSteps.map((step) => (
             <div key={step.label} className="flex items-center gap-3">
-              <span className="w-12 text-2xs text-secondary">{step.label}</span>
-              <div className="flex-1 rounded-full bg-surface-soft">
-                <div className="h-2 rounded-full" style={{ width: step.pct, backgroundColor: a }} />
+              <span className="w-12 text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>{step.label}</span>
+              <div className="flex-1 rounded-full" style={{ backgroundColor: "var(--surface-muted)" }}>
+                <div className="h-2 rounded-full" style={{ width: step.pct, backgroundColor: "var(--primary)" }} />
               </div>
-              <span className="w-8 text-right text-2xs text-secondary">{step.value}</span>
+              <span className="w-8 text-right text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>{step.value}</span>
             </div>
           ))}
         </div>
-        <p className="text-3xs mb-3 uppercase tracking-wider text-secondary">
+        <p className="mb-3 text-[8px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
           BASE RHYTHM:{` `}
           {(spacingCards.find((c) => c.label.toUpperCase() === "BASE")?.value ?? "4px").toUpperCase()}
         </p>
         <div className="flex flex-wrap gap-4">
           {spacingRules.map((r) => (
-            <p key={r} className="text-2xs text-secondary">
+            <p key={r} className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>
               {r}
             </p>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-light bg-surface p-8">
+      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <Layers size={14} className="text-secondary" />
-          <h2 className="heading-h4 tracking-tight">Elevation &amp; Depth</h2>
+          <Layers size={14} style={{ color: "var(--text-muted)" }} />
+          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Elevation &amp; Depth</h2>
         </div>
-        <p className="mb-6 max-w-lg text-sm leading-relaxed text-secondary">{elevIntro}</p>
-        <div className="mb-6 divide-y divide-light overflow-hidden rounded-lg border border-light">
+        <p className="mb-6 max-w-lg text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{elevIntro}</p>
+        <div className="mb-6 divide-y overflow-hidden" style={{ borderColor: "var(--border)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
           {elevRows.map((row) => (
             <div
               key={row.label}
               className={`flex gap-4 px-5 py-4 ${String(row.label).toUpperCase() === "SHADOW" ? "items-start" : "items-center"}`}
+              style={{ backgroundColor: "var(--surface)" }}
             >
-              <span className="w-20 flex-shrink-0 text-2xs uppercase tracking-wider text-secondary">{row.label}</span>
-              <span className="break-all font-mono text-xs font-semibold text-primary">{row.value}</span>
+              <span className="w-20 flex-shrink-0 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{row.label}</span>
+              <span className="break-all font-mono text-xs font-semibold" style={{ color: "var(--primary)" }}>{row.value}</span>
             </div>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
           {elevChips.map((tag) => (
-            <span key={tag} className="rounded bg-surface-soft px-2.5 py-1.5 font-mono text-[8px] text-secondary">
+            <span key={tag} className="px-2.5 py-1.5 font-mono text-[8px] font-bold" style={{ backgroundColor: "var(--surface-muted)", borderRadius: "4px", color: "var(--text-muted)" }}>
               {tag}
             </span>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-light bg-surface p-8">
+      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <Square size={14} className="text-secondary" />
-          <h2 className="heading-h4 tracking-tight">Shapes</h2>
+          <Square size={14} style={{ color: "var(--text-muted)" }} />
+          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Shapes</h2>
         </div>
         <div className="grid grid-cols-2 gap-8">
           <div>
-            <p className="mb-4 text-sm leading-relaxed text-secondary">{shapeIntro}</p>
-            <span className="inline-block rounded px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider text-white" style={{ backgroundColor: a }}>
+            <p className="mb-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{shapeIntro}</p>
+            <span className="inline-block px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: "var(--background)", borderRadius: "var(--radius)" }}>
               {shapeBadge}
             </span>
           </div>
@@ -362,8 +479,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             {shapeItems.map((label) => (
               <button
                 key={label}
-                className="border border-medium px-4 py-8 text-sm font-semibold text-primary transition-all hover:shadow-sm"
-                style={{ borderColor: `${a}33`, borderRadius: tokens.buttons.radius, backgroundColor: s }}
+                className="px-4 py-8 text-sm font-bold transition-all hover:shadow-md"
+                style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", backgroundColor: "var(--surface-muted)", color: "var(--text)" }}
                 type="button"
               >
                 {label}
@@ -373,14 +490,14 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
       </section>
 
-      <section className="rounded-2xl border border-light bg-surface p-8">
+      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <Clock size={14} className="text-secondary" />
-          <h2 className="heading-h4 tracking-tight">Motion</h2>
+          <Clock size={14} style={{ color: "var(--text-muted)" }} />
+          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Motion</h2>
         </div>
         <div className="mb-6 flex flex-wrap gap-2">
           {motionTags.map((tag) => (
-            <span key={tag} className="rounded px-2 py-1 text-[8px] font-bold text-white" style={{ backgroundColor: `${a}dd` }}>
+            <span key={tag} className="px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: "var(--background)", borderRadius: "4px" }}>
               {tag}
             </span>
           ))}
@@ -388,55 +505,55 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         <div className="mb-6 space-y-2">
           {motionBars.map((item) => (
             <div key={item.label} className="flex items-center gap-3">
-              <span className="w-14 text-2xs text-secondary">{item.label}</span>
-              <div className="flex-1 rounded-full bg-surface-soft">
-                <div className="h-2 rounded-full" style={{ width: item.pct, backgroundColor: a }} />
+              <span className="w-14 text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>{item.label}</span>
+              <div className="flex-1 rounded-full" style={{ backgroundColor: "var(--surface-muted)" }}>
+                <div className="h-2 rounded-full" style={{ width: item.pct, backgroundColor: "var(--primary)" }} />
               </div>
             </div>
           ))}
         </div>
         <div className="grid grid-cols-2 gap-4">
           {motionSteps.map(([step, val]) => (
-            <div key={step} className="rounded-lg border border-light bg-surface-soft p-4">
-              <p className="mb-2 text-2xs text-secondary">{step}</p>
-              <p className="text-2xl font-bold text-primary">{val}</p>
+            <div key={step} className="p-4" style={{ backgroundColor: "var(--surface-muted)", borderRadius: "var(--radius)", border: "1px solid var(--border)" }}>
+              <p className="mb-2 text-[10px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>{step}</p>
+              <p className="text-2xl font-black" style={{ color: "var(--primary)" }}>{val}</p>
             </div>
           ))}
         </div>
-        <span className="mt-4 inline-block rounded px-2 py-1 text-[8px] font-bold text-white" style={{ backgroundColor: a }}>
+        <span className="mt-4 inline-block px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: "var(--background)", borderRadius: "4px" }}>
           {motionBadge}
         </span>
       </section>
 
-      <section className="rounded-2xl border border-light bg-surface p-8">
+      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <AlertCircle size={14} className="text-secondary" />
-          <h2 className="heading-h4 tracking-tight">Do&apos;s and Don&apos;ts</h2>
+          <AlertCircle size={14} style={{ color: "var(--text-muted)" }} />
+          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Do&apos;s and Don&apos;ts</h2>
         </div>
-        <p className="mb-6 max-w-lg text-sm leading-relaxed text-secondary">{guideIntro}</p>
+        <p className="mb-6 max-w-lg text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{guideIntro}</p>
         <div className="grid grid-cols-2 gap-8">
           <div>
-            <span className="mb-4 inline-block rounded px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider text-white" style={{ backgroundColor: a }}>
+            <span className="mb-4 inline-block px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: "var(--background)", borderRadius: "4px" }}>
               ✓ Do
             </span>
             <div className="space-y-3">
               {dos.map((item, i) => (
                 <div key={i} className="flex items-start gap-2.5">
-                  <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: a }} />
-                  <p className="text-xs leading-relaxed text-secondary">{item}</p>
+                  <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: "var(--primary)" }} />
+                  <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{item}</p>
                 </div>
               ))}
             </div>
           </div>
           <div>
-            <span className="mb-4 inline-block rounded bg-red-100 px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider text-red-600">
+            <span className="mb-4 inline-block bg-red-100 px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider text-red-600" style={{ borderRadius: "4px" }}>
               ✕ Don&apos;t
             </span>
             <div className="space-y-3">
               {donts.map((item, i) => (
                 <div key={i} className="flex items-start gap-2.5">
                   <X size={13} className="mt-0.5 flex-shrink-0 text-red-500" />
-                  <p className="text-xs leading-relaxed text-secondary">{item}</p>
+                  <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{item}</p>
                 </div>
               ))}
             </div>
@@ -445,20 +562,20 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       </section>
 
       {(tokens.typography.scale || tokens.spacingScale || tokens.implementation) && (
-        <section className="rounded-2xl border border-light bg-surface p-8">
+        <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
           <div className="mb-6 flex items-center gap-2">
-            <Layers size={14} className="text-secondary" />
-            <h2 className="heading-h4 tracking-tight">Engineering Specs</h2>
+            <Layers size={14} style={{ color: "var(--text-muted)" }} />
+            <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Engineering Specs</h2>
           </div>
           
           <div className="space-y-8">
             {tokens.typography.scale && (
               <div>
-                <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-secondary">Type Scale</h3>
-                <div className="overflow-x-auto rounded-lg border border-light">
+                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Type Scale</h3>
+                <div className="overflow-x-auto" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="border-b border-light bg-surface-soft">
+                      <tr style={{ backgroundColor: "var(--surface-muted)", borderBottom: "1px solid var(--border)" }}>
                         <th className="px-4 py-2 font-bold">Element</th>
                         <th className="px-4 py-2 font-bold">Size</th>
                         <th className="px-4 py-2 font-bold">Line Height</th>
@@ -468,8 +585,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                     </thead>
                     <tbody>
                       {tokens.typography.scale.map((row, i) => (
-                        <tr key={i} className="border-b border-light last:border-0">
-                          <td className="px-4 py-3 font-semibold">{row.element}</td>
+                        <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
+                          <td className="px-4 py-3 font-bold">{row.element}</td>
                           <td className="px-4 py-3 font-mono">{row.size}</td>
                           <td className="px-4 py-3 font-mono">{row.lineHeight}</td>
                           <td className="px-4 py-3 font-mono">{row.letterSpacing}</td>
@@ -484,13 +601,13 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
 
             {tokens.spacingScale && (
               <div>
-                <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-secondary">Spacing Scale</h3>
+                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Spacing Scale</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {tokens.spacingScale.map((s, i) => (
-                    <div key={i} className="flex items-center gap-3 rounded-lg border border-light p-3">
-                      <div className="flex-shrink-0 font-mono text-[10px] text-secondary w-20">{s.token}</div>
-                      <div className="font-bold text-primary w-12 text-right">{s.value}</div>
-                      <div className="text-xs text-secondary truncate">{s.usage}</div>
+                    <div key={i} className="flex items-center gap-3 p-3" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", backgroundColor: "var(--surface-muted)" }}>
+                      <div className="flex-shrink-0 font-mono text-[10px] w-20" style={{ color: "var(--text-muted)" }}>{s.token}</div>
+                      <div className="font-black w-12 text-right" style={{ color: "var(--primary)" }}>{s.value}</div>
+                      <div className="text-[10px] font-medium truncate" style={{ color: "var(--text-muted)" }}>{s.usage}</div>
                     </div>
                   ))}
                 </div>
@@ -499,8 +616,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
 
             {tokens.implementation?.cssVariables && (
               <div>
-                <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-secondary">Implementation Notes</h3>
-                <div className="rounded-xl bg-gray-900 p-5">
+                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Implementation Notes</h3>
+                <div className="p-5" style={{ backgroundColor: "#111", borderRadius: "var(--radius)" }}>
                   <pre className="overflow-x-auto font-mono text-[10px] leading-relaxed text-gray-100">
                     <code>{tokens.implementation.cssVariables}</code>
                   </pre>
@@ -510,6 +627,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
           </div>
         </section>
       )}
+    </div>
     </div>
   );
 }

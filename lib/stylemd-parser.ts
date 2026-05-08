@@ -33,6 +33,14 @@ export function parseStyleMd(styleMd: string) {
     },
   };
 
+  const theme = generateTheme(styleMd, tokens, palette, fonts);
+
+  // Try to override with structured JSON if available
+  const structured = extractStructuredTokens(styleMd);
+  if (structured) {
+    Object.assign(theme, mapStructuredToTheme(structured, theme));
+  }
+
   return {
     name,
     desc,
@@ -41,7 +49,127 @@ export function parseStyleMd(styleMd: string) {
     accentColor,
     tags,
     tokens,
+    theme,
   };
+}
+
+function extractStructuredTokens(md: string): any {
+  const match = md.match(/```(?:stylemd-ui|stylemd-json|json)\s*\n([\s\S]*?)```/);
+  if (match) {
+    try {
+      const parsed = JSON.parse(match[1]);
+      return parsed;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function mapStructuredToTheme(s: any, fallback: any): any {
+  return {
+    mood: s.mood?.name || s.mood || fallback.mood,
+    radius: s.radius?.style || s.radius || fallback.radius,
+    colors: {
+      ...fallback.colors,
+      ...s.colors,
+    },
+    surfaces: {
+      ...fallback.surfaces,
+      ...s.surfaces,
+    },
+    typography: {
+      ...fallback.typography,
+      ...s.typography,
+    },
+    buttons: {
+      ...fallback.buttons,
+      ...s.buttons,
+    },
+    spacing: {
+      ...fallback.spacing,
+      ...s.spacing,
+    },
+  };
+}
+
+
+function generateTheme(md: string, tokens: any, palette: any[], fonts: any[]): any {
+  const mood = inferMood(md);
+  const radiusType = inferRadius(md);
+  
+  const primary = tokens.colors.primary;
+  const secondary = tokens.colors.secondary;
+  const accent = tokens.colors.accent;
+  
+  // Use first 3 colors for basic roles if possible
+  const bg = palette.find(c => c.name.toLowerCase().includes("background") || c.name.toLowerCase().includes("page"))?.hex || "#ffffff";
+  const surface = palette.find(c => c.name.toLowerCase().includes("surface") || c.name.toLowerCase().includes("card") || c.name.toLowerCase().includes("white"))?.hex || "#ffffff";
+  const text = palette.find(c => c.name.toLowerCase().includes("text") || c.name.toLowerCase().includes("foreground") || c.name.toLowerCase().includes("black") || c.name.toLowerCase().includes("navy"))?.hex || "#000000";
+
+  return {
+    mood,
+    radius: radiusType,
+    density: mood === "editorial" || mood === "luxury" ? "airy" : mood === "brutalist" ? "compact" : "default",
+    colors: {
+      primary,
+      secondary,
+      accent,
+      background: bg,
+      surface: surface,
+      surfaceMuted: `${secondary}15`,
+      text: text,
+      textMuted: `${text}80`,
+      border: `${text}15`,
+    },
+    surfaces: {
+      canvas: bg,
+      card: surface,
+      muted: `${secondary}10`,
+      hero: bg === "#ffffff" ? `${primary}05` : bg,
+      accent: `${accent}15`,
+      overlay: "rgba(0,0,0,0.4)",
+    },
+    typography: {
+      display: tokens.typography.heading,
+      body: tokens.typography.body,
+      scale: mood === "editorial" ? "editorial" : "modern",
+    },
+    buttons: {
+      radius: tokens.buttons.radius,
+      fill: mood === "luxury" || mood === "minimal" ? "outline" : "solid",
+      borderWidth: radiusType === "sharp" || mood === "brutalist" ? "2px" : "1px",
+      shadow: mood === "brutalist" ? "4px 4px 0px #000" : "0 2px 4px rgba(0,0,0,0.05)",
+      fontFamily: tokens.typography.heading,
+      fontWeight: "700",
+      textTransform: mood === "luxury" || mood === "minimal" ? "uppercase" : "none",
+    },
+    spacing: {
+      base: tokens.spacing,
+      card: mood === "editorial" ? "32px" : "24px",
+      section: mood === "editorial" ? "80px" : "48px",
+    },
+  };
+}
+
+function inferMood(md: string): string {
+  const lower = md.toLowerCase();
+  if (lower.includes("editorial") || lower.includes("magazine")) return "editorial";
+  if (lower.includes("organic") || lower.includes("soft") || lower.includes("natural")) return "organic";
+  if (lower.includes("luxury") || lower.includes("premium") || lower.includes("high-end")) return "luxury";
+  if (lower.includes("cinematic") || lower.includes("immersive") || lower.includes("dark mode")) return "cinematic";
+  if (lower.includes("brutalist") || lower.includes("raw") || lower.includes("hard-edge")) return "brutalist";
+  if (lower.includes("playful") || lower.includes("fun") || lower.includes("vibrant")) return "playful";
+  if (lower.includes("minimal") || lower.includes("clean") || lower.includes("simple")) return "minimal";
+  return "modern";
+}
+
+function inferRadius(md: string): string {
+  const radius = extractButtons(md).radius.toLowerCase();
+  if (radius === "0px" || radius === "0") return "sharp";
+  if (radius.includes("50%") || parseInt(radius) > 20) return "pill";
+  if (md.toLowerCase().includes("organic") || md.toLowerCase().includes("asymmetric")) return "organic";
+  return "medium";
 }
 
 function stripBackticks(s: string): string {
@@ -301,6 +429,7 @@ export function mapToDesignCard(parsed: ReturnType<typeof parseStyleMd>, id: str
     tags: parsed.tags.map(t => ({ label: t.label, color: "" })),
     preview,
     tokens: parsed.tokens,
+    theme: parsed.theme,
     palette: parsed.palette.map(p => ({
       name: p.name,
       hex: p.hex,

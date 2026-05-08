@@ -16,6 +16,7 @@ import type { DesignCard } from "@/lib/design-cards";
 import type { RunData } from "@/lib/api-types";
 import { parseStyleMd, mapToDesignCard } from "@/lib/stylemd-parser";
 import { CatalogMainSections } from "@/components/CatalogMainSections";
+import { extractStyleMdUi } from "@/lib/stylemd-structured-view";
 
 export type DesignDetailPageProps = {
   card?: DesignCard;
@@ -41,10 +42,11 @@ export default function DesignDetailPage({
   const router = useRouter();
 
   // 1. Resolve the design card and markdown content
-  const { card, styleMd } = useMemo(() => {
+  const { card, styleMd, extras } = useMemo(() => {
     // If we have a direct card (catalog mode)
     if (initialCard) {
-      return { card: initialCard, styleMd: initialStyleMd || "" };
+      const { payload } = extractStyleMdUi(initialStyleMd || "");
+      return { card: initialCard, styleMd: initialStyleMd || "", extras: payload };
     }
     
     // If we have a run (pipeline mode)
@@ -58,10 +60,11 @@ export default function DesignDetailPage({
         run.brandAssets?.logo,
         preview
       );
-      return { card: mapped, styleMd: run.styleMd };
+      const { payload } = extractStyleMdUi(run.styleMd);
+      return { card: mapped, styleMd: run.styleMd, extras: payload };
     }
 
-    return { card: null, styleMd: "" };
+    return { card: null, styleMd: "", extras: null };
   }, [initialCard, run, initialStyleMd]);
 
   // 2. Markdown Generation (Source of Truth)
@@ -226,7 +229,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                 <div className="flex items-center gap-5">
                   <div 
                     className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl shadow-inner border border-medium"
-                    style={{ backgroundColor: card.tokens.colors.primary }}
+                    style={{ backgroundColor: card.theme?.colors.primary || card.tokens.colors.primary }}
                   >
                     {(typeof card.logo === "string" && (card.logo.startsWith("/") || card.logo.startsWith("data:image"))) ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -286,7 +289,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
             {/* Active Content */}
             <div className="transition-all duration-300">
               {activeTab === "preview" ? (
-                <CatalogMainSections card={card} extras={null} />
+                <CatalogMainSections card={card} extras={extras} />
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-medium bg-gray-950 shadow-2xl">
                   <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-3">

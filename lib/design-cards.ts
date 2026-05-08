@@ -1,3 +1,47 @@
+export type StyleMdTheme = {
+  mood: "editorial" | "organic" | "luxury" | "cinematic" | "minimal" | "brutalist" | "playful" | "modern" | "corporate";
+  radius: "sharp" | "medium" | "pill" | "organic" | "asymmetric";
+  density: "compact" | "default" | "airy";
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
+    surfaceMuted: string;
+    text: string;
+    textMuted: string;
+    border: string;
+  };
+  surfaces: {
+    canvas: string;
+    card: string;
+    muted: string;
+    hero: string;
+    accent: string;
+    overlay: string;
+  };
+  typography: {
+    display: string;
+    body: string;
+    scale: "classic" | "modern" | "editorial";
+  };
+  buttons: {
+    radius: string;
+    fill: "solid" | "outline" | "ghost" | "glass";
+    borderWidth: string;
+    shadow: string;
+    fontFamily: string;
+    fontWeight: string;
+    textTransform: "none" | "uppercase";
+  };
+  spacing: {
+    base: string;
+    card: string;
+    section: string;
+  };
+};
+
 export type DesignCard = {
   url: string;
   heroHeadline: string;
@@ -10,6 +54,7 @@ export type DesignCard = {
   palette: { name: string; hex: string; swatches: string[] }[];
   fonts: { name: string; sample: string; role: string; dark: boolean }[];
   preview?: string | null;
+  theme?: StyleMdTheme;
   tokens: {
     colors: {
       primary: string;
