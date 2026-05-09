@@ -339,13 +339,31 @@ function padSwatches(hex: string, count = 10): string[] {
 
 function extractTitle(md: string): string {
   const match = md.match(/^#\s+(.+)$/m);
-  if (match) return match[1].replace(/Design System\s*-?\s*/i, "").trim();
-  return "Untitled Design";
+  if (!match) return "Untitled Design";
+  return match[1]
+    // Remove "- Design System", "— Design System", "Design System" at end
+    .replace(/\s*[-–—]\s*Design System\s*$/i, "")
+    .replace(/\s*Design System\s*$/i, "")
+    // Strip any remaining trailing separator (dash, em-dash, en-dash)
+    .replace(/\s*[-–—]+\s*$/, "")
+    .trim() || "Untitled Design";
+}
+
+function stripBasicMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")     // **bold**
+    .replace(/\*(.+?)\*/g, "$1")          // *italic*
+    .replace(/__(.+?)__/g, "$1")          // __bold__
+    .replace(/_(.+?)_/g, "$1")            // _italic_
+    .replace(/`(.+?)`/g, "$1")            // `code`
+    .replace(/\[(.+?)\]\([^)]*\)/g, "$1") // [link](url)
+    .replace(/#+\s*/g, "")                // # headings
+    .trim();
 }
 
 function extractOverview(md: string): string {
   const overviewMatch = md.match(/## Overview\n\n?([\s\S]+?)(?=\n##|$)/i);
-  if (overviewMatch) return overviewMatch[1].trim();
+  if (overviewMatch) return stripBasicMarkdown(overviewMatch[1].trim());
 
   const lines = md.split("\n");
   let titleFound = false;
@@ -355,7 +373,7 @@ function extractOverview(md: string): string {
       continue;
     }
     if (titleFound && line.trim() && !line.startsWith("#")) {
-      return line.trim();
+      return stripBasicMarkdown(line.trim());
     }
   }
   return "";
