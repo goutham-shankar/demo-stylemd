@@ -94,6 +94,22 @@ function generateColorScale(hex: string): string[] {
   return [shade(0.92), shade(0.80), shade(0.65), shade(0.50), shade(0.35), hex, tint(0.15), tint(0.30), tint(0.45), tint(0.60)];
 }
 
+function evalSpacingValue(val: string): string {
+  const m = val.match(/calc\(\s*(\d+(?:\.\d+)?)px\s*\*\s*(\d+(?:\.\d+)?)\s*\)/);
+  if (m) return `${Math.round(parseFloat(m[1]) * parseFloat(m[2]))}px`;
+  return val;
+}
+
+function contrastColor(hex: string): string {
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return "#ffffff";
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  return lum > 0.35 ? "#000000" : "#ffffff";
+}
+
 export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) {
   const { tokens, theme } = card;
 
@@ -172,8 +188,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
   const spacingValue = tokens.spacing || "8px";
   const spacingCards = extras?.spacing?.cards?.length ? extras.spacing.cards : [
     { label: "BASE", sublabel: "RHYTHM", value: spacingValue },
-    { label: "GAP", sublabel: "COMPONENTS", value: `calc(${spacingValue} * 2)` },
-    { label: "SECTION", sublabel: "PAGE", value: `calc(${spacingValue} * 8)` },
+    { label: "GAP", sublabel: "COMPONENTS", value: evalSpacingValue(`calc(${spacingValue} * 2)`) },
+    { label: "SECTION", sublabel: "PAGE", value: evalSpacingValue(`calc(${spacingValue} * 8)`) },
   ];
 
   const spacingSteps = extras?.spacing?.steps?.length ? extras.spacing.steps : DEFAULT_SPACING_STEPS;
@@ -371,9 +387,11 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             <div className="mb-4 flex flex-col gap-3">
               <button
                 className="flex w-fit items-center gap-2 px-5 py-3 text-sm"
-                style={{ 
+                style={{
                   background: theme?.buttons.fill === "solid" ? "var(--primary)" : "transparent",
-                  color: theme?.buttons.fill === "solid" ? "var(--background)" : "var(--primary)",
+                  color: theme?.buttons.fill === "solid"
+                    ? contrastColor(theme?.colors.primary ?? "#000000")
+                    : "var(--primary)",
                   borderRadius: "var(--radius)",
                   border: theme?.buttons.fill === "outline" ? "var(--buttons-border-width, 1px) solid var(--primary)" : "none",
                   boxShadow: "var(--buttons-shadow, none)",
@@ -403,11 +421,11 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             <div className="mb-4 flex flex-col gap-3">
               <span
                 className="inline-block w-fit px-4 py-2 text-base font-black"
-                style={{ 
-                  background: "var(--accent-surface, var(--primary))", 
-                  opacity: 0.1,
+                style={{
+                  backgroundColor: "var(--surface-muted)",
                   borderRadius: "var(--radius)",
-                  color: "var(--primary)" 
+                  border: "1px solid var(--border)",
+                  color: "var(--primary)",
                 }}
               >
                 {card.name}
