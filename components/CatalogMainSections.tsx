@@ -339,7 +339,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
         
         <div className="divide-y" style={{ borderColor: "var(--border)" }}>
-          {effectivePalette.map((row) => {
+          {effectivePalette.map((row, idx) => {
             const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
             const swatches = (!row.swatches?.length || allSame)
               ? generateColorScale(row.hex)
@@ -349,6 +349,9 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             return (
               <div key={row.name} className="grid grid-cols-[100px_repeat(10,1fr)] items-center">
                 <div className="flex flex-col px-4 py-4">
+                  <span className="text-[8px] font-bold uppercase" style={{ color: "var(--text)", opacity: 0.4 }}>
+                    D{idx + 1}
+                  </span>
                   <span className="text-[10px] font-bold" style={{ color: "var(--text)" }}>{row.name}</span>
                   <span className="text-[9px] font-mono uppercase opacity-70" style={{ color: "var(--text)" }}>{row.hex}</span>
                 </div>
@@ -439,9 +442,11 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 </span>
               </div>
             </div>
-            <span className="inline-block rounded px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: "var(--background)" }}>
-              BRAND
-            </span>
+            {(extras?.motion?.badge || extras?.shapes?.badge) && (
+              <span className="inline-block rounded px-2 py-1 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000") }}>
+                {extras.motion?.badge ?? extras.shapes?.badge}
+              </span>
+            )}
           </div>
         </div>
       </section>
