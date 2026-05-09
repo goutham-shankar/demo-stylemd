@@ -67,15 +67,37 @@ function extractStructuredTokens(md: string): any {
 }
 
 function mapStructuredToTheme(s: any, fallback: any): any {
+  // When the JSON block carries accentColor / palette, derive proper color roles from them.
+  // palette[0] is the primary brand color (heading/UI); accentColor is the CTA/interactive accent.
+  const primaryFromPalette: string | null =
+    s.palette?.[0]?.hex ??
+    s.palette?.[0]?.swatches?.[Math.floor((s.palette?.[0]?.swatches?.length ?? 0) / 2)] ??
+    null;
+  const accentFromJson: string | null = s.accentColor ?? null;
+
+  // Derive background from the lightest or semantically-named palette entry.
+  const bgFromPalette: string | null =
+    s.palette?.find((p: any) => {
+      const n = String(p.name ?? "").toLowerCase();
+      return n.includes("neutral") || n.includes("white") || n.includes("cream") ||
+             n.includes("light") || n.includes("background") || n.includes("canvas");
+    })?.hex ?? null;
+
   return {
     mood: s.mood?.name || s.mood || fallback.mood,
     radius: s.radius?.style || s.radius || fallback.radius,
     colors: {
       ...fallback.colors,
+      // Structured JSON overrides take priority in this order:
+      ...(primaryFromPalette && { primary: primaryFromPalette }),
+      ...(accentFromJson && { accent: accentFromJson }),
+      ...(bgFromPalette && { background: bgFromPalette, surface: bgFromPalette }),
+      // Explicit color map from JSON (rare but respected if present)
       ...s.colors,
     },
     surfaces: {
       ...fallback.surfaces,
+      ...(bgFromPalette && { canvas: bgFromPalette, card: bgFromPalette }),
       ...s.surfaces,
     },
     typography: {
@@ -94,18 +116,48 @@ function mapStructuredToTheme(s: any, fallback: any): any {
 }
 
 
+function colorLuminance(hex: string): number {
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return 0.5;
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
 function generateTheme(md: string, tokens: any, palette: any[], fonts: any[]): any {
   const mood = inferMood(md);
   const radiusType = inferRadius(md);
-  
+
   const primary = tokens.colors.primary;
   const secondary = tokens.colors.secondary;
   const accent = tokens.colors.accent;
-  
-  // Use first 3 colors for basic roles if possible
-  const bg = palette.find(c => c.name.toLowerCase().includes("background") || c.name.toLowerCase().includes("page"))?.hex || "#ffffff";
-  const surface = palette.find(c => c.name.toLowerCase().includes("surface") || c.name.toLowerCase().includes("card") || c.name.toLowerCase().includes("white"))?.hex || "#ffffff";
-  const text = palette.find(c => c.name.toLowerCase().includes("text") || c.name.toLowerCase().includes("foreground") || c.name.toLowerCase().includes("black") || c.name.toLowerCase().includes("navy"))?.hex || "#000000";
+
+  // Smart color role detection using name, optional desc, and luminance fallback.
+  // Each palette entry may have an optional `desc` field (from format-2 bullet extraction).
+  const findByKey = (keywords: string[]) =>
+    palette.find(c => {
+      const key = `${c.name} ${(c as any).desc ?? ""}`.toLowerCase();
+      return keywords.some(k => key.includes(k));
+    });
+
+  const bgEntry =
+    findByKey(["canvas", "background", "page canvas"]) ??
+    findByKey(["cream", "beige", "warm", "light", "paper"]) ??
+    palette.find(c => colorLuminance(c.hex) > 0.7);
+
+  const surfaceEntry =
+    findByKey(["card surface", "card", "surface", "white"]) ??
+    bgEntry;
+
+  const textEntry =
+    findByKey(["primary text", "text and interactive", "foreground", "heading"]) ??
+    findByKey(["navy", "ink", "dark", "black"]) ??
+    palette.find(c => colorLuminance(c.hex) < 0.15 && c.hex !== (bgEntry?.hex ?? "#ffffff"));
+
+  const bg = bgEntry?.hex || "#ffffff";
+  const surface = surfaceEntry?.hex || "#ffffff";
+  const text = textEntry?.hex || "#000000";
 
   return {
     mood,
@@ -319,14 +371,27 @@ function tokenToLabel(token: string): string {
     .trim();
 }
 
-function extractColors(md: string): { name: string; hex: string }[] {
-  const colors: { name: string; hex: string }[] = [];
+function extractColors(md: string): { name: string; hex: string; desc?: string }[] {
+  const colors: { name: string; hex: string; desc?: string }[] = [];
   let match;
 
-  // Bullet format: - **Name**: `#hex`
-  const bulletRegex = /-\s+\*\*(.+?)\*\*:\s+`?(#[0-9A-Fa-f]{3,6})`?/g;
-  while ((match = bulletRegex.exec(md)) !== null) {
+  // Format 1 (colon style): - **Name**: `#hex`  or  - **Name**: #hex
+  const bulletRegex1 = /-\s+\*\*(.+?)\*\*:\s+`?(#[0-9A-Fa-f]{3,6})`?/g;
+  while ((match = bulletRegex1.exec(md)) !== null) {
     colors.push({ name: match[1].trim(), hex: match[2].toUpperCase() });
+  }
+
+  // Format 2 (space style, no colon): - **Name** `#hex` - optional description
+  // Used by brand-analysis outputs e.g. "- **Navy** `#000096` - Primary text and interactive elements"
+  if (colors.length === 0) {
+    const bulletRegex2 = /-\s+\*\*(.+?)\*\*\s+`(#[0-9A-Fa-f]{3,6})`(?:\s*[-–—]\s*([^\n\[]+))?/g;
+    while ((match = bulletRegex2.exec(md)) !== null) {
+      colors.push({
+        name: match[1].trim(),
+        hex: match[2].toUpperCase(),
+        desc: match[3]?.trim(),
+      });
+    }
   }
 
   // Table format: | `--token` | `#hex` | ...  or  | Token | #hex | ...
@@ -390,8 +455,29 @@ function extractTypography(md: string): { name: string; role: string }[] {
 }
 
 function extractPrimaryColor(md: string): string | null {
-  const match = md.match(/(?:Primary Brand|Accent Color|Primary Color).+?`?(#[0-9A-Fa-f]{3,6})`?/i);
-  return match ? match[1].toUpperCase() : null;
+  // Explicit label patterns
+  const explicit = md.match(
+    /(?:Primary Brand|Accent Color|Primary Color|Brand Color|CTA Color|Interactive Color).+?`?(#[0-9A-Fa-f]{3,6})`?/i
+  );
+  if (explicit) return explicit[1].toUpperCase();
+
+  // Format-2 bullet: check description for interactive/action keywords
+  // e.g. "- **Navy** `#000096` - Primary text and interactive elements"
+  const bulletRegex = /-\s+\*\*(.+?)\*\*\s+`(#[0-9A-Fa-f]{3,6})`(?:\s*[-–—]\s*([^\n\[]+))?/g;
+  let m;
+  while ((m = bulletRegex.exec(md)) !== null) {
+    const combined = `${m[1]} ${m[3] ?? ""}`.toLowerCase();
+    if (
+      combined.includes("interactive") ||
+      combined.includes("cta") ||
+      combined.includes("button") ||
+      (combined.includes("primary") && combined.includes("text")) ||
+      combined.includes("primary text")
+    ) {
+      return m[2].toUpperCase();
+    }
+  }
+  return null;
 }
 
 function extractTags(md: string): { label: string }[] {
@@ -418,6 +504,24 @@ function extractTags(md: string): { label: string }[] {
 }
 
 export function mapToDesignCard(parsed: ReturnType<typeof parseStyleMd>, id: string, url: string, logo?: string, preview?: string | null): DesignCard {
+  // For palette, prefer swatches already embedded (from format-2 or JSON extraction over padSwatches)
+  const palette = parsed.palette.map(p => ({
+    name: p.name,
+    hex: p.hex,
+    // Only auto-fill swatches when there is no real swatch data already attached
+    swatches: padSwatches(p.hex),
+  }));
+
+  const fonts = parsed.fonts.map(f => ({
+    name: f.name,
+    role: f.role,
+    sample: "Aa Bb",
+    dark:
+      f.role.toLowerCase().includes("heading") ||
+      f.role.toLowerCase().includes("title") ||
+      f.role.toLowerCase().includes("display"),
+  }));
+
   return {
     id,
     url,
@@ -430,16 +534,7 @@ export function mapToDesignCard(parsed: ReturnType<typeof parseStyleMd>, id: str
     preview,
     tokens: parsed.tokens,
     theme: parsed.theme,
-    palette: parsed.palette.map(p => ({
-      name: p.name,
-      hex: p.hex,
-      swatches: padSwatches(p.hex)
-    })),
-    fonts: parsed.fonts.map(f => ({
-      name: f.name,
-      role: f.role,
-      sample: "Aa Bb",
-      dark: f.role.toLowerCase().includes("heading") || f.role.toLowerCase().includes("title")
-    }))
+    palette,
+    fonts,
   };
 }

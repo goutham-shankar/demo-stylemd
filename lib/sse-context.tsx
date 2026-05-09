@@ -346,6 +346,16 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       // { type: "event", payload: PlaygroundEvent } or { type: "state_sync", payload: ... }
       es.onmessage = (e: MessageEvent) => {
         if (deadRef.current) return;
+        // Reset heartbeat on every incoming message so a busy stream doesn't trigger a false reconnect.
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          if (!deadRef.current) {
+            console.warn("[SSE] Heartbeat lost, reconnecting...");
+            es.close();
+            connect();
+          }
+        }, 45000);
+
         let envelope: { type: string; payload: Record<string, unknown> };
         try { envelope = JSON.parse(e.data); } catch { return; }
 
@@ -475,6 +485,20 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
             connect();
           }
         }, 45000);
+
+        // On reconnect while an active run is in-flight, poll the DB once.
+        // If the run has already completed (styleMd ready), transition to the result screen
+        // so the user isn't left watching a stale pipeline view after a disconnect.
+        const cur = activeRunRef.current;
+        if (cur) {
+          void (async () => {
+            const runData = await fetchRunBySlugOrId(cur.runId);
+            if (!runData || deadRef.current) return;
+            if (isTerminalApiRunStatus(runData.status) || (runData.styleMd && !runNeedsPoll(runData))) {
+              dispatch({ type: "SET_RESULT", data: { ...runData, slug: runData.slug || cur.runId } });
+            }
+          })();
+        }
       };
 
       es.onerror = () => {

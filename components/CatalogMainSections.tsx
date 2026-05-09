@@ -96,15 +96,43 @@ function generateColorScale(hex: string): string[] {
 
 export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) {
   const { tokens, theme } = card;
-  const a = tokens.colors.primary;
-  const s = tokens.colors.secondary;
+
+  // Prefer the structured JSON block's authoritative palette/fonts when available.
+  // The JSON block carries proper swatches, dark flags, sample text, weights, etc.
+  const effectivePalette = useMemo(() => {
+    if (extras?.palette?.length) {
+      return extras.palette.map(row => ({
+        name: row.name,
+        hex: row.hex ?? (row.swatches?.length ? row.swatches[Math.min(5, row.swatches.length - 1)] : "#000000"),
+        swatches: row.swatches?.length ? row.swatches : [],
+      }));
+    }
+    return card.palette;
+  }, [extras, card.palette]);
+
+  const effectiveFonts = useMemo(() => {
+    if (extras?.fonts?.length) {
+      return extras.fonts.map(f => ({
+        name: f.name,
+        sample: f.sample ?? "Aa Bb",
+        role: f.role,
+        dark: !!f.dark,
+        weights: f.weights,
+        badge: f.badge,
+        body: f.body,
+      }));
+    }
+    return card.fonts.map(f => ({ ...f, weights: undefined, badge: undefined, body: undefined }));
+  }, [extras, card.fonts]);
 
   const themeStyles = useMemo(() => {
     if (!theme) return {};
+    // extras.accentColor overrides the CTA/accent variable when explicitly provided in the JSON block.
+    const accent = extras?.accentColor || theme.colors.accent;
     return {
       "--primary": theme.colors.primary,
       "--secondary": theme.colors.secondary,
-      "--accent": theme.colors.accent,
+      "--accent": accent,
       "--background": theme.colors.background,
       "--surface": theme.colors.surface,
       "--surface-muted": theme.colors.surfaceMuted,
@@ -124,7 +152,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       "--buttons-border-width": theme.buttons.borderWidth,
       "--buttons-font-weight": theme.buttons.fontWeight,
     } as React.CSSProperties;
-  }, [theme]);
+  }, [theme, extras?.accentColor]);
 
   const moodClasses = useMemo(() => {
     if (!theme) return "";
@@ -237,12 +265,12 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
         
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {card.fonts.slice(0, 2).map((font) => (
+          {effectiveFonts.slice(0, 2).map((font) => (
             <div
               key={font.name}
               className={`group relative flex flex-col justify-between overflow-hidden p-8 transition-all hover:shadow-2xl`}
-              style={{ 
-                backgroundColor: font.dark ? "var(--primary)" : "var(--surface)", 
+              style={{
+                backgroundColor: font.dark ? "var(--primary)" : "var(--surface)",
                 borderRadius: "var(--radius)",
                 border: font.dark ? "none" : "1px solid var(--border)",
                 color: font.dark ? "var(--background)" : "var(--text)"
@@ -261,20 +289,24 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 <div>
                   <h3 className="text-xl font-black">{font.name}</h3>
                   <p className="text-xs font-bold uppercase tracking-widest opacity-70">
-                    {font.dark ? "Medium" : "Regular, Medium"}
+                    {font.weights ?? (font.dark ? "Medium" : "Regular, Medium")}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter"
-                    style={{ 
+                    style={{
                       backgroundColor: font.dark ? "rgba(255,255,255,0.2)" : "var(--background)",
                       border: font.dark ? "none" : "1px solid var(--border)",
                       color: font.dark ? "white" : "var(--text)"
                     }}>
-                    {font.role}
+                    {font.badge ?? font.role}
                   </span>
                 </div>
+
+                {font.body && (
+                  <p className="text-[10px] leading-relaxed opacity-75">{font.body}</p>
+                )}
               </div>
             </div>
           ))}
@@ -291,7 +323,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
         
         <div className="divide-y" style={{ borderColor: "var(--border)" }}>
-          {card.palette.map((row) => {
+          {effectivePalette.map((row) => {
             const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
             const swatches = (!row.swatches?.length || allSame)
               ? generateColorScale(row.hex)
