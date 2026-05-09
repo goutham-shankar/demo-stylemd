@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { STAGES, type Stage } from "@/lib/api-types";
 import { useSSE } from "@/lib/sse-context";
 
@@ -80,7 +81,8 @@ function StageRow({ stage, status, durationMs, error }: {
 }
 
 export default function PipelineView() {
-  const { activeRun, isRunning, runError, startRun } = useSSE();
+  const { activeRun, isRunning, runError, startRun, goHome } = useSSE();
+  const router = useRouter();
   const logsEndRef = useRef<HTMLDivElement>(null);
   const [isStuck, setIsStuck] = useState(false);
   const lastProgressRef = useRef<number>(Date.now());
@@ -192,7 +194,10 @@ export default function PipelineView() {
             <button
               onClick={async () => {
                 if (isStuck && activeRun) {
-                  await startRun(activeRun.url, activeRun.provider);
+                  // startRun has a guard: `if (state.isRunning) return` which silently
+                  // aborts when stuck. Clear state first via goHome(), then start fresh.
+                  goHome();
+                  router.replace("/");
                 } else {
                   window.location.reload();
                 }
