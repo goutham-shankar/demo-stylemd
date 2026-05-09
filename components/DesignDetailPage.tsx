@@ -65,7 +65,7 @@ export default function DesignDetailPage({
     }
 
     return { card: null, styleMd: "", extras: null };
-  }, [initialCard, run, initialStyleMd]);
+  }, [initialCard, run?.runId, run?.slug, run?.styleMd, run?.screenshot, run?.brandAssets?.logo, run?.url, initialStyleMd]);
 
   // Logo container bg: always use a dark-enough color so white logo/letter stays visible.
   // If the primary color is too light (luminance > 0.35), fall back to the dark text color.

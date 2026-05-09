@@ -77,10 +77,24 @@ function runNeedsPoll(d: RunData): boolean {
   return !d.styleMd?.trim();
 }
 
+async function fetchWithTimeout(
+  input: RequestInfo,
+  init?: RequestInit,
+  timeoutMs = 8000
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 async function fetchRunBySlugOrId(slugOrId: string): Promise<RunData | null> {
   if (!API_BASE) return null;
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${API_BASE}/api/stylemd/by-slug/${encodeURIComponent(slugOrId)}`
     );
     if (!res.ok) return null;
@@ -145,8 +159,14 @@ function reducer(state: AppState, action: AppAction): AppState {
     case "SET_SCREEN":
       return { ...state, screen: action.screen };
 
-    case "SET_RUNS":
-      return { ...state, runs: action.runs };
+    case "SET_RUNS": {
+      // Keep optimistic entries whose URL isn't represented in the real list yet
+      const realUrls = new Set(action.runs.map((r) => r.url.toLowerCase().replace(/\/$/, "")));
+      const optimisticToKeep = state.runs.filter(
+        (r) => r.id.startsWith("optimistic-") && !realUrls.has(r.url.toLowerCase().replace(/\/$/, ""))
+      );
+      return { ...state, runs: [...optimisticToKeep, ...action.runs] };
+    }
 
     case "ADD_OPTIMISTIC_RUN": {
       const exists = state.runs.some((r) => r.id === action.summary.id);
@@ -238,22 +258,31 @@ function reducer(state: AppState, action: AppAction): AppState {
     }
 
     case "NETWORK_ERROR":
-      return { ...state, networkError: action.error };
+      return {
+        ...state,
+        networkError: action.error,
+        runs: action.error ? state.runs.filter((r) => !r.id.startsWith("optimistic-")) : state.runs,
+      };
 
     case "RUN_ERROR":
-      return { ...state, runError: action.error, isRunning: false };
+      return {
+        ...state,
+        runError: action.error,
+        isRunning: false,
+        runs: action.error ? state.runs.filter((r) => !r.id.startsWith("optimistic-")) : state.runs,
+      };
 
     case "SET_LAST_RUN":
       return { ...state, lastRunSlug: action.slug };
 
     case "GO_HOME":
-
       return {
         ...state,
         screen: "home",
         activeRun: null,
         resultData: null,
         runError: null,
+        isRunning: false,
       };
 
     default:
@@ -286,13 +315,14 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const esRef = useRef<EventSource | null>(null);
   const deadRef = useRef(false);
   const viewPollGenRef = useRef(0);
+  const currentRunIdRef = useRef<string | null>(null);
   const activeRunRef = useRef<ActiveRun | null>(null);
   activeRunRef.current = state.activeRun;
 
   const fetchRuns = useCallback(async () => {
     try {
       if (!API_BASE) return;
-      const res = await fetch(`${API_BASE}/api/stylemd/runs`);
+      const res = await fetchWithTimeout(`${API_BASE}/api/stylemd/runs`);
       if (!res.ok) return;
       const data = (await res.json()) as {
         ok?: boolean;
@@ -370,6 +400,9 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         switch (event.type) {
           case "stylemd_run_started": {
             const data = event as unknown as SSERunStarted;
+            // Don't reset stages/logs if the SSE reconnected mid-run for the same run
+            if (activeRunRef.current?.runId === data.runId) break;
+            currentRunIdRef.current = data.runId;
             dispatch({
               type: "SET_ACTIVE_RUN",
               run: {
@@ -414,6 +447,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
 
               const finish = (runData: RunData) => {
                 if (deadRef.current) return;
+                if (currentRunIdRef.current !== runId) return;
                 dispatch({
                   type: "SET_RESULT",
                   data: {
@@ -454,9 +488,9 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
               void (async () => {
                 console.log(`[SSE] Finalizing run ${runId}, polling DB for full record...`);
                 for (let attempt = 0; attempt < 90 && !deadRef.current; attempt++) {
+                  if (currentRunIdRef.current !== runId) return;
                   const runData = await fetchRunBySlugOrId(runId);
                   const isPending = runData?.pending === true || runData?.status === "processing";
-                  // 🔴 FIX: Transition if we have terminal status OR (styleMd AND NOT pending)
                   if (runData && (isTerminalApiRunStatus(runData.status) || (runData.styleMd && !isPending))) {
                     console.log(`[SSE] Run ${runId} settled in DB, finishing.`);
                     finish(runData);
@@ -464,8 +498,10 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                   }
                   await new Promise((r) => setTimeout(r, 1500));
                 }
-                const last = await fetchRunBySlugOrId(runId);
-                if (last && !deadRef.current) finish(last);
+                if (!deadRef.current && currentRunIdRef.current === runId) {
+                  const last = await fetchRunBySlugOrId(runId);
+                  if (last) finish(last);
+                }
               })();
             } else {
               dispatch({ type: "RUN_ERROR", error: data.error ?? "Pipeline failed" });
@@ -522,34 +558,50 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
 
   const startRun = useCallback(
     async (url: string, provider: Provider) => {
-      if (state.isRunning) return;
+      if (state.isRunning) {
+        dispatch({ type: "RUN_ERROR", error: "A pipeline is already running" });
+        return;
+      }
+
+      // Cancel any in-flight viewRun polls so they don't overwrite the new run's result
+      ++viewPollGenRef.current;
 
       const handleExistingRun = async (targetUrl: string) => {
         try {
-          // Normalize for comparison
           const normalizedTarget = targetUrl.toLowerCase().replace(/\/$/, "");
-          
-          const runsRes = await fetch(`${API_BASE}/api/stylemd/runs`);
-          if (!runsRes.ok) return;
+
+          const runsRes = await fetchWithTimeout(`${API_BASE}/api/stylemd/runs`);
+          if (!runsRes.ok) return false;
           const data = await runsRes.json();
-          const list = Array.isArray(data.data) ? data.data : [];
-          
-          const existing = list.find((r: any) => {
+          // Backend may return { summaries: [...] } or { data: [...] }
+          const list = Array.isArray(data.summaries)
+            ? data.summaries
+            : Array.isArray(data.data)
+            ? data.data
+            : [];
+
+          const existing = list.find((r: Record<string, unknown>) => {
             const rUrl = String(r.url || "").toLowerCase().replace(/\/$/, "");
             return rUrl === normalizedTarget && r.status === "running";
           });
 
           if (existing) {
+            const existingRunId = String(existing.runId ?? existing.id ?? "");
+            currentRunIdRef.current = existingRunId;
+            // Preserve in-flight stages/logs if we already have this run active
+            const cur = activeRunRef.current;
+            const stages = cur?.runId === existingRunId ? cur.stages : initStages();
+            const logs = cur?.runId === existingRunId ? cur.logs : [];
             dispatch({
               type: "SET_ACTIVE_RUN",
               run: {
-                runId: existing.runId || existing.id,
-                url: existing.url,
-                provider: existing.provider || "kimi",
-                model: existing.model || "",
-                stages: initStages(),
-                logs: [],
-                startedAt: existing.createdAt || new Date().toISOString(),
+                runId: existingRunId,
+                url: String(existing.url ?? ""),
+                provider: (existing.provider as Provider) || "kimi",
+                model: String(existing.model ?? ""),
+                stages,
+                logs,
+                startedAt: String(existing.createdAt ?? new Date().toISOString()),
               },
             });
             return true;
@@ -581,23 +633,26 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       });
 
       try {
-        const res = await fetch(`${API_BASE}/api/stylemd`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url, provider }),
-        });
+        const res = await fetchWithTimeout(
+          `${API_BASE}/api/stylemd`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url, provider }),
+          },
+          15000
+        );
 
         if (res.status === 409 || (res.status === 400 && (await res.clone().json())?.error?.includes("already in progress"))) {
-          // 🟠 STEP 1: HANDLE "ALREADY IN PROGRESS"
           const resumed = await handleExistingRun(url);
           if (resumed) return;
-          
           dispatch({ type: "RUN_ERROR", error: "Pipeline busy, try again shortly" });
           return;
         }
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
         const data: { ok: boolean; runId: string } = await res.json();
+        currentRunIdRef.current = data.runId;
 
         dispatch({
           type: "SET_ACTIVE_RUN",
@@ -629,7 +684,8 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       const data = await fetchRunBySlugOrId(slugOrId);
       if (!data) throw new Error(`HTTP 404`);
 
-
+      // Bail out if startRun fired while we were fetching — don't overwrite the new run
+      if (gen !== viewPollGenRef.current) return;
       dispatch({ type: "SET_RESULT", data: { ...data, slug: data.slug || slugOrId } });
 
       if (runNeedsPoll(data)) {
