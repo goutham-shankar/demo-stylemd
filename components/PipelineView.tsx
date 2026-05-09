@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { STAGES, type Stage } from "@/lib/api-types";
 import { useSSE } from "@/lib/sse-context";
 
@@ -80,7 +81,8 @@ function StageRow({ stage, status, durationMs, error }: {
 }
 
 export default function PipelineView() {
-  const { activeRun, isRunning, runError, startRun } = useSSE();
+  const { activeRun, isRunning, runError, startRun, goHome } = useSSE();
+  const router = useRouter();
   const logsEndRef = useRef<HTMLDivElement>(null);
   const [isStuck, setIsStuck] = useState(false);
   const lastProgressRef = useRef<number>(Date.now());
@@ -93,6 +95,10 @@ export default function PipelineView() {
     (s) => activeRun?.stages[s]?.status === "failed"
   );
 
+  const allStagesComplete = !!activeRun && STAGES.every(
+    (s) => activeRun.stages[s]?.status === "completed"
+  );
+
   useEffect(() => {
     lastProgressRef.current = Date.now();
     setIsStuck(false);
@@ -101,7 +107,7 @@ export default function PipelineView() {
   useEffect(() => {
     if (!isRunning || hasFailure) return;
     const interval = setInterval(() => {
-      if (Date.now() - lastProgressRef.current > 60000) {
+      if (Date.now() - lastProgressRef.current > 90000) {
         setIsStuck(true);
       }
     }, 5000);
@@ -111,8 +117,11 @@ export default function PipelineView() {
   if (!activeRun && !runError) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }} />
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
+            style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }} />
+          <p className="text-sm font-manrope text-secondary">Connecting to pipeline…</p>
+        </div>
       </div>
     );
   }
@@ -140,7 +149,15 @@ export default function PipelineView() {
         <div className="min-w-0">
           <p className="text-sm font-semibold text-primary font-manrope truncate">{hostname}</p>
           <p className="text-xs text-secondary font-manrope">
-            {hasFailure ? "Pipeline failed" : isStuck ? "Pipeline may be stuck" : isRunning ? "Running pipeline…" : "Finishing up…"}
+            {hasFailure
+              ? "Pipeline failed"
+              : isStuck
+              ? "Pipeline may be stuck"
+              : allStagesComplete
+              ? "Wrapping up…"
+              : isRunning
+              ? "Running pipeline…"
+              : "Finishing up…"}
           </p>
         </div>
 
@@ -150,6 +167,50 @@ export default function PipelineView() {
           </span>
         )}
       </div>
+
+      {/* Error / stuck banner — rendered ABOVE the stage+log row so it's always in view */}
+      {(runError || hasFailure || isStuck) && (
+        <div className={`mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row items-center gap-4 ${
+          isStuck ? "border-yellow-200 bg-yellow-50" : "border-red-200 bg-red-50"
+        }`}>
+          <p className={`text-sm font-manrope flex-1 text-center sm:text-left ${
+            isStuck ? "text-yellow-800" : "text-red-700"
+          }`}>
+            <span className="font-semibold">{isStuck ? "Pipeline appears stuck: " : "Pipeline interrupted: "}</span>
+            {isStuck ? "No activity detected for 90 seconds. You can wait longer or force a restart." : (runError || "An error occurred during generation.")}
+          </p>
+          <div className="flex gap-2 flex-shrink-0">
+            {isStuck && (
+              <button
+                onClick={() => {
+                  lastProgressRef.current = Date.now();
+                  setIsStuck(false);
+                }}
+                className="px-4 py-2 border border-yellow-300 text-yellow-800 text-xs font-bold rounded-xl hover:bg-yellow-100 transition-all"
+              >
+                Wait more
+              </button>
+            )}
+            <button
+              onClick={async () => {
+                if (isStuck && activeRun) {
+                  // startRun has a guard: `if (state.isRunning) return` which silently
+                  // aborts when stuck. Clear state first via goHome(), then start fresh.
+                  goHome();
+                  router.replace("/");
+                } else {
+                  window.location.reload();
+                }
+              }}
+              className={`px-5 py-2.5 text-white text-sm font-bold rounded-xl transition-all shadow-sm ${
+                isStuck ? "bg-yellow-600 hover:bg-yellow-700" : "bg-red-600 hover:bg-red-700"
+              }`}
+            >
+              {isStuck ? "Retry Now" : "Try again"}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* Stage stepper */}
@@ -215,46 +276,6 @@ export default function PipelineView() {
         </div>
       </div>
 
-      {/* Error banner / Stuck banner */}
-      {(runError || hasFailure || isStuck) && (
-        <div className={`mt-6 p-5 rounded-2xl border flex flex-col sm:flex-row items-center gap-4 ${
-          isStuck ? "border-yellow-200 bg-yellow-50" : "border-red-200 bg-red-50"
-        }`}>
-          <p className={`text-sm font-manrope flex-1 text-center sm:text-left ${
-            isStuck ? "text-yellow-800" : "text-red-700"
-          }`}>
-            <span className="font-semibold">{isStuck ? "Pipeline appears stuck: " : "Pipeline interrupted: "}</span>
-            {isStuck ? "No activity detected for 60 seconds. You can wait longer or force a restart." : (runError || "An error occurred during generation.")}
-          </p>
-          <div className="flex gap-2">
-            {isStuck && (
-              <button
-                onClick={() => {
-                  lastProgressRef.current = Date.now();
-                  setIsStuck(false);
-                }}
-                className="px-4 py-2 border border-yellow-300 text-yellow-800 text-xs font-bold rounded-xl hover:bg-yellow-100 transition-all"
-              >
-                Wait more
-              </button>
-            )}
-            <button
-              onClick={async () => {
-                if (isStuck && activeRun) {
-                  await startRun(activeRun.url, activeRun.provider);
-                } else {
-                  window.location.reload();
-                }
-              }}
-              className={`px-5 py-2.5 text-white text-sm font-bold rounded-xl transition-all shadow-sm ${
-                isStuck ? "bg-yellow-600 hover:bg-yellow-700" : "bg-red-600 hover:bg-red-700"
-              }`}
-            >
-              {isStuck ? "Retry Now" : "Try again"}
-            </button>
-          </div>
-        </div>
-      )}
 
     </div>
   );

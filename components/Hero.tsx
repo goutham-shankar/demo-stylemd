@@ -77,7 +77,7 @@ export default function Hero() {
   const [urlError, setUrlError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { startRun, isRunning, runError, lastRunSlug, runs, viewRun } = useSSE();
+  const { startRun, isRunning, runError, lastRunSlug, runs } = useSSE();
   const router = useRouter();
 
   // Pre-fill last URL or handle deep link recovery
@@ -252,8 +252,11 @@ export default function Hero() {
                 <button
                   key={run.id}
                   onClick={() => {
-                    viewRun(run.slug || run.id);
-                    router.push("/generate");
+                    // Navigate with the slug in the URL so GeneratePageContent
+                    // can call viewRun via its existing useEffect([slug]) path.
+                    // Calling viewRun here and then pushing /generate (no slug)
+                    // races against the "home → redirect /" guard and loses.
+                    router.push(`/generate?run=${encodeURIComponent(run.slug || run.id)}`);
                   }}
                   className="flex items-center justify-between p-4 bg-surface rounded-xl border border-medium hover:border-dark transition-all duration-150 group"
                 >

@@ -48,7 +48,7 @@ export default function DesignDetailPage({
       const { payload } = extractStyleMdUi(initialStyleMd || "");
       return { card: initialCard, styleMd: initialStyleMd || "", extras: payload };
     }
-    
+
     // If we have a run (pipeline mode)
     if (run && run.styleMd) {
       const parsed = parseStyleMd(run.styleMd);
@@ -65,7 +65,32 @@ export default function DesignDetailPage({
     }
 
     return { card: null, styleMd: "", extras: null };
-  }, [initialCard, run, initialStyleMd]);
+  }, [initialCard, run?.runId, run?.slug, run?.styleMd, run?.screenshot, run?.brandAssets?.logo, run?.url, initialStyleMd]);
+
+  // Logo container bg: always use a dark-enough color so white logo/letter stays visible.
+  // If the primary color is too light (luminance > 0.35), fall back to the dark text color.
+  const logoBg = useMemo(() => {
+    if (!card) return "#111111";
+    const primary = card.theme?.colors.primary || card.tokens.colors.primary || "#111111";
+    const hex6 = /^#[0-9A-Fa-f]{6}$/.test(primary) ? primary : null;
+    if (!hex6) return primary;
+    const r = parseInt(hex6.slice(1, 3), 16) / 255;
+    const g = parseInt(hex6.slice(3, 5), 16) / 255;
+    const b = parseInt(hex6.slice(5, 7), 16) / 255;
+    const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+    const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    if (lum <= 0.35) return primary; // dark enough
+    // Primary is too light — use the dark text color instead
+    const textColor = card.theme?.colors.text;
+    if (textColor && /^#[0-9A-Fa-f]{6}$/.test(textColor)) {
+      const tr = parseInt(textColor.slice(1, 3), 16) / 255;
+      const tg = parseInt(textColor.slice(3, 5), 16) / 255;
+      const tb = parseInt(textColor.slice(5, 7), 16) / 255;
+      const tLum = 0.2126 * lin(tr) + 0.7152 * lin(tg) + 0.0722 * lin(tb);
+      if (tLum <= 0.35) return textColor;
+    }
+    return "#111111";
+  }, [card]);
 
   // 2. Markdown Generation (Source of Truth)
   const finalMarkdown = useMemo(() => {
@@ -238,11 +263,15 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                 <div className="flex items-center gap-5">
                   <div 
                     className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl shadow-inner border border-medium"
-                    style={{ backgroundColor: card.theme?.colors.primary || card.tokens.colors.primary }}
+                    style={{ backgroundColor: logoBg }}
                   >
-                    {(typeof card.logo === "string" && (card.logo.startsWith("/") || card.logo.startsWith("data:image"))) ? (
+                    {(typeof card.logo === "string" && (card.logo.startsWith("/") || card.logo.startsWith("data:image") || card.logo.startsWith("http://") || card.logo.startsWith("https://"))) ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={card.logo} alt={card.name} className="h-12 w-12 object-contain filter brightness-0 invert" />
+                      <img
+                        src={card.logo}
+                        alt={card.name}
+                        className={`h-12 w-12 object-contain ${card.logo.startsWith("/") ? "filter brightness-0 invert" : ""}`}
+                      />
                     ) : (
                       <span className="text-2xl font-black text-white">{card.name.charAt(0)}</span>
                     )}
@@ -263,7 +292,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                 </div>
               </div>
               <p className="max-w-2xl text-lg leading-relaxed text-secondary/80 font-medium">
-                {card.desc}
+                {extras?.description || card.desc}
               </p>
             </header>
 

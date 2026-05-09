@@ -95,10 +95,20 @@ export default function GeneratePageContent() {
 
   const [deepFetchSettled, setDeepFetchSettled] = useState(false);
 
+  const resultDataRef = useRef(resultData);
+  resultDataRef.current = resultData;
+
   const cancelledRef = useRef(false);
   useEffect(() => {
     if (!slug) {
       setDeepFetchSettled(false);
+      return;
+    }
+    // Skip fetch if the current resultData already matches this slug (e.g., URL sync after run completion)
+    const cur = resultDataRef.current;
+    const curSlug = cur?.slug?.trim() || cur?.runId?.trim();
+    if (curSlug && (curSlug === slug || cur?.runId?.trim() === slug)) {
+      setDeepFetchSettled(true);
       return;
     }
     setDeepFetchSettled(false);
@@ -120,7 +130,16 @@ export default function GeneratePageContent() {
   }, [screen, router, slug]);
 
   if (screen === "running") return <div className="animate-fade-in"><PipelineView /></div>;
-  if (screen === "result") return <div className="animate-fade-in"><FetchedResultView /></div>;
+  if (screen === "result") {
+    // If there's no slug in the URL, show result immediately (just finished a run)
+    if (!slug) return <div className="animate-fade-in"><FetchedResultView /></div>;
+    // If there's a slug, only show result when resultData matches — avoids showing stale data
+    const resultSlug = resultData?.slug?.trim() || resultData?.runId?.trim();
+    if (resultSlug && (resultSlug === slug || resultData?.runId?.trim() === slug)) {
+      return <div className="animate-fade-in"><FetchedResultView /></div>;
+    }
+    // Falls through to slug loading/error block below
+  }
 
 
   if (slug) {
