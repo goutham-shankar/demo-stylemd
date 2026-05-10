@@ -295,7 +295,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 // ── Context ───────────────────────────────────────────────────────────────────
 
 interface SSEContextValue extends AppState {
-  startRun: (url: string, provider: Provider) => Promise<void>;
+  startRun: (url: string, provider: Provider, force?: boolean) => Promise<void>;
   viewRun: (slugOrId: string) => Promise<void>;
   goHome: () => void;
   runAgain: () => Promise<void>;
@@ -652,7 +652,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   // ── Actions ────────────────────────────────────────────────────────────────
 
   const startRun = useCallback(
-    async (url: string, provider: Provider) => {
+    async (url: string, provider: Provider, force: boolean = false) => {
       if (state.isRunning) {
         dispatch({ type: "RUN_ERROR", error: "A pipeline is already running" });
         return;
@@ -733,7 +733,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url, provider }),
+            body: JSON.stringify({ url, provider, force }),
           },
           15000
         );
@@ -746,13 +746,27 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         }
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
-        const data: { ok: boolean; runId: string } = await res.json();
-        currentRunIdRef.current = data.runId;
+        const payload: { ok: boolean; runId?: string; cached?: boolean; data?: RunData } = await res.json();
+        
+        if (payload.cached && payload.data) {
+          dispatch({ type: "SET_RESULT", data: { ...payload.data, slug: payload.data.slug || payload.data.runId } });
+          const finalSlug = payload.data.slug || payload.data.runId;
+          if (finalSlug) {
+            localStorage.setItem(LAST_ID_KEY, finalSlug);
+            dispatch({ type: "SET_LAST_RUN", slug: finalSlug });
+          }
+          return;
+        }
+
+        const runId = payload.runId;
+        if (!runId) throw new Error("No runId returned from server");
+
+        currentRunIdRef.current = runId;
 
         dispatch({
           type: "SET_ACTIVE_RUN",
           run: {
-            runId: data.runId,
+            runId: runId,
             url,
             provider,
             model: "",
@@ -817,7 +831,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     if (!state.resultData) return;
     const { url, provider } = state.resultData;
     dispatch({ type: "GO_HOME" });
-    await startRun(url, provider);
+    await startRun(url, provider, true);
   }, [state.resultData, startRun]);
 
 
