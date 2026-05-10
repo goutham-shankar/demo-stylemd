@@ -116,6 +116,9 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
   const [paletteView, setPaletteView] = useState<"scale" | "cards">("scale");
 
+  // Authoritative CTA/interactive color — must match --primary in themeStyles
+  const effectiveAccent = extras?.accentColor || theme?.colors.accent || theme?.colors.primary || "#000000";
+
   function copyColor(hex: string) {
     navigator.clipboard.writeText(hex).catch(() => {});
     setCopiedHex(hex);
@@ -147,8 +150,18 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         body: f.body,
       }));
     }
-    return card.fonts.map(f => ({ ...f, weights: undefined, badge: undefined, body: undefined }));
-  }, [extras, card.fonts]);
+    const fromCard = card.fonts.map(f => ({ ...f, weights: undefined, badge: undefined, body: undefined }));
+    if (fromCard.length > 0) return fromCard;
+
+    // Fallback: derive at least one font card from theme typography so the section
+    // never renders as a blank white box when font extraction failed.
+    const heading = theme?.typography?.display || tokens?.typography?.heading;
+    const body = theme?.typography?.body || tokens?.typography?.body;
+    const result = [];
+    if (heading) result.push({ name: heading, sample: "Aa Bb", role: "Display", dark: true, weights: undefined, badge: undefined, body: undefined });
+    if (body && body !== heading) result.push({ name: body, sample: "Aa Bb", role: "Body", dark: false, weights: undefined, badge: undefined, body: undefined });
+    return result.length > 0 ? result : [{ name: "System", sample: "Aa Bb", role: "Display", dark: true, weights: undefined, badge: undefined, body: undefined }];
+  }, [extras, card.fonts, theme, tokens]);
 
   // Attempt to load each brand font from Google Fonts.
   // If a font isn't on Google Fonts the <link> silently 400s and the
@@ -157,14 +170,10 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
 
   const themeStyles = useMemo(() => {
     if (!theme) return {};
-    // extras.accentColor is the authoritative CTA/interactive color from the JSON block.
-    // Drive both --primary and --accent from it so every button, badge, and bar uses the
-    // correct brand color (theme.colors.primary may be palette[0] which is often a neutral).
-    const accent = extras?.accentColor || theme.colors.accent;
     return {
-      "--primary": accent,
+      "--primary": effectiveAccent,
       "--secondary": theme.colors.secondary,
-      "--accent": accent,
+      "--accent": effectiveAccent,
       "--background": theme.colors.background,
       "--surface": theme.colors.surface,
       "--surface-muted": theme.colors.surfaceMuted,
@@ -303,7 +312,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 style={{
                   backgroundColor: font.dark ? "var(--primary)" : "#f0f4ff",
                   borderLeft: i > 0 ? "1px solid rgba(0,0,0,0.06)" : "none",
-                  color: font.dark ? contrastColor(theme?.colors.primary ?? "#000000") : "#111827",
+                  color: font.dark ? contrastColor(effectiveAccent) : "#111827",
                 }}
               >
                 <div className="flex flex-1 items-center justify-center py-8">
