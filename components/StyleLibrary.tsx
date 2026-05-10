@@ -40,22 +40,75 @@ function brandColor(url: string): string {
   return palette[idx];
 }
 
+// Module-level cache: slug → screenshot src (string) or false (not found)
+const screenshotCache = new Map<string, string | false>();
+
 function CardThumbnail({ run }: { run: RunCard }) {
-  const screenshot = run.screenshot;
   const ogImage = run.brandAssets?.ogImage;
   const logo = run.brandAssets?.logo || run.brandAssets?.favicon || run.brandAssets?.appleIcon;
   const name = run.title || cleanHostname(run.url);
-  const preview = screenshot || ogImage;
   const bg = brandColor(run.url);
+  const slug = run.slug || run.runId;
 
-  if (preview) {
+  // Immediate preview from list data (may be absent if API omits large base64 fields from summaries)
+  const immediatePreview = run.screenshot || ogImage;
+
+  // null = still fetching, string = found, false = nothing to show
+  const [lazyPreview, setLazyPreview] = useState<string | null | false>(() => {
+    if (immediatePreview) return false; // don't need lazy load
+    if (!slug) return false;
+    const cached = screenshotCache.get(slug);
+    return cached !== undefined ? cached : null;
+  });
+
+  // Image error state for when the src loads but the img fails to render
+  const [imgFailed, setImgFailed] = useState(false);
+
+  useEffect(() => {
+    if (immediatePreview || !slug || !API_BASE) return;
+    if (screenshotCache.has(slug)) {
+      setLazyPreview(screenshotCache.get(slug)!);
+      return;
+    }
+
+    let cancelled = false;
+    fetch(`${API_BASE}/api/stylemd/by-slug/${encodeURIComponent(slug)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (cancelled) return;
+        const data = json?.data;
+        const found: string | false = data?.screenshot || data?.brandAssets?.ogImage || false;
+        screenshotCache.set(slug, found);
+        setLazyPreview(found);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          screenshotCache.set(slug, false);
+          setLazyPreview(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [immediatePreview, slug]);
+
+  const displaySrc = immediatePreview || (typeof lazyPreview === "string" ? lazyPreview : null);
+
+  // Skeleton while lazy-fetching
+  if (!immediatePreview && lazyPreview === null) {
+    return <div className="w-full h-full bg-surface-soft animate-pulse" />;
+  }
+
+  if (displaySrc && !imgFailed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={preview}
+        src={displaySrc}
         alt={name}
         className="w-full h-full object-cover object-top"
         loading="lazy"
+        onError={() => setImgFailed(true)}
       />
     );
   }
@@ -106,6 +159,10 @@ export default function StyleLibrary() {
         ? data.summaries
         : Array.isArray(data.data)
         ? data.data
+        : Array.isArray(data.runs)
+        ? data.runs
+        : Array.isArray(data)
+        ? data
         : [];
 
       const cards: RunCard[] = list
@@ -118,6 +175,7 @@ export default function StyleLibrary() {
           runId: String(r.runId ?? r.id ?? r._id ?? ""),
           url: String(r.url ?? ""),
           title: r.title ? String(r.title) : undefined,
+          // Don't rely on screenshot being in the list response — CardThumbnail lazy-loads it
           screenshot: r.screenshot ? String(r.screenshot) : undefined,
           brandAssets: r.brandAssets as RunCard["brandAssets"],
           status: String(r.status ?? ""),
