@@ -51,7 +51,7 @@ export default function DesignDetailPage({
 
     // If we have a run (pipeline mode)
     if (run && run.styleMd) {
-      const parsed = parseStyleMd(run.styleMd);
+      const parsed = parseStyleMd(run.styleMd, run.designTokens);
       const preview = run.screenshot || null;
       const mapped = mapToDesignCard(
         parsed,
@@ -65,7 +65,7 @@ export default function DesignDetailPage({
     }
 
     return { card: null, styleMd: "", extras: null };
-  }, [initialCard, run?.runId, run?.slug, run?.styleMd, run?.screenshot, run?.brandAssets?.logo, run?.url, initialStyleMd]);
+  }, [initialCard, run?.runId, run?.slug, run?.styleMd, run?.designTokens, run?.screenshot, run?.brandAssets?.logo, run?.url, initialStyleMd]);
 
   // Logo container bg: always use a dark-enough color so white logo/letter stays visible.
   // If the primary color is too light (luminance > 0.35), fall back to the dark text color.
@@ -174,10 +174,10 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
   return (
     <div className="flex min-h-screen flex-col bg-[#f6f8fa] font-manrope">
       {/* 2. Main Content Area */}
-      <main className="flex flex-1 overflow-hidden">
-        {/* Left: Preview (40%) */}
-        <aside className="hidden w-[40%] flex-col border-r border-medium bg-page md:flex">
-          <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+      <main className="flex flex-1 flex-col md:flex-row overflow-hidden">
+        {/* Left: Preview (40% on desktop, top on mobile) */}
+        <aside className="w-full md:w-[40%] flex flex-col border-b md:border-b-0 md:border-r border-medium bg-page">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-hide max-h-[40vh] md:max-h-none">
             <div className="overflow-hidden rounded-2xl border border-medium bg-white shadow-xl">
               {card.preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -216,8 +216,8 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
 
             {/* Brand Identity Header */}
             <header className="mb-10">
-              <div className="mb-6 flex items-start justify-between">
-                <div className="flex items-center gap-5">
+              <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                   {/* Logo */}
                   {(typeof card.logo === "string" && (card.logo.startsWith("/") || card.logo.startsWith("data:image") || card.logo.startsWith("http://") || card.logo.startsWith("https://"))) ? (
                     <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
@@ -246,10 +246,10 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                           className="group flex items-center gap-1.5 hover:opacity-80 transition-opacity"
                           title={`Visit ${card.url}`}
                         >
-                          <h1 className="text-4xl font-black tracking-tight text-primary group-hover:underline underline-offset-4 decoration-2">{card.name}</h1>
+                          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary group-hover:underline underline-offset-4 decoration-2">{card.name}</h1>
                         </a>
                       ) : (
-                        <h1 className="text-4xl font-black tracking-tight text-primary">{card.name}</h1>
+                        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">{card.name}</h1>
                       )}
                       {card.url && (
                         <a
@@ -277,17 +277,17 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                 </div>
 
                 {/* Action buttons — right-aligned, vertically centered with the logo row */}
-                <div className="flex flex-shrink-0 items-center gap-2 pt-1">
+                <div className="flex flex-wrap items-center gap-3 lg:pt-1">
                   <button
                     onClick={handleCopy}
-                    className="group relative flex items-center gap-2 rounded-[10px] border border-medium bg-white px-4 py-2 text-sm font-semibold text-primary transition-all hover:border-gray-400 active:scale-95 shadow-sm"
+                    className="group relative flex flex-1 sm:flex-initial items-center justify-center gap-2 rounded-[10px] border border-medium bg-white px-4 py-2.5 text-sm font-semibold text-primary transition-all hover:border-gray-400 active:scale-95 shadow-sm"
                   >
                     {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-secondary group-hover:text-primary" />}
                     <span>{copied ? "Copied!" : "Copy DESIGN.md"}</span>
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="flex items-center gap-2 rounded-[10px] bg-gray-900 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-black active:scale-95 shadow-sm"
+                    className="flex flex-1 sm:flex-initial items-center justify-center gap-2 rounded-[10px] bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-black active:scale-95 shadow-sm"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/Cloud Download.svg" alt="" width={19} height={19} />
@@ -297,7 +297,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                     <button
                       onClick={onRunAgain}
                       disabled={isRunBusy}
-                      className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-medium bg-white text-secondary shadow-sm transition-all hover:text-primary hover:border-gray-400 disabled:opacity-50"
+                      className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-medium bg-white text-secondary shadow-sm transition-all hover:text-primary hover:border-gray-400 disabled:opacity-50"
                       title="Regenerate"
                     >
                       <RefreshCw size={16} className={isRunBusy ? "animate-spin" : ""} />

@@ -65,6 +65,18 @@ export interface RunData {
   provider: Provider;
   model: string;
   styleMd: string;
+  /** Pre-parsed structured design tokens from the backend (stylemd-json block). */
+  designTokens?: {
+    typography?: { display?: string; body?: string; scale?: string };
+    fonts?: Array<{ name: string; role: string }>;
+    palette?: Array<{ name: string; hex: string; desc?: string }>;
+    mood?: string;
+    radius?: string;
+    spacing?: string;
+    cornerRadius?: string;
+    accentColor?: string;
+    [key: string]: unknown;
+  } | null;
   /** base64 data:image/jpeg;base64,... (900px wide) */
   screenshot: string;
   
