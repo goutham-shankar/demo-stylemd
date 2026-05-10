@@ -488,7 +488,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 style={{
                   background: theme?.buttons.fill === "solid" ? "var(--primary)" : "transparent",
                   color: theme?.buttons.fill === "solid"
-                    ? contrastColor(theme?.colors.primary ?? "#000000")
+                    ? contrastColor(effectiveAccent)
                     : "var(--primary)",
                   borderRadius: "var(--radius)",
                   border: theme?.buttons.fill === "outline" ? "var(--buttons-border-width, 1px) solid var(--primary)" : "none",
@@ -537,7 +537,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
               </div>
             </div>
             {(extras?.motion?.badge || extras?.shapes?.badge) && (
-              <span className="inline-block rounded px-2 py-1 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000") }}>
+              <span className="inline-block rounded px-2 py-1 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: contrastColor(effectiveAccent) }}>
                 {extras.motion?.badge ?? extras.shapes?.badge}
               </span>
             )}
@@ -649,7 +649,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             </div>
             <p className="mb-4 text-sm leading-relaxed text-gray-500">{shapeIntro}</p>
             <div className="flex flex-wrap gap-2">
-              <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000"), borderRadius: "6px" }}>
+              <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm" style={{ backgroundColor: "var(--primary)", color: contrastColor(effectiveAccent), borderRadius: "6px" }}>
                 {shapeBadge}
               </span>
               <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-100 rounded-[6px]">
@@ -812,7 +812,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         <p className="mb-6 max-w-lg text-sm leading-relaxed text-gray-500">{guideIntro}</p>
         <div className="grid grid-cols-2 gap-8">
           <div>
-            <span className="mb-4 inline-block rounded px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000") }}>
+            <span className="mb-4 inline-block rounded px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: contrastColor(effectiveAccent) }}>
               ✓ Do
             </span>
             <div className="space-y-3">
