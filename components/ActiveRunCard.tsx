@@ -98,9 +98,9 @@ export default function ActiveRunCard() {
         )}
 
         {/* Latest log */}
-        {latestLog?.action && (
+        {latestLog?.message && (
           <p className="text-[11px] text-gray-400 truncate mb-3 italic">
-            {latestLog.action}
+            {latestLog.message}
           </p>
         )}
 
