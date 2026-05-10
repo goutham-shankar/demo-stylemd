@@ -300,8 +300,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
           </div>
 
           {/* Right panel — font cards */}
-          <div className={`grid flex-1 ${effectiveFonts.slice(0, 2).length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
-            {effectiveFonts.slice(0, 2).map((font, i) => (
+          <div className={`grid flex-1 ${effectiveFonts.slice(0, 3).length > 1 ? (effectiveFonts.length >= 3 ? "grid-cols-3" : "grid-cols-2") : "grid-cols-1"}`}>
+            {effectiveFonts.slice(0, 3).map((font, i) => (
               <div
                 key={font.name}
                 className="flex flex-col justify-between p-6 transition-all hover:brightness-95"
@@ -313,7 +313,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
               >
                 <div className="flex flex-1 items-center justify-center py-8">
                   <span
-                    className="text-7xl font-black tracking-tighter"
+                    className="text-6xl font-black tracking-tighter"
                     style={{ fontFamily: fontFamilyFor(font.name) }}
                   >
                     {font.sample || "Aa Bb"}
@@ -321,12 +321,12 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-base font-black">{font.name}</h3>
-                  <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                  <h3 className="text-sm font-black truncate">{font.name}</h3>
+                  <p className="text-[9px] font-bold uppercase tracking-widest opacity-60">
                     {font.weights ?? (font.dark ? "Medium" : "Regular, Medium")}
                   </p>
                   <span
-                    className="w-fit rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-tighter"
+                    className="w-fit rounded-full px-2.5 py-1 text-[8px] font-bold uppercase tracking-tighter"
                     style={{
                       backgroundColor: font.dark ? "rgba(255,255,255,0.2)" : "#e0e7ff",
                       color: font.dark ? "white" : "#4f46e5",
@@ -335,7 +335,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                     {font.badge ?? font.role}
                   </span>
                   {font.body && (
-                    <p className="text-[10px] leading-relaxed opacity-70">{font.body}</p>
+                    <p className="text-[9px] leading-relaxed opacity-70 line-clamp-2">{font.body}</p>
                   )}
                 </div>
               </div>

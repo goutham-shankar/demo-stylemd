@@ -4,13 +4,33 @@ import type { DesignCard } from "@/lib/design-cards";
  * Parses styleMd markdown string into a structured format compatible with DesignCard.
  */
 
-export function parseStyleMd(styleMd: string) {
+export function parseStyleMd(styleMd: string, preParsedTokens?: Record<string, unknown> | null) {
+  // Use pre-parsed tokens from the API if available; fall back to regex extraction from markdown
+  const structured = preParsedTokens || extractStructuredTokens(styleMd);
+  
   const name = extractTitle(styleMd);
   const desc = extractOverview(styleMd);
-  const palette = extractColors(styleMd);
-  const fonts = extractTypography(styleMd);
-  const accentColor = extractPrimaryColor(styleMd) || (palette[0]?.hex ?? "#000000");
+  
+  let palette = extractColors(styleMd);
+  if (Array.isArray(structured?.palette) && structured.palette.length > 0) {
+    palette = structured.palette;
+  }
+  
+  let fonts = extractTypography(styleMd);
+  if (Array.isArray(structured?.fonts) && structured.fonts.length > 0) {
+    fonts = structured.fonts;
+  }
+
+  const accentColor = structured?.accentColor || extractPrimaryColor(styleMd) || (palette[0]?.hex ?? "#000000");
   const tags = extractTags(styleMd);
+
+  let spacing = extractSpacing(styleMd);
+  if (typeof structured?.spacing === "string") spacing = structured.spacing;
+  else if (structured?.spacing?.base) spacing = structured.spacing.base;
+
+  let radius = extractButtons(styleMd).radius;
+  if (structured?.cornerRadius) radius = structured.cornerRadius;
+  else if (typeof structured?.radius === "string") radius = structured.radius;
 
   const tokens = {
     colors: {
@@ -24,9 +44,9 @@ export function parseStyleMd(styleMd: string) {
       body: fonts.find(f => f.role.toLowerCase().includes("body") || f.role.toLowerCase().includes("standard") || f.role.toLowerCase().includes("regular"))?.name || "Inter",
       scale: extractTypeScale(styleMd),
     },
-    spacing: extractSpacing(styleMd),
+    spacing: spacing,
     spacingScale: extractSpacingScale(styleMd),
-    buttons: extractButtons(styleMd),
+    buttons: { radius },
     implementation: {
       cssVariables: extractCssVariables(styleMd),
       classNames: extractClassNames(styleMd),
@@ -35,8 +55,7 @@ export function parseStyleMd(styleMd: string) {
 
   const theme = generateTheme(styleMd, tokens, palette, fonts);
 
-  // Try to override with structured JSON if available
-  const structured = extractStructuredTokens(styleMd);
+  // Deeply override theme with structured JSON if available
   if (structured) {
     Object.assign(theme, mapStructuredToTheme(structured, theme));
   }
@@ -85,7 +104,7 @@ function mapStructuredToTheme(s: any, fallback: any): any {
 
   return {
     mood: s.mood?.name || s.mood || fallback.mood,
-    radius: s.radius?.style || s.radius || fallback.radius,
+    radius: s.radius?.style || s.radius || s.cornerRadius || fallback.radius,
     colors: {
       ...fallback.colors,
       // Structured JSON overrides take priority in this order:
@@ -110,7 +129,7 @@ function mapStructuredToTheme(s: any, fallback: any): any {
     },
     spacing: {
       ...fallback.spacing,
-      ...s.spacing,
+      ...(typeof s.spacing === "string" ? { base: s.spacing } : s.spacing),
     },
   };
 }
@@ -466,14 +485,27 @@ function firstFont(stack: string): string {
 function isValidFontName(name: string): boolean {
   if (!name || name.length < 2 || name.length > 80) return false;
   if (/^https?:\/\/|^--font-|^var\(/.test(name)) return false;
-  if (/^(clamp|calc|rem|em|px|vw|vh)\b/.test(name)) return false;
+  
+  // MUST start with a letter (disqualifies "36px", "28px", etc.)
+  if (!/^[a-zA-Z]/.test(name.trim())) return false;
+
+  // Reject strings containing units or line-height syntax
+  if (/[0-9]+(px|rem|em|vh|vw|%)/i.test(name)) return false;
+  if (name.includes("/") || name.toLowerCase().includes("line-height") || name.toLowerCase().includes("spacing")) return false;
+
+  // Exclude common descriptors that are likely size/weight mentions misidentified as names
+  const stopwords = ["large", "medium", "small", "xlarge", "bold", "italic", "regular", "semibold", "light", "thin", "black", "primary", "secondary", "accent", "font", "family", "typeface"];
+  const lower = name.toLowerCase().trim();
+  if (stopwords.includes(lower)) return false;
+
   // Must contain at least one letter
   return /[a-zA-Z]/.test(name);
 }
 
 function extractTypography(md: string): { name: string; role: string }[] {
   // Match any heading level + any words containing "Typ" or "Font"
-  const sectionRe = /#{1,4}\s+(?:[^#\n]*?(?:Typograph|Font Famil)[^#\n]*)\n([\s\S]+?)(?=\n#{1,4}\s|\n#{2}\s|$)/i;
+  // Modified to not stop at level 3/4 sub-headers
+  const sectionRe = /#{1,2}\s+(?:[^#\n]*?(?:Typograph|Font Famil)[^#\n]*)\n([\s\S]+?)(?=\n#{1,2}\s|$)/i;
   const typoSection = sectionRe.exec(md);
   const content = typoSection ? typoSection[1] : md;
 
@@ -524,16 +556,38 @@ function extractTypography(md: string): { name: string; role: string }[] {
   const f5 = /font-family\s*:\s*[`"']?'?([^;`"'\n,]+)/gi;
   while ((m = f5.exec(content)) !== null) add(m[1], "Primary");
 
-  // F6 — any quoted string that looks like a font name near a role keyword
-  //  "Eightiescomeback"  or  'Inter'  appearing on a line with font/display/body
-  if (fonts.length === 0) {
-    const lines = content.split("\n");
-    for (const line of lines) {
-      if (!/font|display|heading|body|typeface|family/i.test(line)) continue;
-      const quoted = line.match(/['"]([A-Z][^'"]{1,50})['"]/);
-      if (quoted) {
-        const role = /display|heading|h1/i.test(line) ? "Display" : /body|text/i.test(line) ? "Body" : "Primary";
-        add(quoted[1], role);
+  // F7 — Role Header followed by Bold Name:
+  // ### Display Font
+  // **Platform** ...
+  const f7 = /###\s+([^#\n]*?Font[^#\n]*?)\s*\n+\s*\*\*([^*\n]+?)\*\*/gi;
+  while ((m = f7.exec(content)) !== null) {
+    add(m[2], m[1].replace(/Font/i, "").trim());
+  }
+
+  // F8 — Bold name with (Primary) tag: **Name** (Primary)
+  const f8 = /\*\*([^*\n]{2,60})\*\*\s*\((?:Primary|Main)\)/gi;
+  while ((m = f8.exec(content)) !== null) {
+    const start = Math.max(0, m.index - 300);
+    const prevText = content.slice(start, m.index);
+    const headers = prevText.match(/###\s+([^\n]+)/g);
+    const role = headers ? headers[headers.length - 1].replace(/###\s+/, "").replace(/Font/i, "").trim() : "Primary";
+    add(m[1], role);
+  }
+
+  // F9 — Fallback: any bold text that follows a font header within 3 lines
+  const lines = content.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith("###") && /Font/i.test(line)) {
+      const role = line.replace(/###\s+/, "").replace(/Font/i, "").trim();
+      for (let j = 1; j <= 3 && i + j < lines.length; j++) {
+        const nextLine = lines[i + j].trim();
+        if (nextLine.startsWith("###")) break; // Hit another header
+        const mBold = nextLine.match(/\*\*([^*\n]{2,60})\*\*/);
+        if (mBold) {
+          add(mBold[1], role);
+          break;
+        }
       }
     }
   }
