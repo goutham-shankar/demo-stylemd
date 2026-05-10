@@ -330,15 +330,15 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       </section>
 
       {/* 2. Pro Color Palette Grid */}
-      <section className="overflow-hidden shadow-sm" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
-        <div className="grid grid-cols-[100px_repeat(10,1fr)] py-3 text-center" style={{ backgroundColor: "var(--background)", borderBottom: "1px solid var(--border)" }}>
+      <section className="overflow-hidden shadow-sm" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
+        <div className="grid grid-cols-[100px_repeat(10,1fr)] py-3 text-center" style={{ backgroundColor: "#f6f8fa", borderBottom: "1px solid #e5e7eb" }}>
           <div />
           {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"].map((step) => (
-            <span key={step} className="text-[10px] font-black opacity-60" style={{ color: "var(--text)" }}>{step}</span>
+            <span key={step} className="text-[10px] font-black text-gray-400">{step}</span>
           ))}
         </div>
-        
-        <div className="divide-y" style={{ borderColor: "var(--border)" }}>
+
+        <div className="divide-y divide-gray-100">
           {effectivePalette.map((row, idx) => {
             const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
             const swatches = (!row.swatches?.length || allSame)
@@ -349,11 +349,9 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             return (
               <div key={row.name} className="grid grid-cols-[100px_repeat(10,1fr)] items-center">
                 <div className="flex flex-col px-4 py-4">
-                  <span className="text-[8px] font-bold uppercase" style={{ color: "var(--text)", opacity: 0.4 }}>
-                    D{idx + 1}
-                  </span>
-                  <span className="text-[10px] font-bold" style={{ color: "var(--text)" }}>{row.name}</span>
-                  <span className="text-[9px] font-mono uppercase opacity-70" style={{ color: "var(--text)" }}>{row.hex}</span>
+                  <span className="text-[8px] font-bold uppercase text-gray-400">D{idx + 1}</span>
+                  <span className="text-[10px] font-bold text-gray-900">{row.name}</span>
+                  <span className="text-[9px] font-mono uppercase text-gray-400">{row.hex}</span>
                 </div>
                 {swatches.map((color, i) => (
                   <div
@@ -374,15 +372,15 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
       </section>
 
-      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+      <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
         <div className="mb-6 grid grid-cols-2 gap-8">
           <div className="flex items-center gap-2">
-            <MousePointerClick size={14} style={{ color: "var(--text-muted)" }} />
-            <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Buttons</h2>
+            <MousePointerClick size={14} className="text-gray-400" />
+            <h2 className="text-lg font-bold tracking-tight text-gray-900">Buttons</h2>
           </div>
           <div className="flex items-center gap-2">
-            <Square size={14} style={{ color: "var(--text-muted)" }} />
-            <h3 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Icons</h3>
+            <Square size={14} className="text-gray-400" />
+            <h3 className="text-lg font-bold tracking-tight text-gray-900">Icons</h3>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-8">
@@ -406,38 +404,37 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 <ArrowLeft size={13} /> Primary <ArrowRight size={13} />
               </button>
               <button
-                className="flex w-fit items-center gap-2 px-5 py-3 text-sm font-medium"
-                style={{ 
-                  border: "1px solid var(--border)", 
-                  borderRadius: "var(--radius)", 
-                  backgroundColor: "var(--surface-muted)",
-                  color: "var(--text)"
+                className="flex w-fit items-center gap-2 px-5 py-3 text-sm font-medium text-gray-700"
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "var(--radius)",
+                  backgroundColor: "#f6f8fa",
                 }}
                 type="button"
               >
                 <ArrowLeft size={13} /> Secondary <ArrowRight size={13} />
               </button>
             </div>
-            <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{buttonsBlurb}</p>
+            <p className="text-sm leading-relaxed text-gray-500">{buttonsBlurb}</p>
           </div>
           <div>
             <div className="mb-4 flex flex-col gap-3">
               <span
                 className="inline-block w-fit px-4 py-2 text-base font-black"
                 style={{
-                  backgroundColor: "var(--surface-muted)",
+                  backgroundColor: "#f6f8fa",
                   borderRadius: "var(--radius)",
-                  border: "1px solid var(--border)",
+                  border: "1px solid #e5e7eb",
                   color: "var(--primary)",
                 }}
               >
                 {card.name}
               </span>
               <div className="flex gap-2">
-                <span className="flex items-center gap-1.5 rounded-full border border-medium px-3 py-1.5 text-xs font-semibold" style={{ backgroundColor: "var(--text)", color: "var(--background)" }}>
+                <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white">
                   <Apple size={14} /> Apple
                 </span>
-                <span className="flex items-center justify-center rounded-full border border-medium px-3 py-1.5" style={{ backgroundColor: "var(--surface-muted)", color: "var(--text)" }}>
+                <span className="flex items-center justify-center rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-gray-700">
                   <Bell size={14} />
                 </span>
               </div>
@@ -491,42 +488,41 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
       </section>
 
-      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+      <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <Layers size={14} style={{ color: "var(--text-muted)" }} />
-          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Elevation &amp; Depth</h2>
+          <Layers size={14} className="text-gray-400" />
+          <h2 className="text-lg font-bold tracking-tight text-gray-900">Elevation &amp; Depth</h2>
         </div>
-        <p className="mb-6 max-w-lg text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{elevIntro}</p>
-        <div className="mb-6 divide-y overflow-hidden" style={{ borderColor: "var(--border)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+        <p className="mb-6 max-w-lg text-sm leading-relaxed text-gray-500">{elevIntro}</p>
+        <div className="mb-6 divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200">
           {elevRows.map((row) => (
             <div
               key={row.label}
-              className={`flex gap-4 px-5 py-4 ${String(row.label).toUpperCase() === "SHADOW" ? "items-start" : "items-center"}`}
-              style={{ backgroundColor: "var(--surface)" }}
+              className={`flex gap-4 bg-white px-5 py-4 ${String(row.label).toUpperCase() === "SHADOW" ? "items-start" : "items-center"}`}
             >
-              <span className="w-20 flex-shrink-0 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{row.label}</span>
+              <span className="w-20 flex-shrink-0 text-[10px] font-bold uppercase tracking-wider text-gray-400">{row.label}</span>
               <span className="break-all font-mono text-xs font-semibold" style={{ color: "var(--primary)" }}>{row.value}</span>
             </div>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
           {elevChips.map((tag) => (
-            <span key={tag} className="px-2.5 py-1.5 font-mono text-[8px] font-bold" style={{ backgroundColor: "var(--surface-muted)", borderRadius: "4px", color: "var(--text-muted)" }}>
+            <span key={tag} className="rounded px-2.5 py-1.5 font-mono text-[8px] font-bold bg-gray-100 text-gray-500">
               {tag}
             </span>
           ))}
         </div>
       </section>
 
-      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+      <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <Square size={14} style={{ color: "var(--text-muted)" }} />
-          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Shapes</h2>
+          <Square size={14} className="text-gray-400" />
+          <h2 className="text-lg font-bold tracking-tight text-gray-900">Shapes</h2>
         </div>
         <div className="grid grid-cols-2 gap-8">
           <div>
-            <p className="mb-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{shapeIntro}</p>
-            <span className="inline-block px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: "var(--background)", borderRadius: "var(--radius)" }}>
+            <p className="mb-4 text-sm leading-relaxed text-gray-500">{shapeIntro}</p>
+            <span className="inline-block px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000"), borderRadius: "var(--radius)" }}>
               {shapeBadge}
             </span>
           </div>
@@ -534,8 +530,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             {shapeItems.map((label) => (
               <button
                 key={label}
-                className="px-4 py-8 text-sm font-bold transition-all hover:shadow-md"
-                style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", backgroundColor: "var(--surface-muted)", color: "var(--text)" }}
+                className="px-4 py-8 text-sm font-bold text-gray-700 transition-all hover:shadow-md"
+                style={{ border: "1px solid #e5e7eb", borderRadius: "var(--radius)", backgroundColor: "#f6f8fa" }}
                 type="button"
               >
                 {label}
@@ -545,14 +541,14 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
       </section>
 
-      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+      <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <Clock size={14} style={{ color: "var(--text-muted)" }} />
-          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Motion</h2>
+          <Clock size={14} className="text-gray-400" />
+          <h2 className="text-lg font-bold tracking-tight text-gray-900">Motion</h2>
         </div>
         <div className="mb-6 flex flex-wrap gap-2">
           {motionTags.map((tag) => (
-            <span key={tag} className="px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: "var(--background)", borderRadius: "4px" }}>
+            <span key={tag} className="rounded px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000") }}>
               {tag}
             </span>
           ))}
@@ -560,8 +556,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         <div className="mb-6 space-y-2">
           {motionBars.map((item) => (
             <div key={item.label} className="flex items-center gap-3">
-              <span className="w-14 text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>{item.label}</span>
-              <div className="flex-1 rounded-full" style={{ backgroundColor: "var(--surface-muted)" }}>
+              <span className="w-14 text-[10px] font-medium text-gray-400">{item.label}</span>
+              <div className="flex-1 rounded-full bg-gray-100">
                 <div className="h-2 rounded-full" style={{ width: item.pct, backgroundColor: "var(--primary)" }} />
               </div>
             </div>
@@ -569,46 +565,46 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
         <div className="grid grid-cols-2 gap-4">
           {motionSteps.map(([step, val]) => (
-            <div key={step} className="p-4" style={{ backgroundColor: "var(--surface-muted)", borderRadius: "var(--radius)", border: "1px solid var(--border)" }}>
-              <p className="mb-2 text-[10px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>{step}</p>
+            <div key={step} className="p-4" style={{ backgroundColor: "#f6f8fa", borderRadius: "var(--radius)", border: "1px solid #e5e7eb" }}>
+              <p className="mb-2 text-[10px] font-bold uppercase text-gray-400">{step}</p>
               <p className="text-2xl font-black" style={{ color: "var(--primary)" }}>{val}</p>
             </div>
           ))}
         </div>
-        <span className="mt-4 inline-block px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: "var(--background)", borderRadius: "4px" }}>
+        <span className="mt-4 inline-block rounded px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000") }}>
           {motionBadge}
         </span>
       </section>
 
-      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+      <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <AlertCircle size={14} style={{ color: "var(--text-muted)" }} />
-          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Do&apos;s and Don&apos;ts</h2>
+          <AlertCircle size={14} className="text-gray-400" />
+          <h2 className="text-lg font-bold tracking-tight text-gray-900">Do&apos;s and Don&apos;ts</h2>
         </div>
-        <p className="mb-6 max-w-lg text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{guideIntro}</p>
+        <p className="mb-6 max-w-lg text-sm leading-relaxed text-gray-500">{guideIntro}</p>
         <div className="grid grid-cols-2 gap-8">
           <div>
-            <span className="mb-4 inline-block px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: "var(--background)", borderRadius: "4px" }}>
+            <span className="mb-4 inline-block rounded px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000") }}>
               ✓ Do
             </span>
             <div className="space-y-3">
               {dos.map((item, i) => (
                 <div key={i} className="flex items-start gap-2.5">
                   <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: "var(--primary)" }} />
-                  <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{item}</p>
+                  <p className="text-xs leading-relaxed text-gray-500">{item}</p>
                 </div>
               ))}
             </div>
           </div>
           <div>
-            <span className="mb-4 inline-block bg-red-100 px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider text-red-600" style={{ borderRadius: "4px" }}>
+            <span className="mb-4 inline-block rounded bg-red-100 px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider text-red-600">
               ✕ Don&apos;t
             </span>
             <div className="space-y-3">
               {donts.map((item, i) => (
                 <div key={i} className="flex items-start gap-2.5">
                   <X size={13} className="mt-0.5 flex-shrink-0 text-red-500" />
-                  <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{item}</p>
+                  <p className="text-xs leading-relaxed text-gray-500">{item}</p>
                 </div>
               ))}
             </div>
@@ -617,20 +613,20 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       </section>
 
       {(tokens.typography.scale || tokens.spacingScale || tokens.implementation) && (
-        <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+        <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
           <div className="mb-6 flex items-center gap-2">
-            <Layers size={14} style={{ color: "var(--text-muted)" }} />
-            <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Engineering Specs</h2>
+            <Layers size={14} className="text-gray-400" />
+            <h2 className="text-lg font-bold tracking-tight text-gray-900">Engineering Specs</h2>
           </div>
-          
+
           <div className="space-y-8">
             {tokens.typography.scale && (
               <div>
-                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Type Scale</h3>
-                <div className="overflow-x-auto" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Type Scale</h3>
+                <div className="overflow-x-auto rounded-xl border border-gray-200">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr style={{ backgroundColor: "var(--surface-muted)", borderBottom: "1px solid var(--border)" }}>
+                      <tr className="border-b border-gray-200 bg-gray-50 text-gray-500">
                         <th className="px-4 py-2 font-bold">Element</th>
                         <th className="px-4 py-2 font-bold">Size</th>
                         <th className="px-4 py-2 font-bold">Line Height</th>
@@ -640,7 +636,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                     </thead>
                     <tbody>
                       {tokens.typography.scale.map((row, i) => (
-                        <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
+                        <tr key={i} className="border-b border-gray-100 text-gray-700">
                           <td className="px-4 py-3 font-bold">{row.element}</td>
                           <td className="px-4 py-3 font-mono">{row.size}</td>
                           <td className="px-4 py-3 font-mono">{row.lineHeight}</td>
@@ -656,13 +652,13 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
 
             {tokens.spacingScale && (
               <div>
-                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Spacing Scale</h3>
+                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Spacing Scale</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {tokens.spacingScale.map((s, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", backgroundColor: "var(--surface-muted)" }}>
-                      <div className="flex-shrink-0 font-mono text-[10px] w-20" style={{ color: "var(--text-muted)" }}>{s.token}</div>
-                      <div className="font-black w-12 text-right" style={{ color: "var(--primary)" }}>{s.value}</div>
-                      <div className="text-[10px] font-medium truncate" style={{ color: "var(--text-muted)" }}>{s.usage}</div>
+                    <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                      <div className="w-20 flex-shrink-0 font-mono text-[10px] text-gray-400">{s.token}</div>
+                      <div className="w-12 text-right font-black" style={{ color: "var(--primary)" }}>{s.value}</div>
+                      <div className="truncate text-[10px] font-medium text-gray-500">{s.usage}</div>
                     </div>
                   ))}
                 </div>
@@ -671,8 +667,8 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
 
             {tokens.implementation?.cssVariables && (
               <div>
-                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Implementation Notes</h3>
-                <div className="p-5" style={{ backgroundColor: "#111", borderRadius: "var(--radius)" }}>
+                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Implementation Notes</h3>
+                <div className="rounded-xl bg-gray-900 p-5">
                   <pre className="overflow-x-auto font-mono text-[10px] leading-relaxed text-gray-100">
                     <code>{tokens.implementation.cssVariables}</code>
                   </pre>
