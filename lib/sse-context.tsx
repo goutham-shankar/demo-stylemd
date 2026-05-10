@@ -714,7 +714,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         dispatch({
           type: "SET_ACTIVE_RUN",
           run: {
-            runId: runId,
+            runId: data.runId,
             url,
             provider,
             model: "",
