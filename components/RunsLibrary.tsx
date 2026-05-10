@@ -267,22 +267,34 @@ export default function RunsLibrary() {
               <Link
                 key={run.slug || run.runId}
                 href={`/generate?run=${encodeURIComponent(run.slug || run.runId)}`}
-                className="group block overflow-hidden border border-light bg-surface shadow-sm hover:border-dark hover:shadow-md transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="group block overflow-hidden border border-light bg-white shadow-sm hover:border-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2"
                 style={{ borderRadius: 16 }}
               >
-                <div className="h-48 overflow-hidden">
+                {/* Thumbnail with URL overlay on hover */}
+                <div className="relative h-48 overflow-hidden">
                   <CardThumbnail run={run} />
+                  {/* Hover overlay showing full URL */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 backdrop-blur-[2px]">
+                    <Globe size={20} className="text-white/80" />
+                    <span className="text-white text-xs font-medium px-4 text-center break-all line-clamp-2">
+                      {run.url}
+                    </span>
+                    <span className="mt-1 px-3 py-1 bg-white/20 border border-white/30 rounded-full text-white text-xs font-semibold backdrop-blur-sm">
+                      View Style Guide →
+                    </span>
+                  </div>
                 </div>
-                <div className="px-5 py-4 flex items-center justify-between bg-surface gap-3">
+                {/* Card footer */}
+                <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
                   <div className="min-w-0">
-                    <h3 className="text-base font-bold text-primary truncate">
+                    <h3 className="text-base font-bold text-primary truncate group-hover:text-cta transition-colors duration-150">
                       {run.title || cleanHostname(run.url)}
                     </h3>
                     <p className="text-xs text-secondary font-manrope truncate">
                       {cleanHostname(run.url)}
                     </p>
                   </div>
-                  <span className="flex-shrink-0 px-4 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:opacity-90 group-hover:shadow-md transition-all duration-150 whitespace-nowrap">
+                  <span className="flex-shrink-0 px-4 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:shadow-md group-hover:opacity-90 transition-all duration-150 whitespace-nowrap">
                     View →
                   </span>
                 </div>

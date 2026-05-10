@@ -254,7 +254,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
         </aside>
 
         {/* Right: Content (60%) */}
-        <article className="relative flex flex-1 flex-col overflow-y-auto bg-white">
+        <article className="relative flex flex-1 flex-col overflow-y-auto bg-[#f6f8fa]">
           <div className="mx-auto w-full max-w-4xl px-8 py-10 pb-32">
             
             {/* Brand Identity Header */}
