@@ -173,17 +173,6 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f6f8fa] font-manrope">
-      {/* 1. Sticky Top Bar */}
-      <header className="sticky top-0 z-50 flex items-center border-b border-medium bg-[#f6f8fa] px-6 py-3">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 rounded-[10px] border border-medium bg-white px-4 py-2 text-sm font-semibold text-primary transition-all hover:bg-page active:scale-95"
-        >
-          <ArrowLeft size={15} />
-          Back
-        </button>
-      </header>
-
       {/* 2. Main Content Area */}
       <main className="flex flex-1 overflow-hidden">
         {/* Left: Preview (40%) */}
@@ -213,6 +202,17 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
         {/* Right: Content (60%) */}
         <article className="relative flex flex-1 flex-col overflow-y-auto bg-[#f6f8fa]">
           <div className="mx-auto w-full max-w-4xl px-8 py-10 pb-32">
+            
+            {/* Contextual Back Navigation */}
+            <div className="mb-8 flex">
+              <button
+                onClick={handleBack}
+                className="group flex items-center gap-2 text-[14px] font-semibold text-secondary transition-colors hover:text-primary"
+              >
+                <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
+                Back to Library
+              </button>
+            </div>
 
             {/* Brand Identity Header */}
             <header className="mb-10">
@@ -429,10 +429,6 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
 export function DesignDetailPageSkeleton({ run }: { run?: RunData }) {
   return (
     <div className="flex min-h-screen flex-col bg-[#f6f8fa] font-manrope">
-      {/* Skeleton header */}
-      <header className="sticky top-0 z-50 flex items-center border-b border-medium bg-[#f6f8fa] px-6 py-3">
-        <div className="h-8 w-20 animate-pulse rounded-[10px] bg-gray-200" />
-      </header>
       <main className="flex flex-1 overflow-hidden">
         {/* Left skeleton */}
         <aside className="hidden w-[40%] border-r border-medium bg-white md:flex flex-col p-6">
@@ -440,6 +436,10 @@ export function DesignDetailPageSkeleton({ run }: { run?: RunData }) {
         </aside>
         {/* Right skeleton */}
         <div className="flex flex-1 flex-col px-8 py-10 gap-6 mx-auto w-full max-w-4xl">
+          {/* Breadcrumb skeleton */}
+          <div className="mb-2">
+            <div className="h-4 w-32 rounded bg-gray-200 animate-pulse" />
+          </div>
           {/* Logo + name row */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-5">
