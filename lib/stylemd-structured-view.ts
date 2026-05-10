@@ -102,7 +102,10 @@ const DEFAULT_MOTION_BARS = [
 ];
 
 function extractBrandFromMd(md: string): string {
-  const boldMatch = md.slice(0, 600).match(/\*\*([^*\n]{1,60})\*\*/);
+  // Prefer the Overview section — search for the first **bold** brand name within it.
+  const overviewMatch = md.match(/## Overview\s*\n([\s\S]{0,1200}?)(?=\n##|$)/i);
+  const searchZone = overviewMatch ? overviewMatch[1] : md.slice(0, 1200);
+  const boldMatch = searchZone.match(/\*\*([^*\n]{1,60})\*\*/);
   if (boldMatch) return boldMatch[1].trim();
   const h1Match = md.match(/^#\s+(.+)$/m);
   if (h1Match) {

@@ -367,9 +367,11 @@ function extractTitle(md: string): string {
     .replace(/\s*[-–—]+\s*$/, "")
     .trim();
   // If the title is the generic placeholder the backend emits, fall back to the
-  // first **bold** brand name in the Overview area before giving up entirely.
+  // first **bold** brand name in the Overview section before giving up entirely.
   if (!raw || /^(?:design|style)\.?md$/i.test(raw)) {
-    const boldMatch = md.slice(0, 600).match(/\*\*([^*\n]{1,60})\*\*/);
+    const overviewMatch = md.match(/## Overview\s*\n([\s\S]{0,1200}?)(?=\n##|$)/i);
+    const searchZone = overviewMatch ? overviewMatch[1] : md.slice(0, 1200);
+    const boldMatch = searchZone.match(/\*\*([^*\n]{1,60})\*\*/);
     if (boldMatch) return boldMatch[1].trim();
     return "Untitled Design";
   }

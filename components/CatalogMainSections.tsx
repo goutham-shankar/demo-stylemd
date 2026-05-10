@@ -157,10 +157,12 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
 
   const themeStyles = useMemo(() => {
     if (!theme) return {};
-    // extras.accentColor overrides the CTA/accent variable when explicitly provided in the JSON block.
+    // extras.accentColor is the authoritative CTA/interactive color from the JSON block.
+    // Drive both --primary and --accent from it so every button, badge, and bar uses the
+    // correct brand color (theme.colors.primary may be palette[0] which is often a neutral).
     const accent = extras?.accentColor || theme.colors.accent;
     return {
-      "--primary": theme.colors.primary,
+      "--primary": accent,
       "--secondary": theme.colors.secondary,
       "--accent": accent,
       "--background": theme.colors.background,
