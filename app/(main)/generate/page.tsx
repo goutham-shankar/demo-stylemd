@@ -42,7 +42,20 @@ export async function generateMetadata({
     const siteName = data.title ? String(data.title) : hostname;
     const pageTitle = `${siteName} Design System | DesignProbe`;
     const description = `Explore the design system, colors, typography, and components for ${hostname}.`;
-    const image = data.screenshot || data.brandAssets?.ogImage;
+    const screenshot = data.screenshot || data.brandAssets?.ogImage;
+
+    // Always generate an OG image via the /api/og route so we have a guaranteed image.
+    // If a screenshot URL is available, pass it as a ?img= param to embed it.
+    const ogParams = new URLSearchParams({
+      title: siteName,
+      host: hostname,
+      ...(screenshot ? { img: screenshot } : {}),
+    });
+    // Use an absolute URL — needed for social crawlers
+    const appBase =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    const ogImageUrl = `${appBase}/api/og?${ogParams.toString()}`;
 
     return {
       title: pageTitle,
@@ -51,13 +64,13 @@ export async function generateMetadata({
         title: pageTitle,
         description,
         type: "website",
-        ...(image ? { images: [{ url: image, width: 1200, height: 630, alt: siteName }] } : {}),
+        images: [{ url: ogImageUrl, width: 1200, height: 630, alt: siteName }],
       },
       twitter: {
-        card: image ? "summary_large_image" : "summary",
+        card: "summary_large_image",
         title: pageTitle,
         description,
-        ...(image ? { images: [image] } : {}),
+        images: [ogImageUrl],
       },
     };
   } catch {
