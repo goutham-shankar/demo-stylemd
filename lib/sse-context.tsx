@@ -281,7 +281,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 // ── Context ───────────────────────────────────────────────────────────────────
 
 interface SSEContextValue extends AppState {
-  startRun: (url: string, provider: Provider) => Promise<void>;
+  startRun: (url: string, provider: Provider, force?: boolean) => Promise<void>;
   viewRun: (slugOrId: string) => Promise<void>;
   goHome: () => void;
   runAgain: () => Promise<void>;
@@ -609,7 +609,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   // ── Actions ────────────────────────────────────────────────────────────────
 
   const startRun = useCallback(
-    async (url: string, provider: Provider) => {
+    async (url: string, provider: Provider, force: boolean = false) => {
       if (state.isRunning) {
         dispatch({ type: "RUN_ERROR", error: "A pipeline is already running" });
         return;
@@ -686,7 +686,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url, provider }),
+            body: JSON.stringify({ url, provider, force }),
           },
           15000
         );
@@ -714,7 +714,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         dispatch({
           type: "SET_ACTIVE_RUN",
           run: {
-            runId: data.runId,
+            runId: runId,
             url,
             provider,
             model: "",
@@ -773,7 +773,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     if (!state.resultData) return;
     const { url, provider } = state.resultData;
     dispatch({ type: "GO_HOME" });
-    await startRun(url, provider);
+    await startRun(url, provider, true);
   }, [state.resultData, startRun]);
 
   const dismissNetworkError = useCallback(() => {
