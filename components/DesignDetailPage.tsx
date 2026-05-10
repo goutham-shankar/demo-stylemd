@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Copy,
-  Download,
   Monitor,
   Code2,
   Check,
@@ -156,23 +155,9 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
   };
 
   // 4. Render States
+  // 4. Render States
   if (isGenerating) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-page p-8 text-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-t-transparent mb-6" style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }} />
-        <h2 className="text-2xl font-bold text-primary mb-2">Generating Design System</h2>
-        <p className="max-w-md text-secondary mb-6">Analyzing brand assets and mapping design tokens. This usually takes 60-90 seconds...</p>
-        {run?.stage && (
-          <div className="inline-flex items-center gap-2 rounded-full border border-medium bg-white px-4 py-2 text-sm font-medium text-primary shadow-sm">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500"></span>
-            </span>
-            Processing: {run.stage.charAt(0).toUpperCase() + run.stage.slice(1)}
-          </div>
-        )}
-      </div>
-    );
+    return <DesignDetailPageSkeleton run={run} />;
   }
 
   if (!card) {
@@ -189,43 +174,14 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
   return (
     <div className="flex min-h-screen flex-col bg-[#f6f8fa] font-manrope">
       {/* 1. Sticky Top Bar */}
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-medium bg-white/80 px-6 py-3 backdrop-blur-md">
+      <header className="sticky top-0 z-50 flex items-center border-b border-medium bg-[#f6f8fa] px-6 py-3">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 rounded-full border border-medium bg-white px-4 py-2 text-sm font-semibold text-primary transition-all hover:bg-page active:scale-95"
+          className="flex items-center gap-2 rounded-[10px] border border-medium bg-white px-4 py-2 text-sm font-semibold text-primary transition-all hover:bg-page active:scale-95"
         >
           <ArrowLeft size={15} />
           Back
         </button>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleCopy}
-            className="group relative flex items-center gap-2 rounded-full border border-medium bg-white px-4 py-2 text-sm font-semibold text-primary transition-all hover:border-gray-400 active:scale-95"
-          >
-            {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-secondary group-hover:text-primary" />}
-            <span>{copied ? "Copied!" : "Copy DESIGN.md"}</span>
-          </button>
-
-          <button
-            onClick={handleDownload}
-            className="flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-black active:scale-95 shadow-sm"
-          >
-            <Download size={14} />
-            <span>Download</span>
-          </button>
-
-          {onRunAgain && (
-            <button
-              onClick={onRunAgain}
-              disabled={isRunBusy}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-medium bg-white text-secondary transition-all hover:text-primary disabled:opacity-50"
-              title="Regenerate"
-            >
-              <RefreshCw size={16} className={isRunBusy ? "animate-spin" : ""} />
-            </button>
-          )}
-        </div>
       </header>
 
       {/* 2. Main Content Area */}
@@ -262,9 +218,9 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
             <header className="mb-10">
               <div className="mb-6 flex items-start justify-between">
                 <div className="flex items-center gap-5">
-                  {/* Logo — no forced brand bg for real images; letter fallback uses brand color */}
+                  {/* Logo */}
                   {(typeof card.logo === "string" && (card.logo.startsWith("/") || card.logo.startsWith("data:image") || card.logo.startsWith("http://") || card.logo.startsWith("https://"))) ? (
-                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={card.logo}
@@ -319,6 +275,35 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                     </div>
                   </div>
                 </div>
+
+                {/* Action buttons — right-aligned, vertically centered with the logo row */}
+                <div className="flex flex-shrink-0 items-center gap-2 pt-1">
+                  <button
+                    onClick={handleCopy}
+                    className="group relative flex items-center gap-2 rounded-[10px] border border-medium bg-white px-4 py-2 text-sm font-semibold text-primary transition-all hover:border-gray-400 active:scale-95 shadow-sm"
+                  >
+                    {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-secondary group-hover:text-primary" />}
+                    <span>{copied ? "Copied!" : "Copy DESIGN.md"}</span>
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-2 rounded-[10px] bg-gray-900 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-black active:scale-95 shadow-sm"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/Cloud Download.svg" alt="" width={19} height={19} />
+                    <span>Download</span>
+                  </button>
+                  {onRunAgain && (
+                    <button
+                      onClick={onRunAgain}
+                      disabled={isRunBusy}
+                      className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-medium bg-white text-secondary shadow-sm transition-all hover:text-primary hover:border-gray-400 disabled:opacity-50"
+                      title="Regenerate"
+                    >
+                      <RefreshCw size={16} className={isRunBusy ? "animate-spin" : ""} />
+                    </button>
+                  )}
+                </div>
               </div>
               <p className="max-w-2xl text-lg leading-relaxed text-secondary/80 font-medium">
                 {extras?.description || card.desc}
@@ -356,24 +341,156 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
               {activeTab === "preview" ? (
                 <CatalogMainSections card={card} extras={extras} />
               ) : (
-                <div className="overflow-hidden rounded-2xl border border-medium bg-gray-950 shadow-2xl">
-                  <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-3">
-                    <span className="text-xs font-bold uppercase tracking-widest text-white/40">markdown output</span>
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d1117] shadow-2xl">
+                  {/* Title bar */}
+                  <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-1.5">
+                        <span className="h-3 w-3 rounded-full bg-red-500/70" />
+                        <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
+                        <span className="h-3 w-3 rounded-full bg-green-500/70" />
+                      </div>
+                      <span className="font-mono text-[11px] text-white/30">DESIGN.md</span>
+                    </div>
                     <button
                       onClick={handleCopy}
-                      className="text-xs font-bold text-white/60 hover:text-white"
+                      className="rounded-md border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/50 transition-all hover:bg-white/10 hover:text-white"
                     >
-                      {copied ? "Copied!" : "Copy Raw"}
+                      {copied ? "✓ Copied" : "Copy Raw"}
                     </button>
                   </div>
-                  <pre className="overflow-x-auto p-8 font-mono text-sm leading-relaxed text-gray-100 selection:bg-white/20">
-                    <code>{finalMarkdown}</code>
-                  </pre>
+                  {/* Line-numbered code area */}
+                  <div className="overflow-x-auto p-6">
+                    <table className="w-full border-collapse font-mono text-sm leading-6">
+                      <tbody>
+                        {finalMarkdown.split("\n").map((line, i) => {
+                          let colored: React.ReactNode = line;
+                          if (/^# /.test(line)) {
+                            colored = <span className="text-[#79c0ff] font-bold">{line}</span>;
+                          } else if (/^## /.test(line)) {
+                            colored = <span className="text-[#79c0ff]">{line}</span>;
+                          } else if (/^### /.test(line)) {
+                            colored = <span className="text-[#d2a8ff]">{line}</span>;
+                          } else if (/^####/.test(line)) {
+                            colored = <span className="text-[#d2a8ff] opacity-80">{line}</span>;
+                          } else if (/^```/.test(line)) {
+                            colored = <span className="text-[#8b949e]">{line}</span>;
+                          } else if (/^\s*[-*]/.test(line)) {
+                            // Bullet line — highlight **bold** and `code` and #hex inline
+                            const parts = line.split(/(\*\*[^*]+\*\*|`[^`]+`|#[0-9A-Fa-f]{3,6}\b)/g);
+                            colored = (
+                              <>
+                                {parts.map((p, j) => {
+                                  if (/^\*\*[^*]+\*\*$/.test(p)) return <span key={j} className="text-[#ffa657] font-semibold">{p}</span>;
+                                  if (/^`[^`]+`$/.test(p)) return <span key={j} className="text-[#a5d6ff] bg-white/5 rounded px-1">{p}</span>;
+                                  if (/^#[0-9A-Fa-f]{3,6}$/.test(p)) return <span key={j} className="text-[#7ee787]">{p}</span>;
+                                  return <span key={j} className="text-[#e6edf3]">{p}</span>;
+                                })}
+                              </>
+                            );
+                          } else if (line.trim() === "") {
+                            colored = <span>&nbsp;</span>;
+                          } else {
+                            // Inline coloring for non-bullet lines
+                            const parts = line.split(/(\*\*[^*]+\*\*|`[^`]+`|#[0-9A-Fa-f]{3,6}\b)/g);
+                            colored = (
+                              <>
+                                {parts.map((p, j) => {
+                                  if (/^\*\*[^*]+\*\*$/.test(p)) return <span key={j} className="text-[#ffa657] font-semibold">{p}</span>;
+                                  if (/^`[^`]+`$/.test(p)) return <span key={j} className="text-[#a5d6ff] bg-white/5 rounded px-1">{p}</span>;
+                                  if (/^#[0-9A-Fa-f]{3,6}$/.test(p)) return <span key={j} className="text-[#7ee787]">{p}</span>;
+                                  return <span key={j} className="text-[#e6edf3]">{p}</span>;
+                                })}
+                              </>
+                            );
+                          }
+                          return (
+                            <tr key={i} className="group hover:bg-white/[0.02]">
+                              <td className="w-10 select-none pr-4 text-right text-[11px] text-white/20 group-hover:text-white/30">
+                                {i + 1}
+                              </td>
+                              <td className="whitespace-pre-wrap break-all">{colored}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
           </div>
         </article>
+      </main>
+    </div>
+  );
+}
+
+export function DesignDetailPageSkeleton({ run }: { run?: RunData }) {
+  return (
+    <div className="flex min-h-screen flex-col bg-[#f6f8fa] font-manrope">
+      {/* Skeleton header */}
+      <header className="sticky top-0 z-50 flex items-center border-b border-medium bg-[#f6f8fa] px-6 py-3">
+        <div className="h-8 w-20 animate-pulse rounded-[10px] bg-gray-200" />
+      </header>
+      <main className="flex flex-1 overflow-hidden">
+        {/* Left skeleton */}
+        <aside className="hidden w-[40%] border-r border-medium bg-white md:flex flex-col p-6">
+          <div className="flex-1 rounded-2xl bg-gray-100 animate-pulse" />
+        </aside>
+        {/* Right skeleton */}
+        <div className="flex flex-1 flex-col px-8 py-10 gap-6 mx-auto w-full max-w-4xl">
+          {/* Logo + name row */}
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-5">
+              <div className="h-20 w-20 flex-shrink-0 rounded-2xl bg-gray-200 animate-pulse" />
+              <div className="flex flex-col gap-3">
+                <div className="h-9 w-52 rounded-lg bg-gray-200 animate-pulse" />
+                <div className="flex gap-2">
+                  <div className="h-5 w-16 rounded-full bg-gray-200 animate-pulse" />
+                  <div className="h-5 w-14 rounded-full bg-gray-200 animate-pulse" />
+                  <div className="h-5 w-20 rounded-full bg-gray-200 animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <div className="h-9 w-36 rounded-[10px] bg-gray-200 animate-pulse" />
+              <div className="h-9 w-28 rounded-[10px] bg-gray-200 animate-pulse" />
+            </div>
+          </div>
+          {/* Description */}
+          <div className="space-y-2 max-w-2xl">
+            <div className="h-4 w-full rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-4/5 rounded bg-gray-200 animate-pulse" />
+          </div>
+          {/* Stage pill */}
+          {run?.stage && (
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-medium bg-white px-4 py-2 text-sm font-medium text-primary shadow-sm">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
+              </span>
+              Processing: {run.stage.charAt(0).toUpperCase() + run.stage.slice(1)}
+            </div>
+          )}
+          {/* Tab row */}
+          <div className="flex gap-1 border-b border-medium pb-px">
+            <div className="h-5 w-28 rounded bg-gray-200 animate-pulse mx-4 mb-3" />
+            <div className="h-5 w-24 rounded bg-gray-200 animate-pulse mx-4 mb-3" />
+          </div>
+          {/* Content blocks */}
+          {[180, 240, 200].map((h, i) => (
+            <div key={i} className="overflow-hidden rounded-2xl border border-medium bg-white">
+              <div className="flex items-center gap-3 border-b border-medium px-6 py-4">
+                <div className="h-4 w-4 rounded bg-gray-200 animate-pulse" />
+                <div className="h-4 w-28 rounded bg-gray-200 animate-pulse" />
+              </div>
+              <div className="p-6">
+                <div className={`rounded-xl bg-gray-100 animate-pulse`} style={{ height: h }} />
+              </div>
+            </div>
+          ))}
+        </div>
       </main>
     </div>
   );

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PipelineView from "@/components/PipelineView";
-import DesignDetailPage from "@/components/DesignDetailPage";
+import DesignDetailPage, { DesignDetailPageSkeleton } from "@/components/DesignDetailPage";
 import { useSSE } from "@/lib/sse-context";
 import { isFixtureRunId } from "@/lib/fixture-runs";
 
@@ -23,14 +23,7 @@ function FetchedResultView() {
   }, [resultData?.status, resultData?.styleMd, resultData?.pending]);
 
   if (!resultData) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }}
-        />
-      </div>
-    );
+    return <DesignDetailPageSkeleton />;
   }
 
   const isFixtureDemo = typeof resultData.runId === "string" && isFixtureRunId(resultData.runId);
@@ -90,37 +83,32 @@ export default function GeneratePageContent() {
     if (!activeSlug) return;
     const current = searchParams.get("run")?.trim();
     if (current === activeSlug) return;
-    router.replace(`/generate?run=${encodeURIComponent(activeSlug)}`, { scroll: false });
+    
+    // Only update the URL if we are transitioning from an empty URL (new run finished)
+    // or if the URL currently holds the runId and we want to swap it for the pretty slug
+    if (!current || current === resultData.runId?.trim()) {
+      router.replace(`/generate?run=${encodeURIComponent(activeSlug)}`, { scroll: false });
+    }
   }, [screen, resultData, searchParams, router]);
-
-  const [deepFetchSettled, setDeepFetchSettled] = useState(false);
 
   const resultDataRef = useRef(resultData);
   resultDataRef.current = resultData;
 
   const cancelledRef = useRef(false);
   useEffect(() => {
-    if (!slug) {
-      setDeepFetchSettled(false);
-      return;
-    }
+    if (!slug) return;
+    
     // Don't call viewRun if a run is already actively in progress (e.g. restored from localStorage after refresh)
-    if (screen === "running") {
-      setDeepFetchSettled(true);
-      return;
-    }
+    if (screen === "running") return;
+    
     // Skip fetch if resultData already matches this slug (URL sync after run completion)
     const cur = resultDataRef.current;
     const curSlug = cur?.slug?.trim() || cur?.runId?.trim();
-    if (curSlug && (curSlug === slug || cur?.runId?.trim() === slug)) {
-      setDeepFetchSettled(true);
-      return;
-    }
-    setDeepFetchSettled(false);
+    if (curSlug && (curSlug === slug || cur?.runId?.trim() === slug)) return;
+    
     cancelledRef.current = false;
     void (async () => {
       await viewRun(slug);
-      if (!cancelledRef.current) setDeepFetchSettled(true);
     })();
     return () => {
       cancelledRef.current = true;
@@ -148,16 +136,6 @@ export default function GeneratePageContent() {
 
 
   if (slug) {
-    if (!deepFetchSettled) {
-      return (
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <div
-            className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-            style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }}
-          />
-        </div>
-      );
-    }
     if (networkError) {
       return (
         <DeepLinkError
@@ -170,15 +148,10 @@ export default function GeneratePageContent() {
         />
       );
     }
-    return (
-      <DeepLinkError
-        message="Could not open this run. Check the link or try again from the home page."
-        onBack={() => {
-          goHome();
-          router.replace("/");
-        }}
-      />
-    );
+    
+    // If not showing result yet, and no network error, we are either still fetching
+    // or waiting for React context to propagate the fetched data. Show skeleton.
+    return <DesignDetailPageSkeleton />;
   }
 
   return null;

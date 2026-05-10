@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useGoogleFonts } from "@/lib/use-google-fonts";
 import {
   ArrowLeft,
   ArrowRight,
@@ -112,6 +113,14 @@ function contrastColor(hex: string): string {
 
 export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) {
   const { tokens, theme } = card;
+  const [copiedHex, setCopiedHex] = useState<string | null>(null);
+  const [paletteView, setPaletteView] = useState<"scale" | "cards">("scale");
+
+  function copyColor(hex: string) {
+    navigator.clipboard.writeText(hex).catch(() => {});
+    setCopiedHex(hex);
+    setTimeout(() => setCopiedHex(null), 1500);
+  }
 
   // Prefer the structured JSON block's authoritative palette/fonts when available.
   // The JSON block carries proper swatches, dark flags, sample text, weights, etc.
@@ -140,6 +149,11 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
     }
     return card.fonts.map(f => ({ ...f, weights: undefined, badge: undefined, body: undefined }));
   }, [extras, card.fonts]);
+
+  // Attempt to load each brand font from Google Fonts.
+  // If a font isn't on Google Fonts the <link> silently 400s and the
+  // browser falls back to the next font in the CSS stack (system-ui, sans-serif).
+  useGoogleFonts(useMemo(() => effectiveFonts.map(f => f.name), [effectiveFonts]));
 
   const themeStyles = useMemo(() => {
     if (!theme) return {};
@@ -274,104 +288,181 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       `}</style>
       <div className="stylemd-theme-root space-y-10">
       {/* 1. Pro Typography Section */}
-      <section style={{ gap: "var(--spacing-base)" }} className="flex flex-col">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-3xl font-black tracking-tighter" style={{ color: "var(--primary)" }}>{typoTitle}</h2>
-          <p className="text-sm font-medium text-gray-500">{typoIntro}</p>
-        </div>
-        
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {effectiveFonts.slice(0, 2).map((font) => (
-            <div
-              key={font.name}
-              className="group relative flex flex-col justify-between overflow-hidden p-8 transition-all hover:shadow-xl"
-              style={{
-                backgroundColor: font.dark ? "var(--primary)" : "#ffffff",
-                borderRadius: "var(--radius)",
-                border: font.dark ? "none" : "1px solid #e5e7eb",
-                color: font.dark ? contrastColor(theme?.colors.primary ?? "#000000") : "#111827",
-              }}
-            >
-              <div className="flex flex-col items-center justify-center py-12">
-                <span
-                  className="text-8xl font-black tracking-tighter"
-                  style={{ fontFamily: fontFamilyFor(font.name) }}
-                >
-                  {font.sample || "Aa Bb"}
-                </span>
-              </div>
+      <section className="overflow-hidden" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
+        <div className="flex min-h-[320px]">
+          {/* Left panel — title + intro + aside */}
+          <div className="flex w-52 flex-shrink-0 flex-col gap-4 p-6 border-r border-dashed border-gray-200">
+            <h2 className="text-2xl font-black tracking-tighter" style={{ color: "var(--primary)" }}>{typoTitle}</h2>
+            <p className="text-[11px] font-medium leading-relaxed text-gray-500">{typoIntro}</p>
+            {extras?.typographyAside && (
+              <p className="text-[10px] leading-relaxed text-gray-400">{extras.typographyAside}</p>
+            )}
+          </div>
 
-              <div className="mt-4 flex flex-col gap-3">
-                <div>
-                  <h3 className="text-xl font-black">{font.name}</h3>
-                  <p className="text-xs font-bold uppercase tracking-widest opacity-60">
-                    {font.weights ?? (font.dark ? "Medium" : "Regular, Medium")}
-                  </p>
+          {/* Right panel — font cards */}
+          <div className={`grid flex-1 ${effectiveFonts.slice(0, 2).length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+            {effectiveFonts.slice(0, 2).map((font, i) => (
+              <div
+                key={font.name}
+                className="flex flex-col justify-between p-6 transition-all hover:brightness-95"
+                style={{
+                  backgroundColor: font.dark ? "var(--primary)" : "#f0f4ff",
+                  borderLeft: i > 0 ? "1px solid rgba(0,0,0,0.06)" : "none",
+                  color: font.dark ? contrastColor(theme?.colors.primary ?? "#000000") : "#111827",
+                }}
+              >
+                <div className="flex flex-1 items-center justify-center py-8">
+                  <span
+                    className="text-7xl font-black tracking-tighter"
+                    style={{ fontFamily: fontFamilyFor(font.name) }}
+                  >
+                    {font.sample || "Aa Bb"}
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-base font-black">{font.name}</h3>
+                  <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                    {font.weights ?? (font.dark ? "Medium" : "Regular, Medium")}
+                  </p>
                   <span
-                    className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter"
+                    className="w-fit rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-tighter"
                     style={{
-                      backgroundColor: font.dark ? "rgba(255,255,255,0.2)" : "#f6f8fa",
-                      border: font.dark ? "none" : "1px solid #e5e7eb",
-                      color: font.dark ? "white" : "#374151",
+                      backgroundColor: font.dark ? "rgba(255,255,255,0.2)" : "#e0e7ff",
+                      color: font.dark ? "white" : "#4f46e5",
                     }}
                   >
                     {font.badge ?? font.role}
                   </span>
+                  {font.body && (
+                    <p className="text-[10px] leading-relaxed opacity-70">{font.body}</p>
+                  )}
                 </div>
-
-                {font.body && (
-                  <p className="text-[10px] leading-relaxed opacity-75">{font.body}</p>
-                )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* 2. Pro Color Palette Grid */}
       <section className="overflow-hidden shadow-sm" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
-        <div className="grid grid-cols-[100px_repeat(10,1fr)] py-3 text-center" style={{ backgroundColor: "#f6f8fa", borderBottom: "1px solid #e5e7eb" }}>
-          <div />
-          {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"].map((step) => (
-            <span key={step} className="text-[10px] font-black text-gray-400">{step}</span>
-          ))}
+        {/* Header row with toggle */}
+        <div className="flex items-center justify-between px-4 py-2.5" style={{ backgroundColor: "#f6f8fa", borderBottom: "1px solid #e5e7eb" }}>
+          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Color Palette</span>
+          {/* Toggle: scale | cards */}
+          <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-0.5">
+            <button
+              onClick={() => setPaletteView("scale")}
+              className={`rounded-md px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider transition-all ${paletteView === "scale" ? "bg-gray-900 text-white shadow-sm" : "text-gray-400 hover:text-gray-700"}`}
+            >
+              Scale
+            </button>
+            <button
+              onClick={() => setPaletteView("cards")}
+              className={`rounded-md px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider transition-all ${paletteView === "cards" ? "bg-gray-900 text-white shadow-sm" : "text-gray-400 hover:text-gray-700"}`}
+            >
+              Cards
+            </button>
+          </div>
         </div>
 
-        <div className="divide-y divide-gray-100">
-          {effectivePalette.map((row, idx) => {
-            const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
-            const swatches = (!row.swatches?.length || allSame)
-              ? generateColorScale(row.hex)
-              : row.swatches.slice(0, 10).concat(
-                  Array(Math.max(0, 10 - row.swatches.length)).fill(row.swatches[row.swatches.length - 1])
-                );
-            return (
-              <div key={row.name} className="grid grid-cols-[100px_repeat(10,1fr)] items-center">
-                <div className="flex flex-col px-4 py-4">
-                  <span className="text-[8px] font-bold uppercase text-gray-400">D{idx + 1}</span>
-                  <span className="text-[10px] font-bold text-gray-900">{row.name}</span>
-                  <span className="text-[9px] font-mono uppercase text-gray-400">{row.hex}</span>
-                </div>
-                {swatches.map((color, i) => (
-                  <div
-                    key={i}
-                    className="group relative h-16 w-full cursor-pointer transition-transform hover:z-10 hover:scale-105"
-                    style={{ backgroundColor: color }}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10">
-                      <span className="text-[8px] font-mono font-bold text-white drop-shadow-md">
-                        {color.substring(0, 7)}
-                      </span>
+        {paletteView === "scale" ? (
+          <>
+            {/* Scale step header */}
+            <div className="grid grid-cols-[100px_repeat(10,1fr)_4px] py-2 text-center" style={{ borderBottom: "1px solid #e5e7eb" }}>
+              <div />
+              {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"].map((step) => (
+                <span key={step} className="text-[10px] font-black text-gray-400">{step}</span>
+              ))}
+              <div />
+            </div>
+            <div className="divide-y divide-gray-100">
+              {effectivePalette.map((row, idx) => {
+                const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
+                const swatches = (!row.swatches?.length || allSame)
+                  ? generateColorScale(row.hex)
+                  : row.swatches.slice(0, 10).concat(
+                      Array(Math.max(0, 10 - row.swatches.length)).fill(row.swatches[row.swatches.length - 1])
+                    );
+                return (
+                  <div key={row.name} className="grid grid-cols-[100px_repeat(10,1fr)_4px] items-center">
+                    <div className="flex flex-col px-4 py-4">
+                      <span className="text-[8px] font-bold uppercase text-gray-400">{String(idx + 1).padStart(2, "0")}</span>
+                      <span className="text-[10px] font-bold text-gray-900">{row.name}</span>
+                      <span className="text-[9px] font-mono uppercase text-gray-400">{row.hex}</span>
                     </div>
+                    {swatches.map((color, i) => (
+                      <div
+                        key={i}
+                        className="group relative h-16 w-full cursor-pointer transition-transform hover:z-10 hover:scale-105"
+                        style={{ backgroundColor: color }}
+                        onClick={() => copyColor(color.substring(0, 7))}
+                        title={`Copy ${color.substring(0, 7)}`}
+                      >
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                          <span className="text-[8px] font-mono font-bold text-white drop-shadow-md select-none">
+                            {copiedHex === color.substring(0, 7) ? "✓ Copied!" : color.substring(0, 7)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    <div />
                   </div>
-                ))}
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          /* Card view */
+          <div className="grid grid-cols-2 gap-4 p-4">
+            {effectivePalette.map((row) => {
+              const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
+              const swatches = (!row.swatches?.length || allSame)
+                ? generateColorScale(row.hex)
+                : row.swatches.slice(0, 10).concat(
+                    Array(Math.max(0, 10 - row.swatches.length)).fill(row.swatches[row.swatches.length - 1])
+                  );
+              const textCol = contrastColor(row.hex);
+              return (
+                <div
+                  key={row.name}
+                  className="overflow-hidden rounded-2xl cursor-pointer"
+                  style={{ backgroundColor: row.hex }}
+                  onClick={() => copyColor(row.hex)}
+                  title={`Copy ${row.hex}`}
+                >
+                  {/* Large swatch area with name + hex */}
+                  <div className="flex items-end justify-between px-5 py-6 min-h-[140px]">
+                    <span className="text-lg font-black" style={{ color: textCol }}>
+                      {row.name}
+                    </span>
+                    <span className="font-mono text-sm font-bold" style={{ color: textCol }}>
+                      {copiedHex === row.hex ? "✓ Copied!" : row.hex}
+                    </span>
+                  </div>
+                  {/* Swatch scale strip at bottom */}
+                  <div className="flex">
+                    {swatches.map((color, i) => (
+                      <div
+                        key={i}
+                        className="group relative h-10 flex-1 cursor-pointer"
+                        style={{ backgroundColor: color }}
+                        onClick={(e) => { e.stopPropagation(); copyColor(color.substring(0, 7)); }}
+                        title={color.substring(0, 7)}
+                      >
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                          <span className="text-[7px] font-mono font-bold text-white drop-shadow select-none rotate-90">
+                            {copiedHex === color.substring(0, 7) ? "✓" : color.substring(0, 7)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
@@ -450,69 +541,98 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
       </section>
 
-      <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
-        <div className="mb-6 flex items-center gap-2">
-          <Ruler size={14} className="text-gray-400" />
-          <h2 className="text-lg font-bold tracking-tight text-gray-900">Spacing</h2>
-        </div>
-        <div className="mb-8 grid grid-cols-3 gap-4">
-          {spacingCards.map((item) => (
-            <div key={item.label} className="p-4" style={{ backgroundColor: "#f6f8fa", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
-              <p className="mb-2 text-[8px] font-bold uppercase tracking-wider text-gray-400">{item.label}</p>
-              <p className="mb-1 text-4xl font-black" style={{ color: "var(--primary)" }}>
-                {item.value}
+      <section className="overflow-hidden" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
+        <div className="flex min-h-[280px]">
+          {/* Left panel — title + summary labels */}
+          <div className="flex w-48 flex-shrink-0 flex-col justify-between p-6 border-r border-dashed border-gray-200">
+            <div className="flex items-center gap-2">
+              <Ruler size={14} className="text-gray-400" />
+              <h2 className="text-lg font-bold tracking-tight text-gray-900">Spacing</h2>
+            </div>
+            <div className="space-y-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">
+                BASE RHYTHM:{" "}
+                <span className="text-gray-600">
+                  {(spacingCards.find((c) => c.label.toUpperCase() === "BASE")?.value ?? "4px").toUpperCase()}
+                </span>
               </p>
-              <p className="text-[10px] font-medium text-gray-400">{item.sublabel}</p>
+              {spacingRules[0] && (
+                <p className="text-[9px] font-medium text-gray-500">{spacingRules[0]}</p>
+              )}
             </div>
-          ))}
-        </div>
-        <div className="mb-6 space-y-2">
-          {spacingSteps.map((step) => (
-            <div key={step.label} className="flex items-center gap-3">
-              <span className="w-12 text-[10px] font-medium text-gray-400">{step.label}</span>
-              <div className="flex-1 rounded-full bg-gray-100">
-                <div className="h-2 rounded-full" style={{ width: step.pct, backgroundColor: "var(--primary)" }} />
-              </div>
-              <span className="w-8 text-right text-[10px] font-medium text-gray-500">{step.value}</span>
+          </div>
+
+          {/* Right panel — metric cards + steps + rules */}
+          <div className="flex flex-1 flex-col gap-5 p-6">
+            {/* Metric cards row */}
+            <div className="grid grid-cols-3 gap-3">
+              {spacingCards.map((item) => (
+                <div key={item.label} className="flex flex-col gap-0.5 border-b border-gray-100 pb-3">
+                  <p className="text-[8px] font-bold uppercase tracking-wider text-gray-400">{item.label}</p>
+                  <p className="text-3xl font-black" style={{ color: "var(--primary)" }}>{item.value}</p>
+                  <p className="text-[9px] font-medium uppercase tracking-wider text-gray-400">{item.sublabel}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <p className="mb-3 text-[8px] font-bold uppercase tracking-wider text-gray-400">
-          BASE RHYTHM:{` `}
-          {(spacingCards.find((c) => c.label.toUpperCase() === "BASE")?.value ?? "4px").toUpperCase()}
-        </p>
-        <div className="flex flex-wrap gap-4">
-          {spacingRules.map((r) => (
-            <p key={r} className="text-[10px] font-medium text-gray-500">
-              {r}
-            </p>
-          ))}
+
+            {/* Step bars */}
+            <div className="space-y-2">
+              {spacingSteps.map((step) => (
+                <div key={step.label} className="flex items-center gap-3">
+                  <span className="w-12 text-[10px] font-medium text-gray-400">{step.label}</span>
+                  <div className="flex-1 rounded-full bg-gray-100">
+                    <div className="h-1.5 rounded-full" style={{ width: step.pct, backgroundColor: "var(--primary)" }} />
+                  </div>
+                  <span className="w-8 text-right text-[10px] font-medium text-gray-500">{step.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom rule chips */}
+            <div className="flex flex-wrap gap-4 border-t border-gray-100 pt-3">
+              {spacingRules.slice(1).map((r) => (
+                <p key={r} className="text-[9px] font-medium uppercase tracking-wider text-gray-500">{r}</p>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
-        <div className="mb-6 flex items-center gap-2">
-          <Layers size={14} className="text-gray-400" />
-          <h2 className="text-lg font-bold tracking-tight text-gray-900">Elevation &amp; Depth</h2>
-        </div>
-        <p className="mb-6 max-w-lg text-sm leading-relaxed text-gray-500">{elevIntro}</p>
-        <div className="mb-6 divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200">
-          {elevRows.map((row) => (
-            <div
-              key={row.label}
-              className={`flex gap-4 bg-white px-5 py-4 ${String(row.label).toUpperCase() === "SHADOW" ? "items-start" : "items-center"}`}
-            >
-              <span className="w-20 flex-shrink-0 text-[10px] font-bold uppercase tracking-wider text-gray-400">{row.label}</span>
-              <span className="break-all font-mono text-xs font-semibold" style={{ color: "var(--primary)" }}>{row.value}</span>
+      <section className="overflow-hidden" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
+        <div className="flex min-h-[280px]">
+          {/* Left panel — title + description */}
+          <div className="flex w-48 flex-shrink-0 flex-col gap-4 p-6 border-r border-dashed border-gray-200">
+            <div className="flex items-center gap-2">
+              <Layers size={14} className="text-gray-400" />
+              <h2 className="text-lg font-bold tracking-tight text-gray-900">Elevation &amp; Depth</h2>
             </div>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {elevChips.map((tag) => (
-            <span key={tag} className="rounded px-2.5 py-1.5 font-mono text-[8px] font-bold bg-gray-100 text-gray-500">
-              {tag}
-            </span>
-          ))}
+            <p className="text-[11px] leading-relaxed text-gray-400">{elevIntro}</p>
+          </div>
+
+          {/* Right panel — staggered rows + chips */}
+          <div className="flex flex-1 flex-col justify-between p-6">
+            <div className="space-y-3">
+              {elevRows.map((row, i) => (
+                <div
+                  key={row.label}
+                  className="rounded-xl border border-gray-100 bg-[#f8f9fa] px-5 py-3"
+                  style={{ marginLeft: `${i * 48}px` }}
+                >
+                  <p className="mb-1 text-[9px] font-bold uppercase tracking-wider text-gray-400">{row.label}</p>
+                  <p className="font-mono text-sm font-semibold text-gray-700 truncate">{row.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Chips row */}
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+              {elevChips.map((tag) => (
+                <span key={tag} className="rounded-full px-3 py-1 font-mono text-[9px] font-bold bg-blue-50 text-blue-400">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -543,39 +663,57 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
       </section>
 
-      <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
-        <div className="mb-6 flex items-center gap-2">
-          <Clock size={14} className="text-gray-400" />
-          <h2 className="text-lg font-bold tracking-tight text-gray-900">Motion</h2>
-        </div>
-        <div className="mb-6 flex flex-wrap gap-2">
-          {motionTags.map((tag) => (
-            <span key={tag} className="rounded px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000") }}>
-              {tag}
+      <section className="overflow-hidden" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
+        <div className="flex min-h-[280px]">
+          {/* Left panel — title + badge */}
+          <div className="flex w-48 flex-shrink-0 flex-col justify-between p-6 border-r border-dashed border-gray-200">
+            <div className="flex items-center gap-2">
+              <Clock size={14} className="text-gray-400" />
+              <h2 className="text-lg font-bold tracking-tight text-gray-900">Motion</h2>
+            </div>
+            <span className="w-fit rounded-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-400">
+              {motionBadge}
             </span>
-          ))}
-        </div>
-        <div className="mb-6 space-y-2">
-          {motionBars.map((item) => (
-            <div key={item.label} className="flex items-center gap-3">
-              <span className="w-14 text-[10px] font-medium text-gray-400">{item.label}</span>
-              <div className="flex-1 rounded-full bg-gray-100">
-                <div className="h-2 rounded-full" style={{ width: item.pct, backgroundColor: "var(--primary)" }} />
-              </div>
+          </div>
+
+          {/* Right panel */}
+          <div className="flex flex-1 flex-col gap-5 p-6">
+            {/* Timing chips */}
+            <div className="flex flex-wrap gap-2">
+              {motionTags.map((tag) => (
+                <span key={tag} className="rounded-full px-3 py-1 text-[9px] font-bold bg-blue-50 text-blue-400">
+                  {tag}
+                </span>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          {motionSteps.map(([step, val]) => (
-            <div key={step} className="p-4" style={{ backgroundColor: "#f6f8fa", borderRadius: "var(--radius)", border: "1px solid #e5e7eb" }}>
-              <p className="mb-2 text-[10px] font-bold uppercase text-gray-400">{step}</p>
-              <p className="text-2xl font-black" style={{ color: "var(--primary)" }}>{val}</p>
+
+            {/* Progress bars */}
+            <div className="space-y-2">
+              {motionBars.map((item) => (
+                <div key={item.label} className="flex items-center gap-3">
+                  <span className="w-14 text-[10px] font-medium uppercase tracking-wider text-gray-400">{item.label}</span>
+                  <div className="flex-1 rounded-full bg-gray-100">
+                    <div className="h-1.5 rounded-full" style={{ width: item.pct, backgroundColor: "var(--primary)" }} />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+
+            {/* Step cards */}
+            <div className="grid border border-gray-100 rounded-xl overflow-hidden" style={{ gridTemplateColumns: `repeat(${motionSteps.length}, 1fr)` }}>
+              {motionSteps.map(([step, val], i) => (
+                <div
+                  key={step}
+                  className="flex flex-col gap-1 p-4"
+                  style={{ borderLeft: i > 0 ? "1px solid #f3f4f6" : "none" }}
+                >
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">{step}</p>
+                  <p className="text-2xl font-black text-gray-800">{val}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <span className="mt-4 inline-block rounded px-2 py-1 text-[8px] font-bold" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000") }}>
-          {motionBadge}
-        </span>
       </section>
 
       <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
