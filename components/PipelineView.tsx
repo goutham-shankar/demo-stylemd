@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { STAGES, type Stage } from "@/lib/api-types";
 import { useSSE } from "@/lib/sse-context";
@@ -15,16 +15,27 @@ const STAGE_LABELS: Record<Stage, string> = {
   showcase: "Showcase",
 };
 
+const STAGE_ICONS: Record<Stage, string> = {
+  capture: "📸",
+  extract: "🔍",
+  dedup: "🧹",
+  curate: "✨",
+  responsive: "📱",
+  styleguide: "🎨",
+  showcase: "🌐",
+};
+
 function formatMs(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-function StageRow({ stage, status, durationMs, error }: {
+function StageCard({ stage, status, durationMs, error, index }: {
   stage: Stage;
   status: string;
   durationMs?: number;
   error?: string;
+  index: number;
 }) {
   const isRunning = status === "running";
   const isCompleted = status === "completed";
@@ -32,56 +43,61 @@ function StageRow({ stage, status, durationMs, error }: {
   const isPending = status === "pending";
 
   return (
-    <div className="flex items-center gap-3 py-2.5">
-      {/* Icon */}
-      <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center">
+    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+      isRunning
+        ? "bg-orange-50 border border-orange-200"
+        : isCompleted
+        ? "bg-green-50 border border-green-200"
+        : isFailed
+        ? "bg-red-50 border border-red-200"
+        : "bg-gray-50 border border-gray-100"
+    }`}>
+      {/* Step number or status icon */}
+      <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
+        isRunning
+          ? "bg-orange-500 text-white"
+          : isCompleted
+          ? "bg-green-500 text-white"
+          : isFailed
+          ? "bg-red-500 text-white"
+          : "bg-gray-200 text-gray-400"
+      }`}>
         {isRunning && (
-          <span className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin"
-            style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }} />
+          <span className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
         )}
-        {isCompleted && (
-          <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold"
-            style={{ backgroundColor: "var(--cta)" }}>
-            ✓
+        {isCompleted && <span className="text-xs">✓</span>}
+        {isFailed && <span className="text-xs">✗</span>}
+        {isPending && <span className="text-xs text-gray-400">{index + 1}</span>}
+      </div>
+
+      {/* Label + status */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm">{STAGE_ICONS[stage]}</span>
+          <span className={`text-sm font-semibold ${
+            isRunning ? "text-orange-700" : isCompleted ? "text-green-700" : isFailed ? "text-red-600" : "text-gray-400"
+          }`}>
+            {STAGE_LABELS[stage]}
           </span>
+        </div>
+        {isRunning && (
+          <p className="text-[11px] text-orange-500 font-medium mt-0.5">Processing…</p>
         )}
-        {isFailed && (
-          <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold">
-            ✗
-          </span>
-        )}
-        {isPending && (
-          <span className="w-5 h-5 rounded-full border-2 border-medium" />
+        {isFailed && error && (
+          <p className="text-[11px] text-red-500 mt-0.5 truncate">{error}</p>
         )}
       </div>
 
-      {/* Label */}
-      <span
-        className={`text-sm font-semibold font-manrope flex-1 ${
-          isRunning ? "text-primary" : isCompleted ? "text-primary" : isFailed ? "text-red-600" : "text-secondary"
-        }`}
-      >
-        {STAGE_LABELS[stage]}
-        {isRunning && (
-          <span className="ml-2 text-xs font-normal" style={{ color: "var(--cta)" }}>
-            running…
-          </span>
-        )}
-        {isFailed && error && (
-          <span className="ml-2 text-xs font-normal text-red-500">{error}</span>
-        )}
-      </span>
-
       {/* Duration */}
       {isCompleted && durationMs !== undefined && (
-        <span className="text-xs font-manrope text-secondary">{formatMs(durationMs)}</span>
+        <span className="text-[11px] font-medium text-green-600 flex-shrink-0">{formatMs(durationMs)}</span>
       )}
     </div>
   );
 }
 
 export default function PipelineView() {
-  const { activeRun, isRunning, runError, startRun, goHome } = useSSE();
+  const { activeRun, isRunning, runError, goHome } = useSSE();
   const router = useRouter();
   const logsEndRef = useRef<HTMLDivElement>(null);
   const [isStuck, setIsStuck] = useState(false);
@@ -95,9 +111,13 @@ export default function PipelineView() {
     (s) => activeRun?.stages[s]?.status === "failed"
   );
 
-  const allStagesComplete = !!activeRun && STAGES.every(
-    (s) => activeRun.stages[s]?.status === "completed"
-  );
+  const completedStages = useMemo(() => {
+    if (!activeRun?.stages) return 0;
+    return STAGES.filter((s) => activeRun.stages[s]?.status === "completed").length;
+  }, [activeRun?.stages]);
+
+  const totalStages = STAGES.length;
+  const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
 
   useEffect(() => {
     lastProgressRef.current = Date.now();
@@ -116,167 +136,218 @@ export default function PipelineView() {
 
   if (!activeRun && !runError) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
-            style={{ borderColor: "var(--cta)", borderTopColor: "transparent" }} />
-          <p className="text-sm font-manrope text-secondary">Connecting to pipeline…</p>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="relative flex h-12 w-12 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-30" />
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-orange-500">
+              <svg className="h-5 w-5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            </span>
+          </div>
+          <div>
+            <p className="text-base font-bold text-gray-900">Connecting to pipeline…</p>
+            <p className="text-sm text-gray-400 mt-1">This will just take a moment</p>
+          </div>
         </div>
       </div>
     );
   }
 
   let hostname = activeRun?.url ?? "";
-  try { hostname = new URL(activeRun?.url ?? "").hostname; } catch { /* leave as-is */ }
+  try { hostname = new URL(activeRun?.url ?? "").hostname.replace(/^www\./, ""); } catch { /* leave as-is */ }
+
+  const currentStage = STAGES.find((s) => activeRun?.stages[s]?.status === "running");
+  const latestLog = activeRun?.logs.length ? activeRun.logs[activeRun.logs.length - 1] : null;
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-10">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        {/* Pulsing status dot */}
-        {isRunning && !hasFailure && (
-          <span className="relative flex h-3 w-3 flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-              style={{ backgroundColor: "var(--cta)" }} />
-            <span className="relative inline-flex rounded-full h-3 w-3"
-              style={{ backgroundColor: "var(--cta)" }} />
-          </span>
-        )}
-        {hasFailure && (
-          <span className="h-3 w-3 rounded-full bg-red-500 flex-shrink-0" />
-        )}
+    <div className="w-full min-h-screen bg-[#fafafa]">
+      {/* ── Hero header ── */}
+      <div className="bg-white border-b border-gray-100 px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Status badge */}
+          <div className="flex items-center gap-3 mb-4">
+            {hasFailure ? (
+              <span className="inline-flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-3 py-1">
+                <span className="h-2 w-2 rounded-full bg-red-500" />
+                <span className="text-red-600 text-xs font-bold uppercase tracking-widest">Failed</span>
+              </span>
+            ) : isStuck ? (
+              <span className="inline-flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-full px-3 py-1">
+                <span className="h-2 w-2 rounded-full bg-yellow-500" />
+                <span className="text-yellow-700 text-xs font-bold uppercase tracking-widest">Stuck</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-full px-3 py-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                </span>
+                <span className="text-orange-600 text-xs font-bold uppercase tracking-widest">
+                  {completedStages === totalStages ? "Wrapping up" : "Generating"}
+                </span>
+              </span>
+            )}
+            {activeRun && (
+              <span className="text-xs text-gray-400 font-medium uppercase tracking-wide border border-gray-200 rounded-full px-2.5 py-0.5">
+                {activeRun.provider}
+              </span>
+            )}
+          </div>
 
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-primary font-manrope truncate">{hostname}</p>
-          <p className="text-xs text-secondary font-manrope">
-            {hasFailure
-              ? "Pipeline failed"
-              : isStuck
-              ? "Pipeline may be stuck"
-              : allStagesComplete
-              ? "Wrapping up…"
-              : isRunning
-              ? "Running pipeline…"
-              : "Finishing up…"}
-          </p>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 truncate">{hostname}</h1>
+          {activeRun && (
+            <p className="text-sm text-gray-400 truncate">{activeRun.url}</p>
+          )}
+
+          {/* Progress bar */}
+          {!hasFailure && (
+            <div className="mt-5">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-gray-500 font-medium">
+                  {currentStage ? `Running: ${STAGE_LABELS[currentStage]}` : completedStages === totalStages ? "Finalizing…" : "Starting up…"}
+                </span>
+                <span className="text-sm font-bold text-orange-500">{progress}%</span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${Math.max(progress, 3)}%`,
+                    background: "linear-gradient(90deg, #fb923c, #f97316)",
+                  }}
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-1.5">{completedStages} of {totalStages} stages complete</p>
+            </div>
+          )}
         </div>
-
-        {activeRun && (
-          <span className="ml-auto flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold border border-medium text-secondary bg-surface font-manrope uppercase tracking-wide">
-            {activeRun.provider}
-          </span>
-        )}
       </div>
 
-      {/* Error / stuck banner — rendered ABOVE the stage+log row so it's always in view */}
-      {(runError || hasFailure || isStuck) && (
-        <div className={`mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row items-center gap-4 ${
-          isStuck ? "border-yellow-200 bg-yellow-50" : "border-red-200 bg-red-50"
-        }`}>
-          <p className={`text-sm font-manrope flex-1 text-center sm:text-left ${
-            isStuck ? "text-yellow-800" : "text-red-700"
+      {/* ── Main content ── */}
+      <div className="max-w-4xl mx-auto px-4 py-6">
+
+        {/* Error / stuck banner */}
+        {(runError || hasFailure || isStuck) && (
+          <div className={`mb-6 p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center gap-4 ${
+            isStuck ? "border-yellow-200 bg-yellow-50" : "border-red-200 bg-red-50"
           }`}>
-            <span className="font-semibold">{isStuck ? "Pipeline appears stuck: " : "Pipeline interrupted: "}</span>
-            {isStuck ? "No activity detected for 90 seconds. You can wait longer or force a restart." : (runError || "An error occurred during generation.")}
-          </p>
-          <div className="flex gap-2 flex-shrink-0">
-            {isStuck && (
+            <div className="flex-1">
+              <p className={`text-sm font-bold mb-1 ${isStuck ? "text-yellow-800" : "text-red-700"}`}>
+                {isStuck ? "Pipeline appears stuck" : "Pipeline interrupted"}
+              </p>
+              <p className={`text-sm ${isStuck ? "text-yellow-700" : "text-red-600"}`}>
+                {isStuck
+                  ? "No activity for 90 seconds. You can wait or force a restart."
+                  : (runError || "An error occurred during generation.")}
+              </p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              {isStuck && (
+                <button
+                  onClick={() => { lastProgressRef.current = Date.now(); setIsStuck(false); }}
+                  className="px-4 py-2 border border-yellow-300 text-yellow-800 text-sm font-semibold rounded-xl hover:bg-yellow-100 transition-all"
+                >
+                  Keep waiting
+                </button>
+              )}
               <button
                 onClick={() => {
-                  lastProgressRef.current = Date.now();
-                  setIsStuck(false);
-                }}
-                className="px-4 py-2 border border-yellow-300 text-yellow-800 text-xs font-bold rounded-xl hover:bg-yellow-100 transition-all"
-              >
-                Wait more
-              </button>
-            )}
-            <button
-              onClick={async () => {
-                if (isStuck && activeRun) {
-                  // startRun has a guard: `if (state.isRunning) return` which silently
-                  // aborts when stuck. Clear state first via goHome(), then start fresh.
                   goHome();
                   router.replace("/");
-                } else {
-                  window.location.reload();
-                }
-              }}
-              className={`px-5 py-2.5 text-white text-sm font-bold rounded-xl transition-all shadow-sm ${
-                isStuck ? "bg-yellow-600 hover:bg-yellow-700" : "bg-red-600 hover:bg-red-700"
-              }`}
-            >
-              {isStuck ? "Retry Now" : "Try again"}
-            </button>
+                }}
+                className={`px-5 py-2 text-white text-sm font-bold rounded-xl transition-all ${
+                  isStuck ? "bg-yellow-600 hover:bg-yellow-700" : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {isStuck ? "Restart" : "Try again"}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Stage stepper */}
-        <div className="bg-surface rounded-2xl border border-medium shadow-sm p-5 flex-shrink-0 md:w-64">
-          <h3 className="text-xs font-semibold text-secondary uppercase tracking-widest mb-3 font-manrope">
-            Pipeline Stages
-          </h3>
-          <div className="divide-y divide-[var(--border-light)]">
-            {STAGES.map((stage) => {
+        {/* Latest log message */}
+        {latestLog && !hasFailure && !isStuck && (
+          <div className="mb-5 flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
+            <div className="relative flex h-2 w-2 flex-shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+            </div>
+            <p className="text-sm text-gray-600 font-medium truncate">{latestLog.message}</p>
+            <span className="text-xs text-gray-400 flex-shrink-0">
+              {new Date(latestLog.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            </span>
+          </div>
+        )}
+
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+          {/* Log terminal */}
+          <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="px-4 py-3 border-b border-gray-800 flex items-center gap-2" style={{ background: "#1e1e1e" }}>
+              <span className="w-3 h-3 rounded-full bg-red-500/80" />
+              <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
+              <span className="w-3 h-3 rounded-full bg-green-500/80" />
+              <span className="ml-3 text-xs font-semibold text-gray-400 tracking-wide">Live Log</span>
+              {activeRun?.logs.length ? (
+                <span className="ml-auto text-xs text-gray-600">{activeRun.logs.length} events</span>
+              ) : null}
+            </div>
+            <div
+              className="p-4 font-mono text-xs leading-6 overflow-y-auto"
+              style={{ background: "#1a1a1a", color: "#d4d4d4", minHeight: 320, maxHeight: 440 }}
+            >
+              {(!activeRun || activeRun.logs.length === 0) && (
+                <span style={{ color: "#555" }}>
+                  {isStuck ? "⚠ No progress received for 90s…" : "⏳ Waiting for pipeline events…"}
+                </span>
+              )}
+              {activeRun?.logs.map((log, i) => (
+                <div key={i} className="flex gap-2">
+                  <span style={{ color: "#4b5563", flexShrink: 0 }}>
+                    {new Date(log.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  </span>
+                  {log.level !== "info" && (
+                    <span className={log.level === "error" ? "text-red-400 flex-shrink-0" : "text-yellow-400 flex-shrink-0"}>
+                      [{log.level.toUpperCase()}]
+                    </span>
+                  )}
+                  <span className={
+                    log.level === "error" ? "text-red-400" :
+                    log.level === "warn" ? "text-yellow-400" :
+                    "text-[#d4d4d4]"
+                  }>
+                    {log.message}
+                  </span>
+                </div>
+              ))}
+              <div ref={logsEndRef} />
+            </div>
+          </div>
+
+          {/* Stage list */}
+          <div className="flex flex-col gap-2">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">
+              Pipeline Stages
+            </h3>
+            {STAGES.map((stage, index) => {
               const s = activeRun?.stages[stage] ?? { status: "pending" };
               return (
-                <StageRow
+                <StageCard
                   key={stage}
                   stage={stage}
                   status={s.status}
                   durationMs={s.durationMs}
                   error={s.error}
+                  index={index}
                 />
               );
             })}
           </div>
         </div>
-
-        {/* Log terminal */}
-        <div className="flex-1 bg-surface rounded-2xl border border-medium shadow-sm overflow-hidden flex flex-col min-h-[360px]">
-          <div className="px-4 py-2.5 border-b border-medium flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-            <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
-            <span className="ml-2 text-xs font-semibold text-secondary font-manrope tracking-wide">
-              Live Log
-            </span>
-          </div>
-          <div
-            className="flex-1 overflow-y-auto p-4 font-mono text-xs leading-relaxed"
-            style={{ background: "#1a1a1a", color: "#d4d4d4", maxHeight: 360 }}
-          >
-            {(!activeRun || activeRun.logs.length === 0) && (
-              <span style={{ color: "#666" }}>
-                {isStuck ? "No progress received for 60s..." : "Waiting for pipeline events…"}
-              </span>
-            )}
-            {activeRun?.logs.map((log, i) => (
-              <div key={i} className={
-                log.level === "error" ? "text-red-400" :
-                log.level === "warn" ? "text-yellow-400" :
-                "text-[#d4d4d4]"
-              }>
-                <span style={{ color: "#666" }}>
-                  {new Date(log.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                </span>
-                {" "}
-                {log.level !== "info" && (
-                  <span className={log.level === "error" ? "text-red-400" : "text-yellow-400"}>
-                    [{log.level.toUpperCase()}]{" "}
-                  </span>
-                )}
-                {log.message}
-              </div>
-            ))}
-            <div ref={logsEndRef} />
-          </div>
-        </div>
       </div>
-
-
     </div>
   );
 }
