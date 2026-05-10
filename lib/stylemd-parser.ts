@@ -439,51 +439,103 @@ function extractColors(md: string): { name: string; hex: string; desc?: string }
   }).slice(0, 10);
 }
 
+// Infer a human role label from a raw label/variable string
+function inferFontRole(raw: string): string {
+  const l = raw.toLowerCase().replace(/[-_]/g, " ");
+  if (/display|heading|h1|h2|title/.test(l)) return "Display";
+  if (/body|text|content|paragraph/.test(l)) return "Body";
+  if (/ui|interface|label/.test(l)) return "UI";
+  if (/mono|code|pre/.test(l)) return "Mono";
+  if (/primary|main/.test(l)) return "Primary";
+  if (/secondary|sub|fallback/.test(l)) return "Secondary";
+  // Capitalise as-is if short enough
+  return raw.trim().replace(/^\w/, c => c.toUpperCase());
+}
+
+// Return first font name from a comma-separated stack, stripping quotes/generics
+function firstFont(stack: string): string {
+  const GENERICS = new Set(["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-serif", "ui-sans-serif", "ui-monospace"]);
+  const name = stack.split(",")[0].replace(/['"]/g, "").trim();
+  if (GENERICS.has(name.toLowerCase())) return stack.split(",")[1]?.replace(/['"]/g, "").trim() ?? name;
+  return name;
+}
+
+function isValidFontName(name: string): boolean {
+  if (!name || name.length < 2 || name.length > 80) return false;
+  if (/^https?:\/\/|^--font-|^var\(/.test(name)) return false;
+  if (/^(clamp|calc|rem|em|px|vw|vh)\b/.test(name)) return false;
+  // Must contain at least one letter
+  return /[a-zA-Z]/.test(name);
+}
+
 function extractTypography(md: string): { name: string; role: string }[] {
-  const fonts: { name: string; role: string }[] = [];
-  // Match ## or ### Typography section header
-  const typoSection = md.match(/#{2,3} Typography\n([\s\S]+?)(?=\n#{1,3} |$)/i);
+  // Match any heading level + any words containing "Typ" or "Font"
+  const sectionRe = /#{1,4}\s+(?:[^#\n]*?(?:Typograph|Font Famil)[^#\n]*)\n([\s\S]+?)(?=\n#{1,4}\s|\n#{2}\s|$)/i;
+  const typoSection = sectionRe.exec(md);
   const content = typoSection ? typoSection[1] : md;
-  let match;
 
-  // Format 1 — CSS variable: `--font-family-primary`: `'Font Name', fallback`
-  const cssVarRegex = /`--font-family-([^`]+)`\s*:\s*`'?([^',`\n]+)/g;
-  while ((match = cssVarRegex.exec(content)) !== null) {
-    const varSuffix = match[1].trim(); // e.g. "primary", "fallback"
-    const name = match[2].replace(/["']/g, "").trim();
-    // skip pure fallback stacks (Trebuchet MS, Arial, sans-serif etc) unless it's the primary
-    if (name.length > 1 && name.length < 80 && !name.startsWith("http")) {
-      const role = varSuffix === "primary" ? "Primary" : varSuffix === "fallback" ? "Fallback" : varSuffix;
-      fonts.push({ name, role });
-    }
+  const seen = new Set<string>();
+  const fonts: { name: string; role: string }[] = [];
+
+  function add(name: string, role: string) {
+    const n = firstFont(name);
+    if (!isValidFontName(n) || seen.has(n.toLowerCase())) return;
+    seen.add(n.toLowerCase());
+    fonts.push({ name: n, role: inferFontRole(role) });
   }
 
-  // Format 2 — bold label: **Display**: `"Font Name", fallback`  (with or without leading -)
+  let m: RegExpExecArray | null;
+
+  // F1 — CSS var:  `--font-family-primary`: `'Name', fallback`
+  //                --font-family-primary: 'Name', fallback   (unquoted var)
+  const f1 = /`?--font-(?:family-)?([^`:\s]+)`?\s*:\s*[`']?'?([^`'\n,]+)/gi;
+  while ((m = f1.exec(content)) !== null) add(m[2], m[1]);
+
+  // F2 — bold role:  **Display**: `"Name", fallback`  or  - **Body**: Name
+  const f2 = /(?:^|\n)\s*-?\s*\*\*([^*\n]{1,40}?)\*\*[:/]\s*[`"']?([^`"'\n,]{2,60})/g;
+  while ((m = f2.exec(content)) !== null) {
+    const role = m[1].trim();
+    // Skip non-font bold labels (weights, sizes, etc.)
+    if (/weight|size|scale|spacing|line.height|letter/i.test(role)) continue;
+    add(m[2], role);
+  }
+
+  // F3 — plain label bullet:  - Primary font: `Name`  or  - Heading: Name
+  const f3 = /(?:^|\n)\s*-\s+([^:\n]{2,30}):\s*[`"']?([^`"'\n,]{2,60})/g;
+  while ((m = f3.exec(content)) !== null) {
+    const label = m[1].trim();
+    if (!/font|family|typeface|display|heading|body|ui|primary|secondary|mono/i.test(label)) continue;
+    add(m[2], label);
+  }
+
+  // F4 — markdown table: | Role | `"Name, fallback"` |
+  const f4 = /\|\s*([^|*\n]{1,30}?)\s*\|\s*[`"']?([^|`"'\n]{2,60})[`"']?\s*\|/g;
+  while ((m = f4.exec(content)) !== null) {
+    const role = m[1].trim();
+    if (/role|stack|family|font|weight|type/i.test(role) && role.length < 5) continue;
+    add(m[2], role);
+  }
+
+  // F5 — CSS font-family property (unquoted or quoted)
+  //   font-family: 'Name', fallback;
+  const f5 = /font-family\s*:\s*[`"']?'?([^;`"'\n,]+)/gi;
+  while ((m = f5.exec(content)) !== null) add(m[1], "Primary");
+
+  // F6 — any quoted string that looks like a font name near a role keyword
+  //  "Eightiescomeback"  or  'Inter'  appearing on a line with font/display/body
   if (fonts.length === 0) {
-    const bulletRegex = /(?:^|\n)-?\s*\*\*([^*\n]+?)\*\*:\s+`?"?([^,`"\n]+)/g;
-    while ((match = bulletRegex.exec(content)) !== null) {
-      const role = match[1].trim();
-      const name = match[2].replace(/["']/g, "").trim();
-      if (name.length > 1 && name.length < 80 && !name.startsWith("font-") && !name.startsWith("http")) {
-        fonts.push({ name, role });
+    const lines = content.split("\n");
+    for (const line of lines) {
+      if (!/font|display|heading|body|typeface|family/i.test(line)) continue;
+      const quoted = line.match(/['"]([A-Z][^'"]{1,50})['"]/);
+      if (quoted) {
+        const role = /display|heading|h1/i.test(line) ? "Display" : /body|text/i.test(line) ? "Body" : "Primary";
+        add(quoted[1], role);
       }
     }
   }
 
-  // Format 3 — table: | **Role** | `"Font Name, fallback"` | usage |
-  if (fonts.length === 0) {
-    const tableRegex = /\|\s*\*\*([^*|]+)\*\*\s*\|\s*`?"?([^|`\n"]+)"?`?\s*\|/g;
-    while ((match = tableRegex.exec(content)) !== null) {
-      const role = match[1].trim();
-      if (role.toLowerCase() === "role" || role.toLowerCase() === "stack") continue;
-      const firstName = match[2].split(",")[0].replace(/["']/g, "").trim();
-      if (firstName && firstName.length < 60) {
-        fonts.push({ name: firstName, role });
-      }
-    }
-  }
-
-  return fonts.slice(0, 5);
+  return fonts.slice(0, 4);
 }
 
 function extractPrimaryColor(md: string): string | null {
