@@ -53,12 +53,37 @@ export default function DesignDetailPage({
     if (run && run.styleMd) {
       const parsed = parseStyleMd(run.styleMd);
       const preview = run.screenshot || null;
+
+      // Validate logo: only use brandAssets.logo if it's from the same host as the run URL,
+      // otherwise it may be a third-party embed (e.g. a Spotify widget on the page).
+      // Fall back to favicon / apple-icon which are always from the target domain.
+      const resolvedLogo = (() => {
+        const candidates = [
+          run.brandAssets?.logo,
+          run.brandAssets?.appleIcon,
+          run.brandAssets?.favicon,
+        ].filter(Boolean) as string[];
+        try {
+          const runHost = new URL(run.url).hostname.replace(/^www\./, "");
+          for (const c of candidates) {
+            if (c.startsWith("data:")) return c;
+            try {
+              const logoHost = new URL(c).hostname.replace(/^www\./, "");
+              if (logoHost === runHost || logoHost.endsWith(`.${runHost}`)) return c;
+            } catch { /* relative URL – always safe */ return c; }
+          }
+        } catch { /* run.url unparseable */ }
+        // No same-domain logo found; prefer apple-icon / favicon over an off-domain logo
+        return run.brandAssets?.appleIcon || run.brandAssets?.favicon || undefined;
+      })();
+
       const mapped = mapToDesignCard(
         parsed,
         run.slug || run.runId,
         run.url,
-        run.brandAssets?.logo,
-        preview
+        resolvedLogo,
+        preview,
+        run.title
       );
       const { payload } = extractStyleMdUi(run.styleMd);
       return { card: mapped, styleMd: run.styleMd, extras: payload };
