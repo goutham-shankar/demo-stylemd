@@ -28,14 +28,11 @@ import {
 } from "./api-types";
 import { API_BASE } from "./api-config";
 
-
 export { API_BASE };
 
-/** Non-terminal API statuses that should keep polling until markdown appears (legacy / unknown). */
 function isTerminalApiRunStatus(st: string): boolean {
   return ["completed", "failed", "canceled", "completed_with_warnings"].includes(st);
 }
-
 
 function mapApiSummary(raw: Record<string, unknown>): RunSummary {
   const st = String(raw.status ?? "completed");
@@ -50,7 +47,6 @@ function mapApiSummary(raw: Record<string, unknown>): RunSummary {
             ? "completed_with_warnings"
             : "completed";
   return {
-    // prefer runId (business key) over MongoDB _id
     id: String(raw.runId ?? raw.id ?? raw._id ?? ""),
     url: String(raw.url ?? ""),
     slug: String(raw.slug ?? ""),
@@ -66,8 +62,6 @@ function mapApiSummary(raw: Record<string, unknown>): RunSummary {
   };
 }
 
-
-/** Keep polling until the run is no longer in-flight or we have markdown (or a terminal status). */
 function runNeedsPoll(d: RunData): boolean {
   if (d.pending === true) return true;
   const st = String(d.status ?? "");
@@ -102,7 +96,6 @@ async function fetchRunBySlugOrId(slugOrId: string): Promise<RunData | null> {
     if (!j.ok || !j.data) return null;
     return j.data;
   } catch (e) {
-    // Suppress AbortError (navigation away / timeout) — not a real error
     if (e instanceof DOMException && e.name === "AbortError") return null;
     return null;
   }
@@ -127,7 +120,6 @@ interface AppState {
   lastRunSlug: string | null;
 }
 
-
 type AppAction =
   | { type: "SET_SCREEN"; screen: Screen }
   | { type: "SET_RUNS"; runs: RunSummary[] }
@@ -143,7 +135,6 @@ type AppAction =
   | { type: "SET_LAST_RUN"; slug: string | null }
   | { type: "GO_HOME" };
 
-
 const initialState: AppState = {
   screen: "home",
   runs: [],
@@ -155,14 +146,12 @@ const initialState: AppState = {
   lastRunSlug: null,
 };
 
-
 function reducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "SET_SCREEN":
       return { ...state, screen: action.screen };
 
     case "SET_RUNS": {
-      // Keep optimistic entries whose URL isn't represented in the real list yet
       const realUrls = new Set(action.runs.map((r) => r.url.toLowerCase().replace(/\/$/, "")));
       const optimisticToKeep = state.runs.filter(
         (r) => r.id.startsWith("optimistic-") && !realUrls.has(r.url.toLowerCase().replace(/\/$/, ""))
@@ -190,10 +179,7 @@ function reducer(state: AppState, action: AppAction): AppState {
         ...state,
         activeRun: {
           ...state.activeRun,
-          stages: {
-            ...state.activeRun.stages,
-            [action.stage]: { status: "running" },
-          },
+          stages: { ...state.activeRun.stages, [action.stage]: { status: "running" } },
         },
       };
 
@@ -216,10 +202,7 @@ function reducer(state: AppState, action: AppAction): AppState {
         ...state,
         activeRun: {
           ...state.activeRun,
-          stages: {
-            ...state.activeRun.stages,
-            [action.stage]: { status: "failed", error: action.error },
-          },
+          stages: { ...state.activeRun.stages, [action.stage]: { status: "failed", error: action.error } },
         },
       };
 
@@ -234,7 +217,10 @@ function reducer(state: AppState, action: AppAction): AppState {
       };
 
     case "SET_RESULT": {
-      const stillRunning = action.data.status === "running" || action.data.status === "processing" || action.data.pending === true;
+      const stillRunning =
+        action.data.status === "running" ||
+        action.data.status === "processing" ||
+        action.data.pending === true;
       return {
         ...state,
         resultData: action.data,
@@ -329,12 +315,10 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const viewPollGenRef = useRef(0);
   const currentRunIdRef = useRef<string | null>(null);
   const activeRunRef = useRef<ActiveRun | null>(null);
-  // Tracks whether isRunning has ever been true this session so the clear-on-stop
-  // effect doesn't wipe localStorage on the very first mount (before restoration).
   const wasRunningRef = useRef(false);
   activeRunRef.current = state.activeRun;
 
-  // ── Persist active run to localStorage so refresh can restore it ────────────
+  // ── Persist active run ────────────────────────────────────────────────────────
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (state.activeRun && state.isRunning) {
@@ -349,8 +333,6 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.activeRun, state.isRunning]);
 
-  // ── Clear persisted run when no longer running ──────────────────────────────
-  // Guard: only clear once we've actually *been* running — never on initial mount.
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!state.isRunning && wasRunningRef.current) {
@@ -359,6 +341,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.isRunning]);
 
+  // ── Fetch run list ────────────────────────────────────────────────────────────
   const fetchRuns = useCallback(async () => {
     try {
       if (!API_BASE) return;
@@ -369,116 +352,81 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         summaries?: Record<string, unknown>[];
         data?: Record<string, unknown>[];
       };
-      // Backend may return either { summaries: [...] } or { data: [...] }
       const list = Array.isArray(data.summaries)
         ? data.summaries
         : Array.isArray(data.data)
           ? data.data
           : [];
       if (list.length > 0 || data.ok) {
-        dispatch({
-          type: "SET_RUNS",
-          runs: list.map((s) => mapApiSummary(s)),
-        });
+        dispatch({ type: "SET_RUNS", runs: list.map((s) => mapApiSummary(s)) });
       }
     } catch {
-      // silently ignore; not critical
+      // silently ignore
     }
   }, []);
 
+  // ── SSE connection ────────────────────────────────────────────────────────────
+  // Called explicitly from startRun / viewRun / localStorage restore.
+  // currentRunIdRef.current must be set before calling this.
+  // The connection closes itself when stylemd_run_completed is received.
+  const connectSSE = useCallback(() => {
+    if (deadRef.current || !API_BASE) return;
 
-  // SSE connection – defined once after mount
-  useEffect(() => {
-    deadRef.current = false;
+    // Close any prior connection before opening a new one
+    esRef.current?.close();
+    esRef.current = null;
 
-    if (typeof window === "undefined") return;
+    // Capture the runId we are listening for at call time
+    const runId = currentRunIdRef.current;
+    if (!runId) return;
 
-    // Restore last completed run slug for the home screen
-    const savedSlug = localStorage.getItem(LAST_ID_KEY);
-    if (savedSlug) dispatch({ type: "SET_LAST_RUN", slug: savedSlug });
+    let reconnectCount = 0;
+    const MAX_RECONNECTS = 5;
+    let heartbeatId: ReturnType<typeof setTimeout>;
 
-    // ── Restore an in-progress run after page refresh ─────────────────────────
-    const savedActiveRunRaw = localStorage.getItem(ACTIVE_RUN_KEY);
-    if (savedActiveRunRaw) {
-      try {
-        const saved: PersistedRun = JSON.parse(savedActiveRunRaw);
-        if (saved.runId) {
-          // Immediately show the running screen with a skeleton pipeline
-          currentRunIdRef.current = saved.runId;
-          dispatch({
-            type: "SET_ACTIVE_RUN",
-            run: {
-              runId: saved.runId,
-              url: saved.url,
-              provider: saved.provider,
-              model: "",
-              stages: initStages(),
-              logs: [{ level: "info", message: "Reconnecting to in-progress run…", timestamp: Date.now() }],
-              startedAt: saved.startedAt,
-            },
-          });
-
-          // Poll the backend until the run finishes or we confirm it's gone
-          void (async () => {
-            for (let i = 0; i < 180 && !deadRef.current; i++) {
-              await new Promise((r) => setTimeout(r, 2500));
-              if (deadRef.current) return;
-              const runData = await fetchRunBySlugOrId(saved.runId);
-              if (!runData) continue; // transient fetch failure — keep trying
-              if (runData.status === "failed" || runData.status === "canceled") {
-                dispatch({ type: "RUN_ERROR", error: "Run ended: " + runData.status });
-                localStorage.removeItem(ACTIVE_RUN_KEY);
-                return;
-              }
-              if (isTerminalApiRunStatus(runData.status) && runData.styleMd) {
-                dispatch({
-                  type: "SET_RESULT",
-                  data: { ...runData, slug: runData.slug || saved.runId },
-                });
-                localStorage.removeItem(ACTIVE_RUN_KEY);
-                return;
-              }
-              // Still running — keep polling; SSE will also fire when done
-            }
-            // Timed out — clear and let user retry
-            if (!deadRef.current) {
-              localStorage.removeItem(ACTIVE_RUN_KEY);
-              dispatch({ type: "RUN_ERROR", error: "Run timed out waiting for results." });
-            }
-          })();
-        }
-      } catch {
-        localStorage.removeItem(ACTIVE_RUN_KEY);
-      }
-    }
-
-    let timeoutId: NodeJS.Timeout;
-
-    function connect() {
-
-      if (deadRef.current) return;
-
-      if (!API_BASE) {
-        console.warn("[SSE] NEXT_PUBLIC_API_BASE is unset and dev fallback failed; event stream disabled.");
-        return;
-      }
+    function open() {
+      if (deadRef.current || currentRunIdRef.current !== runId) return;
 
       const es = new EventSource(`${API_BASE}/api/session/events`);
       esRef.current = es;
 
-      // All events arrive as unnamed "message" events wrapped in an envelope:
-      // { type: "event", payload: PlaygroundEvent } or { type: "state_sync", payload: ... }
-      es.onmessage = (e: MessageEvent) => {
-        if (deadRef.current) return;
-        // Reset heartbeat on every incoming message so a busy stream doesn't trigger a false reconnect.
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          if (!deadRef.current) {
-            console.warn("[SSE] Heartbeat lost, reconnecting...");
+      function closeAndClean() {
+        clearTimeout(heartbeatId);
+        es.close();
+        if (esRef.current === es) esRef.current = null;
+      }
+
+      function resetHeartbeat() {
+        clearTimeout(heartbeatId);
+        heartbeatId = setTimeout(() => {
+          if (!deadRef.current && reconnectCount < MAX_RECONNECTS) {
+            reconnectCount++;
             es.close();
-            connect();
+            open();
           }
-        }, 45000);
+        }, 45_000);
+      }
+
+      es.onopen = () => {
+        reconnectCount = 0;
+        resetHeartbeat();
+
+        // One-time check: did the run already finish while we were connecting?
+        void (async () => {
+          if (deadRef.current || currentRunIdRef.current !== runId) return;
+          const rd = await fetchRunBySlugOrId(runId);
+          if (!rd || deadRef.current || currentRunIdRef.current !== runId) return;
+          if (isTerminalApiRunStatus(rd.status) && rd.styleMd && rd.pending !== true) {
+            dispatch({ type: "SET_RESULT", data: { ...rd, slug: rd.slug || runId } });
+            closeAndClean();
+            fetchRuns();
+          }
+        })();
+      };
+
+      es.onmessage = (e: MessageEvent) => {
+        if (deadRef.current || currentRunIdRef.current !== runId) return;
+        resetHeartbeat();
 
         let envelope: { type: string; payload: Record<string, unknown> };
         try { envelope = JSON.parse(e.data); } catch { return; }
@@ -491,12 +439,12 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
 
         const event = envelope.payload as Record<string, unknown> & { type: string };
         if (!event || typeof event.type !== "string") return;
+
         switch (event.type) {
           case "stylemd_run_started": {
             const data = event as unknown as SSERunStarted;
-            // Don't reset stages/logs if the SSE reconnected mid-run for the same run
+            // Only initialise if we don't already have this run active (avoid resetting mid-run on reconnect)
             if (activeRunRef.current?.runId === data.runId) break;
-            currentRunIdRef.current = data.runId;
             dispatch({
               type: "SET_ACTIVE_RUN",
               run: {
@@ -511,143 +459,152 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
             });
             break;
           }
+
           case "stylemd_stage_started": {
             const data = event as unknown as SSEStageStarted;
             dispatch({ type: "STAGE_STARTED", stage: data.stage });
             break;
           }
+
           case "stylemd_stage_completed": {
             const data = event as unknown as SSEStageCompleted;
             dispatch({ type: "STAGE_COMPLETED", stage: data.stage, durationMs: data.durationMs });
             break;
           }
+
           case "stylemd_stage_failed": {
             const data = event as unknown as SSEStageFailed;
             dispatch({ type: "STAGE_FAILED", stage: data.stage, error: data.error });
             break;
           }
+
           case "stylemd_action": {
             const data = event as unknown as SSEAction;
             dispatch({ type: "LOG_ADDED", entry: { ...data, timestamp: Date.now() } });
             break;
           }
+
           case "stylemd_run_completed": {
             const data = event as unknown as SSERunCompleted;
-            const ok =
-              data.status === "completed" || data.status === "completed_with_warnings";
+            const ok = data.status === "completed" || data.status === "completed_with_warnings";
+
             if (ok) {
               const showcaseUrl = data.showcase?.canonicalUrl;
-              const runId = data.runId;
 
-              const finish = (runData: RunData) => {
-                if (deadRef.current) return;
-                if (currentRunIdRef.current !== runId) return;
+              // Immediately render from SSE payload when styleMd is included
+              const cur = activeRunRef.current;
+              if (cur && data.styleMd) {
                 dispatch({
                   type: "SET_RESULT",
                   data: {
-                    ...runData,
-                    slug: runData.slug || runId,
+                    runId,
+                    url: cur.url,
+                    slug: runId,
+                    styleMd: data.styleMd,
+                    screenshot: "",
+                    provider: cur.provider,
+                    model: cur.model,
+                    status: data.status,
+                    createdAt: cur.startedAt,
                     ...(showcaseUrl ? { showcaseUrl } : {}),
                   },
                 });
-                fetchRuns();
-
-                const finalSlug = runData.slug || runData.runId;
-                if (finalSlug && typeof window !== "undefined") {
-                  localStorage.setItem(LAST_ID_KEY, finalSlug);
-                  localStorage.removeItem(ACTIVE_RUN_KEY);
-                  dispatch({ type: "SET_LAST_RUN", slug: finalSlug });
-                }
-              };
-
-              // Immediately show the result using data from the SSE event + activeRun.
-              const cur = activeRunRef.current;
-              if (cur && data.styleMd) {
-                const resultData: RunData = {
-                  runId,
-                  url: cur.url,
-                  slug: runId,
-                  styleMd: data.styleMd,
-                  screenshot: "",
-                  provider: cur.provider,
-                  model: cur.model,
-                  status: data.status,
-                  createdAt: cur.startedAt,
-                };
-                finish(resultData);
               }
 
-
-
-              // Continue polling the DB as fallback to get the full record (screenshot, persisted slug, metadata, etc.)
+              // Fetch the full DB record to get screenshot, persisted slug, metadata.
+              // This is a one-time fetch-until-settled, NOT a polling workaround.
               void (async () => {
-                console.log(`[SSE] Finalizing run ${runId}, polling DB for full record...`);
-                for (let attempt = 0; attempt < 90 && !deadRef.current; attempt++) {
+                for (let attempt = 0; attempt < 30 && !deadRef.current; attempt++) {
                   if (currentRunIdRef.current !== runId) return;
-                  const runData = await fetchRunBySlugOrId(runId);
-                  const isPending = runData?.pending === true || runData?.status === "processing";
-                  if (runData && (isTerminalApiRunStatus(runData.status) || (runData.styleMd && !isPending))) {
-                    console.log(`[SSE] Run ${runId} settled in DB, finishing.`);
-                    finish(runData);
-                    return;
+                  const rd = await fetchRunBySlugOrId(runId);
+                  const isPending = rd?.pending === true || rd?.status === "processing";
+                  if (rd && (isTerminalApiRunStatus(rd.status) || (rd.styleMd && !isPending))) {
+                    dispatch({
+                      type: "SET_RESULT",
+                      data: { ...rd, slug: rd.slug || runId, ...(showcaseUrl ? { showcaseUrl } : {}) },
+                    });
+                    const finalSlug = rd.slug || rd.runId;
+                    if (finalSlug && typeof window !== "undefined") {
+                      localStorage.setItem(LAST_ID_KEY, finalSlug);
+                      localStorage.removeItem(ACTIVE_RUN_KEY);
+                      dispatch({ type: "SET_LAST_RUN", slug: finalSlug });
+                    }
+                    break;
                   }
                   await new Promise((r) => setTimeout(r, 1500));
                 }
-                if (!deadRef.current && currentRunIdRef.current === runId) {
-                  const last = await fetchRunBySlugOrId(runId);
-                  if (last) finish(last);
-                }
               })();
             } else {
+              // failed / canceled
               dispatch({ type: "RUN_ERROR", error: data.error ?? "Pipeline failed" });
             }
+
+            // Run is done — close the SSE connection (do not reconnect)
+            closeAndClean();
+            fetchRuns();
             break;
           }
         }
       };
 
-      es.onopen = () => {
-        clearTimeout(timeoutId);
-        // If no event for 45s, consider connection lost
-        timeoutId = setTimeout(() => {
-          if (!deadRef.current) {
-            console.warn("[SSE] Heartbeat lost, reconnecting...");
-            es.close();
-            connect();
-          }
-        }, 45000);
-
-        // On reconnect while an active run is in-flight, poll the DB once.
-        // If the run has already completed (styleMd ready), transition to the result screen
-        // so the user isn't left watching a stale pipeline view after a disconnect.
-        const cur = activeRunRef.current;
-        if (cur) {
-          void (async () => {
-            const runData = await fetchRunBySlugOrId(cur.runId);
-            if (!runData || deadRef.current) return;
-            if (isTerminalApiRunStatus(runData.status) || (runData.styleMd && !runNeedsPoll(runData))) {
-              dispatch({ type: "SET_RESULT", data: { ...runData, slug: runData.slug || cur.runId } });
-            }
-          })();
-        }
-      };
-
       es.onerror = () => {
+        clearTimeout(heartbeatId);
         es.close();
-        clearTimeout(timeoutId);
-        setTimeout(connect, 3000);
+        // Reconnect only if run is still being tracked and we haven't hit the limit
+        if (!deadRef.current && currentRunIdRef.current === runId && reconnectCount < MAX_RECONNECTS) {
+          reconnectCount++;
+          setTimeout(open, 3_000 * reconnectCount);
+        }
       };
     }
 
+    open();
+  }, [fetchRuns]);
+
+  // ── Mount effect ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    deadRef.current = false;
+    if (typeof window === "undefined") return;
+
+    // Restore last completed run slug for the home screen
+    const savedSlug = localStorage.getItem(LAST_ID_KEY);
+    if (savedSlug) dispatch({ type: "SET_LAST_RUN", slug: savedSlug });
+
+    // Restore an in-progress run after page refresh.
+    // Connect SSE immediately — the onopen handler will detect if it already finished.
+    const savedActiveRunRaw = localStorage.getItem(ACTIVE_RUN_KEY);
+    if (savedActiveRunRaw) {
+      try {
+        const saved: PersistedRun = JSON.parse(savedActiveRunRaw);
+        if (saved.runId) {
+          currentRunIdRef.current = saved.runId;
+          dispatch({
+            type: "SET_ACTIVE_RUN",
+            run: {
+              runId: saved.runId,
+              url: saved.url,
+              provider: saved.provider,
+              model: "",
+              stages: initStages(),
+              logs: [{ level: "info", message: "Reconnecting to in-progress run…", timestamp: Date.now() }],
+              startedAt: saved.startedAt,
+            },
+          });
+          connectSSE(); // SSE onopen does a one-time check; no polling loop needed
+        }
+      } catch {
+        localStorage.removeItem(ACTIVE_RUN_KEY);
+      }
+    }
 
     fetchRuns();
-    connect();
 
     return () => {
       deadRef.current = true;
       esRef.current?.close();
+      esRef.current = null;
     };
-  }, [fetchRuns]); // fetchRuns is stable (useCallback with [])
+  }, [fetchRuns, connectSSE]);
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
@@ -658,32 +615,28 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Cancel any in-flight viewRun polls so they don't overwrite the new run's result
+      // Invalidate any in-flight viewRun so it doesn't overwrite this new run
       ++viewPollGenRef.current;
 
+      // If we get a 409, find and attach to the existing run
       const handleExistingRun = async (targetUrl: string) => {
         try {
           const normalizedTarget = targetUrl.toLowerCase().replace(/\/$/, "");
-
           const runsRes = await fetchWithTimeout(`${API_BASE}/api/stylemd/runs`);
           if (!runsRes.ok) return false;
           const data = await runsRes.json();
-          // Backend may return { summaries: [...] } or { data: [...] }
           const list = Array.isArray(data.summaries)
             ? data.summaries
             : Array.isArray(data.data)
             ? data.data
             : [];
-
           const existing = list.find((r: Record<string, unknown>) => {
             const rUrl = String(r.url || "").toLowerCase().replace(/\/$/, "");
             return rUrl === normalizedTarget && r.status === "running";
           });
-
           if (existing) {
             const existingRunId = String(existing.runId ?? existing.id ?? "");
             currentRunIdRef.current = existingRunId;
-            // Preserve in-flight stages/logs if we already have this run active
             const cur = activeRunRef.current;
             const stages = cur?.runId === existingRunId ? cur.stages : initStages();
             const logs = cur?.runId === existingRunId ? cur.logs : [];
@@ -699,6 +652,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                 startedAt: String(existing.createdAt ?? new Date().toISOString()),
               },
             });
+            connectSSE(); // attach SSE to the existing run
             return true;
           }
         } catch (e) {
@@ -710,10 +664,9 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: "NETWORK_ERROR", error: null });
       dispatch({ type: "RUN_ERROR", error: null });
 
-      // Optimistic: add to library immediately with "running" status
+      // Optimistic: add to library immediately
       let hostname = url.toLowerCase().replace(/\/$/, "");
       try { hostname = new URL(url).hostname; } catch { /* leave as-is */ }
-
       dispatch({
         type: "ADD_OPTIMISTIC_RUN",
         summary: {
@@ -746,23 +699,18 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         }
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
-        const payload: { ok: boolean; runId?: string; cached?: boolean; data?: RunData } = await res.json();
-        
-        if (payload.cached && payload.data) {
-          dispatch({ type: "SET_RESULT", data: { ...payload.data, slug: payload.data.slug || payload.data.runId } });
-          const finalSlug = payload.data.slug || payload.data.runId;
-          if (finalSlug) {
-            localStorage.setItem(LAST_ID_KEY, finalSlug);
-            dispatch({ type: "SET_LAST_RUN", slug: finalSlug });
+        const data: { ok: boolean; runId: string; cached?: boolean } = await res.json();
+
+        // Cache hit: the run already completed — fetch and display without opening SSE
+        if (data.cached) {
+          const runData = await fetchRunBySlugOrId(data.runId);
+          if (runData) {
+            dispatch({ type: "SET_RESULT", data: { ...runData, slug: runData.slug || data.runId } });
           }
           return;
         }
 
-        const runId = payload.runId;
-        if (!runId) throw new Error("No runId returned from server");
-
-        currentRunIdRef.current = runId;
-
+        currentRunIdRef.current = data.runId;
         dispatch({
           type: "SET_ACTIVE_RUN",
           run: {
@@ -775,6 +723,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
             startedAt: new Date().toISOString(),
           },
         });
+        connectSSE(); // open SSE only for a new (non-cached) run
       } catch (err) {
         dispatch({
           type: "NETWORK_ERROR",
@@ -783,45 +732,38 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "RUN_ERROR", error: null });
       }
     },
-    [state.isRunning]
+    [state.isRunning, connectSSE]
   );
 
-  const viewRun = useCallback(async (slugOrId: string) => {
-    dispatch({ type: "NETWORK_ERROR", error: null });
-    const gen = ++viewPollGenRef.current;
-    try {
-      const data = await fetchRunBySlugOrId(slugOrId);
-      if (!data) throw new Error(`HTTP 404`);
+  const viewRun = useCallback(
+    async (slugOrId: string) => {
+      dispatch({ type: "NETWORK_ERROR", error: null });
+      const gen = ++viewPollGenRef.current;
+      try {
+        const data = await fetchRunBySlugOrId(slugOrId);
+        if (!data) throw new Error(`HTTP 404`);
 
-      // Bail out if startRun fired while we were fetching — don't overwrite the new run
-      if (gen !== viewPollGenRef.current) return;
-      dispatch({ type: "SET_RESULT", data: { ...data, slug: data.slug || slugOrId } });
+        // Bail out if startRun fired while we were fetching
+        if (gen !== viewPollGenRef.current) return;
+        dispatch({ type: "SET_RESULT", data: { ...data, slug: data.slug || slugOrId } });
 
-      if (runNeedsPoll(data)) {
-        void (async () => {
-          for (let i = 0; i < 120 && gen === viewPollGenRef.current; i++) {
-            await new Promise((r) => setTimeout(r, 2000));
-            const next = await fetchRunBySlugOrId(data.runId || slugOrId);
-            if (!next || gen !== viewPollGenRef.current) return;
-            dispatch({ type: "SET_RESULT", data: next });
-            if (!runNeedsPoll(next)) return;
-          }
-          if (gen === viewPollGenRef.current) {
-            dispatch({
-              type: "NETWORK_ERROR",
-              error:
-                "Still generating… If this persists, confirm the API at NEXT_PUBLIC_API_BASE is running.",
-            });
-          }
-        })();
+        if (runNeedsPoll(data)) {
+          // Run is still in progress — set the tracked runId and open SSE.
+          // The SSE stylemd_run_completed event will clear the loading state;
+          // no polling loop is needed.
+          currentRunIdRef.current = data.runId;
+          connectSSE();
+        }
+      } catch (err) {
+        if (gen !== viewPollGenRef.current) return;
+        dispatch({
+          type: "NETWORK_ERROR",
+          error: err instanceof Error ? err.message : "Failed to load run",
+        });
       }
-    } catch (err) {
-      dispatch({
-        type: "NETWORK_ERROR",
-        error: err instanceof Error ? err.message : "Failed to load run",
-      });
-    }
-  }, []);
+    },
+    [connectSSE]
+  );
 
   const goHome = useCallback(() => {
     dispatch({ type: "GO_HOME" });
@@ -833,7 +775,6 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "GO_HOME" });
     await startRun(url, provider, true);
   }, [state.resultData, startRun]);
-
 
   const dismissNetworkError = useCallback(() => {
     dispatch({ type: "NETWORK_ERROR", error: null });

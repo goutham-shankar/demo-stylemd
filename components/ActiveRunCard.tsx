@@ -14,24 +14,30 @@ function cleanHostname(url: string): string {
 }
 
 export default function ActiveRunCard() {
-  const { isRunning, activeRun } = useSSE();
+  const { isRunning, activeRun, runs } = useSSE();
   const pathname = usePathname();
   const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
 
+  // If SSE isn't tracking a run, fall back to the first API-reported running run
+  const apiRunningRun = useMemo(() => {
+    if (isRunning && activeRun) return null;
+    return runs.find((r) => r.status === "running") ?? null;
+  }, [isRunning, activeRun, runs]);
+
+  const effectiveRunId = activeRun?.runId ?? apiRunningRun?.id ?? null;
+
   // Reset dismiss when a new run starts; fade in
-  const runId = activeRun?.runId ?? null;
   useEffect(() => {
-    if (runId) {
+    if (effectiveRunId) {
       setDismissed(false);
-      // Small delay so CSS transition fires after mount
       const t = setTimeout(() => setVisible(true), 50);
       return () => clearTimeout(t);
     } else {
       setVisible(false);
     }
-  }, [runId]);
+  }, [effectiveRunId]);
 
   const completedStages = useMemo(() => {
     if (!activeRun?.stages) return 0;
@@ -48,12 +54,17 @@ export default function ActiveRunCard() {
     return activeRun.logs[activeRun.logs.length - 1];
   }, [activeRun?.logs]);
 
-  if (!isRunning || !activeRun || dismissed) return null;
+  const showCard = (isRunning && activeRun) || apiRunningRun;
+  if (!showCard || dismissed) return null;
   // Don't show on /generate — PipelineView already covers it
   if (pathname?.startsWith("/generate")) return null;
 
-  const hostname = cleanHostname(activeRun.url);
+  const displayUrl = activeRun?.url ?? apiRunningRun?.url ?? "";
+  const hostname = cleanHostname(displayUrl);
   const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
+  const navigateTo = apiRunningRun && !activeRun
+    ? `/generate?run=${encodeURIComponent(apiRunningRun.slug || apiRunningRun.id)}`
+    : "/generate";
 
   return (
     <div
@@ -97,7 +108,7 @@ export default function ActiveRunCard() {
 
         {/* Site info */}
         <p className="text-sm font-bold text-gray-900 truncate mb-0.5">{hostname}</p>
-        <p className="text-[11px] text-gray-400 truncate mb-3">{activeRun.url}</p>
+        <p className="text-[11px] text-gray-400 truncate mb-3">{displayUrl}</p>
 
         {/* Stage progress */}
         {totalStages > 0 && (
@@ -116,7 +127,7 @@ export default function ActiveRunCard() {
         {/* CTA */}
         <button
           type="button"
-          onClick={() => router.push("/generate")}
+          onClick={() => router.push(navigateTo)}
           className="w-full flex items-center justify-center gap-2 rounded-xl bg-orange-50 border border-orange-200 px-3 py-2 text-xs font-semibold text-orange-600 hover:bg-orange-100 transition-colors"
         >
           <RefreshCw size={12} className="animate-spin" />

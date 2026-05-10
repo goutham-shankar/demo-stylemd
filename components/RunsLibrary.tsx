@@ -111,7 +111,7 @@ export default function RunsLibrary() {
       const cards: RunCard[] = list
         .filter((r) => {
           const st = String(r.status ?? "");
-          return st === "completed" || st === "completed_with_warnings";
+          return st === "completed" || st === "completed_with_warnings" || st === "running";
         })
         .map((r) => ({
           slug: String(r.slug ?? r.runId ?? r.id ?? ""),
@@ -137,6 +137,9 @@ export default function RunsLibrary() {
   }, [fetchRuns]);
 
   const filtered = runs.filter((run) => {
+    // Don't show a duplicate card for the run already tracked by SSE
+    if (isRunning && activeRun && run.runId === activeRun.runId) return false;
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const host = cleanHostname(run.url).toLowerCase();
@@ -242,7 +245,7 @@ export default function RunsLibrary() {
         )}
 
         {/* Empty */}
-        {!loading && !error && filtered.length === 0 && (
+        {!loading && !error && !isRunning && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
             <Globe size={36} className="text-secondary opacity-40" />
             <p className="text-base font-semibold text-primary">
@@ -264,10 +267,15 @@ export default function RunsLibrary() {
           </div>
         )}
 
+        {/* Shimmer animation shared by running cards */}
+        {(isRunning || filtered.some((r) => r.status === "running")) && (
+          <style>{`@keyframes shimmer { to { transform: translateX(200%) } }`}</style>
+        )}
+
         {/* Grid */}
         {!loading && !error && (isRunning || filtered.length > 0) && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* In-progress run card — always first */}
+            {/* In-progress run card tracked by SSE — always first */}
             {isRunning && activeRun && (
               <button
                 type="button"
@@ -275,9 +283,7 @@ export default function RunsLibrary() {
                 className="group text-left block overflow-hidden border-2 border-orange-300 bg-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
                 style={{ borderRadius: 16 }}
               >
-                {/* Animated skeleton thumbnail */}
                 <div className="relative h-48 bg-gradient-to-br from-orange-50 to-orange-100 flex flex-col items-center justify-center gap-3 overflow-hidden">
-                  {/* Shimmer */}
                   <div
                     className="absolute inset-0 -translate-x-full"
                     style={{
@@ -285,7 +291,6 @@ export default function RunsLibrary() {
                       animation: "shimmer 1.8s infinite",
                     }}
                   />
-                  <style>{`@keyframes shimmer { to { transform: translateX(200%) } }`}</style>
                   <div className="relative flex h-3 w-3">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
                     <span className="relative inline-flex h-3 w-3 rounded-full bg-orange-500" />
@@ -295,7 +300,6 @@ export default function RunsLibrary() {
                     {cleanHostname(activeRun.url)}
                   </p>
                 </div>
-                {/* Footer */}
                 <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
@@ -320,43 +324,93 @@ export default function RunsLibrary() {
                 </div>
               </button>
             )}
-            {filtered.map((run) => (
-              <Link
-                key={run.slug || run.runId}
-                href={`/generate?run=${encodeURIComponent(run.slug || run.runId)}`}
-                className="group block overflow-hidden border border-light bg-white shadow-sm hover:border-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{ borderRadius: 16 }}
-              >
-                {/* Thumbnail with URL overlay on hover */}
-                <div className="relative h-48 overflow-hidden">
-                  <CardThumbnail run={run} />
-                  {/* Hover overlay showing full URL */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 backdrop-blur-[2px]">
-                    <Globe size={20} className="text-white/80" />
-                    <span className="text-white text-xs font-medium px-4 text-center break-all line-clamp-2">
-                      {run.url}
-                    </span>
-                    <span className="mt-1 px-3 py-1 bg-white/20 border border-white/30 rounded-full text-white text-xs font-semibold backdrop-blur-sm">
-                      View Style Guide →
+            {filtered.map((run) => {
+              // Running API runs (not tracked by SSE) get the animated card
+              if (run.status === "running") {
+                return (
+                  <button
+                    key={run.slug || run.runId}
+                    type="button"
+                    onClick={() => router.push(`/generate?run=${encodeURIComponent(run.slug || run.runId)}`)}
+                    className="group text-left block overflow-hidden border-2 border-orange-300 bg-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                    style={{ borderRadius: 16 }}
+                  >
+                    <div className="relative h-48 bg-gradient-to-br from-orange-50 to-orange-100 flex flex-col items-center justify-center gap-3 overflow-hidden">
+                      <div
+                        className="absolute inset-0 -translate-x-full"
+                        style={{
+                          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)",
+                          animation: "shimmer 1.8s infinite",
+                        }}
+                      />
+                      <div className="relative flex h-3 w-3">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                        <span className="relative inline-flex h-3 w-3 rounded-full bg-orange-500" />
+                      </div>
+                      <p className="text-orange-500 text-xs font-bold uppercase tracking-widest">Generating</p>
+                      <p className="text-orange-400 text-sm font-semibold truncate px-6 max-w-full">
+                        {run.title || cleanHostname(run.url)}
+                      </p>
+                    </div>
+                    <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <div className="relative flex h-2 w-2 flex-shrink-0">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                          </div>
+                          <h3 className="text-base font-bold text-gray-900 truncate">
+                            {run.title || cleanHostname(run.url)}
+                          </h3>
+                        </div>
+                        <p className="text-xs text-orange-400 font-medium font-manrope">Running…</p>
+                      </div>
+                      <span className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 bg-orange-500 text-white rounded-[10px] font-semibold text-sm whitespace-nowrap">
+                        <RefreshCw size={12} className="animate-spin" />
+                        Live
+                      </span>
+                    </div>
+                  </button>
+                );
+              }
+
+              return (
+                <Link
+                  key={run.slug || run.runId}
+                  href={`/generate?run=${encodeURIComponent(run.slug || run.runId)}`}
+                  className="group block overflow-hidden border border-light bg-white shadow-sm hover:border-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2"
+                  style={{ borderRadius: 16 }}
+                >
+                  {/* Thumbnail with URL overlay on hover */}
+                  <div className="relative h-48 overflow-hidden">
+                    <CardThumbnail run={run} />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 backdrop-blur-[2px]">
+                      <Globe size={20} className="text-white/80" />
+                      <span className="text-white text-xs font-medium px-4 text-center break-all line-clamp-2">
+                        {run.url}
+                      </span>
+                      <span className="mt-1 px-3 py-1 bg-white/20 border border-white/30 rounded-full text-white text-xs font-semibold backdrop-blur-sm">
+                        View Style Guide →
+                      </span>
+                    </div>
+                  </div>
+                  {/* Card footer */}
+                  <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold text-primary truncate group-hover:text-cta transition-colors duration-150">
+                        {run.title || cleanHostname(run.url)}
+                      </h3>
+                      <p className="text-xs text-secondary font-manrope truncate">
+                        {cleanHostname(run.url)}
+                      </p>
+                    </div>
+                    <span className="flex-shrink-0 px-4 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:shadow-md group-hover:opacity-90 transition-all duration-150 whitespace-nowrap">
+                      View →
                     </span>
                   </div>
-                </div>
-                {/* Card footer */}
-                <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
-                  <div className="min-w-0">
-                    <h3 className="text-base font-bold text-primary truncate group-hover:text-cta transition-colors duration-150">
-                      {run.title || cleanHostname(run.url)}
-                    </h3>
-                    <p className="text-xs text-secondary font-manrope truncate">
-                      {cleanHostname(run.url)}
-                    </p>
-                  </div>
-                  <span className="flex-shrink-0 px-4 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:shadow-md group-hover:opacity-90 transition-all duration-150 whitespace-nowrap">
-                    View →
-                  </span>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
 
