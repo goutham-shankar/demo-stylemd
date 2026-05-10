@@ -10,7 +10,8 @@ import {
   Code2,
   Check,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from "lucide-react";
 import type { DesignCard } from "@/lib/design-cards";
 import type { RunData } from "@/lib/api-types";
@@ -280,7 +281,32 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                     </div>
                   )}
                   <div>
-                    <h1 className="text-4xl font-black tracking-tight text-primary mb-2">{card.name}</h1>
+                    <div className="flex items-center gap-2 mb-2">
+                      {card.url ? (
+                        <a
+                          href={card.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+                          title={`Visit ${card.url}`}
+                        >
+                          <h1 className="text-4xl font-black tracking-tight text-primary group-hover:underline underline-offset-4 decoration-2">{card.name}</h1>
+                        </a>
+                      ) : (
+                        <h1 className="text-4xl font-black tracking-tight text-primary">{card.name}</h1>
+                      )}
+                      {card.url && (
+                        <a
+                          href={card.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`Open ${card.url}`}
+                          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-medium bg-white text-secondary shadow-sm transition-all hover:border-gray-400 hover:text-primary hover:shadow-md active:scale-95"
+                        >
+                          <ExternalLink size={14} />
+                        </a>
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {card.tags.map(tag => (
                         <span
