@@ -329,12 +329,16 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const viewPollGenRef = useRef(0);
   const currentRunIdRef = useRef<string | null>(null);
   const activeRunRef = useRef<ActiveRun | null>(null);
+  // Tracks whether isRunning has ever been true this session so the clear-on-stop
+  // effect doesn't wipe localStorage on the very first mount (before restoration).
+  const wasRunningRef = useRef(false);
   activeRunRef.current = state.activeRun;
 
   // ── Persist active run to localStorage so refresh can restore it ────────────
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (state.activeRun && state.isRunning) {
+      wasRunningRef.current = true;
       const persisted: PersistedRun = {
         runId: state.activeRun.runId,
         url: state.activeRun.url,
@@ -346,10 +350,12 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   }, [state.activeRun, state.isRunning]);
 
   // ── Clear persisted run when no longer running ──────────────────────────────
+  // Guard: only clear once we've actually *been* running — never on initial mount.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!state.isRunning) {
+    if (!state.isRunning && wasRunningRef.current) {
       localStorage.removeItem(ACTIVE_RUN_KEY);
+      wasRunningRef.current = false;
     }
   }, [state.isRunning]);
 
