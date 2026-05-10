@@ -16,7 +16,7 @@ export default function GenerateRunSlugRedirectPage() {
       router.replace("/generate");
       return;
     }
-    router.replace(`/generate?run=${encodeURIComponent(runSlug)}`);
+    router.replace(`/styles/${encodeURIComponent(runSlug)}`);
   }, [router, runSlug]);
 
   return (

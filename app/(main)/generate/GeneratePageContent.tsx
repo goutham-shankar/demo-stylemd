@@ -81,15 +81,11 @@ export default function GeneratePageContent() {
     if (screen !== "result" || !resultData) return;
     const activeSlug = resultData.slug?.trim() || resultData.runId?.trim();
     if (!activeSlug) return;
-    const current = searchParams.get("run")?.trim();
-    if (current === activeSlug) return;
     
-    // Only update the URL if we are transitioning from an empty URL (new run finished)
-    // or if the URL currently holds the runId and we want to swap it for the pretty slug
-    if (!current || current === resultData.runId?.trim()) {
-      router.replace(`/generate?run=${encodeURIComponent(activeSlug)}`, { scroll: false });
-    }
-  }, [screen, resultData, searchParams, router]);
+    // Once the generation is complete (or if we resolved a deep-link),
+    // cleanly hand off to the static viewer page.
+    router.replace(`/styles/${encodeURIComponent(activeSlug)}`);
+  }, [screen, resultData, router]);
 
   const resultDataRef = useRef(resultData);
   resultDataRef.current = resultData;

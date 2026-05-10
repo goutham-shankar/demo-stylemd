@@ -252,11 +252,8 @@ export default function Hero() {
                 <button
                   key={run.id}
                   onClick={() => {
-                    // Navigate with the slug in the URL so GeneratePageContent
-                    // can call viewRun via its existing useEffect([slug]) path.
-                    // Calling viewRun here and then pushing /generate (no slug)
-                    // races against the "home → redirect /" guard and loses.
-                    router.push(`/generate?run=${encodeURIComponent(run.slug || run.id)}`);
+                    // Navigate directly to the static view page for completed runs
+                    router.push(`/styles/${encodeURIComponent(run.slug || run.id)}`);
                   }}
                   className="flex items-center justify-between p-4 bg-surface rounded-xl border border-medium hover:border-dark transition-all duration-150 group"
                 >
@@ -286,7 +283,7 @@ export default function Hero() {
           {lastRunSlug && !isRunning && (
           <div className="max-w-3xl mx-auto mt-6 px-2">
             <Link
-              href={`/generate?run=${encodeURIComponent(lastRunSlug)}`}
+              href={`/styles/${encodeURIComponent(lastRunSlug)}`}
               className="block p-4 bg-blue-50 border border-blue-100 rounded-xl text-center hover:bg-blue-100 transition-all duration-150"
             >
               <span className="text-sm font-bold text-accent-blue">

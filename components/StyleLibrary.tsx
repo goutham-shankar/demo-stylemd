@@ -319,7 +319,7 @@ export default function StyleLibrary() {
             {filtered.map((run) => (
               <Link
                 key={run.slug || run.runId}
-                href={`/generate?run=${encodeURIComponent(run.slug || run.runId)}`}
+                href={`/styles/${encodeURIComponent(run.slug || run.runId)}`}
                 className="group block overflow-hidden border border-light bg-white shadow-sm hover:border-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2"
                 style={{ borderRadius: 16 }}
               >
