@@ -499,7 +499,8 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                   data: {
                     runId,
                     url: cur.url,
-                    slug: runId,
+                    // Use the friendly slug stored at run-start; fall back to runId only if missing.
+                    slug: cur.slug || runId,
                     styleMd: data.styleMd,
                     screenshot: "",
                     provider: cur.provider,
@@ -699,7 +700,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
         }
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
-        const data: { ok: boolean; runId: string; cached?: boolean } = await res.json();
+        const data: { ok: boolean; runId: string; slug?: string; cached?: boolean } = await res.json();
 
         // Cache hit: the run already completed — fetch and display without opening SSE
         if (data.cached) {
@@ -715,6 +716,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
           type: "SET_ACTIVE_RUN",
           run: {
             runId: data.runId,
+            slug: data.slug,  // preserve the backend-assigned slug for use in SSE completion handler
             url,
             provider,
             model: "",
