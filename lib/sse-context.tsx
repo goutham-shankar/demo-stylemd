@@ -101,7 +101,9 @@ async function fetchRunBySlugOrId(slugOrId: string): Promise<RunData | null> {
     const j = (await res.json()) as { ok?: boolean; data?: RunData };
     if (!j.ok || !j.data) return null;
     return j.data;
-  } catch {
+  } catch (e) {
+    // Suppress AbortError (navigation away / timeout) — not a real error
+    if (e instanceof DOMException && e.name === "AbortError") return null;
     return null;
   }
 }
@@ -310,6 +312,16 @@ export function useSSE(): SSEContextValue {
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 
+const ACTIVE_RUN_KEY = "stylemd_active_run";
+const LAST_ID_KEY = "stylemd_last_run_id";
+
+type PersistedRun = {
+  runId: string;
+  url: string;
+  provider: Provider;
+  startedAt: string;
+};
+
 export function SSEProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const esRef = useRef<EventSource | null>(null);
@@ -318,6 +330,28 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const currentRunIdRef = useRef<string | null>(null);
   const activeRunRef = useRef<ActiveRun | null>(null);
   activeRunRef.current = state.activeRun;
+
+  // ── Persist active run to localStorage so refresh can restore it ────────────
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (state.activeRun && state.isRunning) {
+      const persisted: PersistedRun = {
+        runId: state.activeRun.runId,
+        url: state.activeRun.url,
+        provider: state.activeRun.provider,
+        startedAt: state.activeRun.startedAt,
+      };
+      localStorage.setItem(ACTIVE_RUN_KEY, JSON.stringify(persisted));
+    }
+  }, [state.activeRun, state.isRunning]);
+
+  // ── Clear persisted run when no longer running ──────────────────────────────
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!state.isRunning) {
+      localStorage.removeItem(ACTIVE_RUN_KEY);
+    }
+  }, [state.isRunning]);
 
   const fetchRuns = useCallback(async () => {
     try {
@@ -350,12 +384,66 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   // SSE connection – defined once after mount
   useEffect(() => {
     deadRef.current = false;
-    const LAST_ID_KEY = "stylemd_last_run_id";
 
-    // Load last run ID from localStorage on mount
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(LAST_ID_KEY);
-      if (saved) dispatch({ type: "SET_LAST_RUN", slug: saved });
+    if (typeof window === "undefined") return;
+
+    // Restore last completed run slug for the home screen
+    const savedSlug = localStorage.getItem(LAST_ID_KEY);
+    if (savedSlug) dispatch({ type: "SET_LAST_RUN", slug: savedSlug });
+
+    // ── Restore an in-progress run after page refresh ─────────────────────────
+    const savedActiveRunRaw = localStorage.getItem(ACTIVE_RUN_KEY);
+    if (savedActiveRunRaw) {
+      try {
+        const saved: PersistedRun = JSON.parse(savedActiveRunRaw);
+        if (saved.runId) {
+          // Immediately show the running screen with a skeleton pipeline
+          currentRunIdRef.current = saved.runId;
+          dispatch({
+            type: "SET_ACTIVE_RUN",
+            run: {
+              runId: saved.runId,
+              url: saved.url,
+              provider: saved.provider,
+              model: "",
+              stages: initStages(),
+              logs: [{ type: "stylemd_action", action: "Reconnecting to in-progress run…", timestamp: Date.now() }],
+              startedAt: saved.startedAt,
+            },
+          });
+
+          // Poll the backend until the run finishes or we confirm it's gone
+          void (async () => {
+            for (let i = 0; i < 180 && !deadRef.current; i++) {
+              await new Promise((r) => setTimeout(r, 2500));
+              if (deadRef.current) return;
+              const runData = await fetchRunBySlugOrId(saved.runId);
+              if (!runData) continue; // transient fetch failure — keep trying
+              if (runData.status === "failed" || runData.status === "canceled") {
+                dispatch({ type: "RUN_ERROR", error: "Run ended: " + runData.status });
+                localStorage.removeItem(ACTIVE_RUN_KEY);
+                return;
+              }
+              if (isTerminalApiRunStatus(runData.status) && runData.styleMd) {
+                dispatch({
+                  type: "SET_RESULT",
+                  data: { ...runData, slug: runData.slug || saved.runId },
+                });
+                localStorage.removeItem(ACTIVE_RUN_KEY);
+                return;
+              }
+              // Still running — keep polling; SSE will also fire when done
+            }
+            // Timed out — clear and let user retry
+            if (!deadRef.current) {
+              localStorage.removeItem(ACTIVE_RUN_KEY);
+              dispatch({ type: "RUN_ERROR", error: "Run timed out waiting for results." });
+            }
+          })();
+        }
+      } catch {
+        localStorage.removeItem(ACTIVE_RUN_KEY);
+      }
     }
 
     let timeoutId: NodeJS.Timeout;
@@ -461,6 +549,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
                 const finalSlug = runData.slug || runData.runId;
                 if (finalSlug && typeof window !== "undefined") {
                   localStorage.setItem(LAST_ID_KEY, finalSlug);
+                  localStorage.removeItem(ACTIVE_RUN_KEY);
                   dispatch({ type: "SET_LAST_RUN", slug: finalSlug });
                 }
               };
