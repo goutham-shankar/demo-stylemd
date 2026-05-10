@@ -260,22 +260,25 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
             {/* Brand Identity Header */}
             <header className="mb-10">
               <div className="mb-6 flex items-start justify-between">
-                <div className="flex items-center gap-5">
-                  <div 
-                    className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl shadow-inner border border-medium"
-                    style={{ backgroundColor: logoBg }}
-                  >
-                    {(typeof card.logo === "string" && (card.logo.startsWith("/") || card.logo.startsWith("data:image") || card.logo.startsWith("http://") || card.logo.startsWith("https://"))) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
+                  <div className="flex items-start gap-5">
+                  {/* Logo — no forced brand bg for real images; letter fallback uses brand color */}
+                  {(typeof card.logo === "string" && (card.logo.startsWith("/") || card.logo.startsWith("data:image") || card.logo.startsWith("http://") || card.logo.startsWith("https://"))) ? (
+                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={card.logo}
                         alt={card.name}
-                        className={`h-12 w-12 object-contain ${card.logo.startsWith("/") ? "filter brightness-0 invert" : ""}`}
+                        className="h-full w-full object-contain"
                       />
-                    ) : (
+                    </div>
+                  ) : (
+                    <div
+                      className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl shadow-inner"
+                      style={{ backgroundColor: logoBg }}
+                    >
                       <span className="text-2xl font-black text-white">{card.name.charAt(0)}</span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   <div>
                     <h1 className="text-4xl font-black tracking-tight text-primary mb-2">{card.name}</h1>
                     <div className="flex flex-wrap gap-2">
