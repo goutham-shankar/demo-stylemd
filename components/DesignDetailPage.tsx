@@ -186,7 +186,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-page font-manrope">
+    <div className="flex min-h-screen flex-col bg-[#f6f8fa] font-manrope">
       {/* 1. Sticky Top Bar */}
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-medium bg-white/80 px-6 py-3 backdrop-blur-md">
         <button
@@ -235,9 +235,9 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
             <div className="overflow-hidden rounded-2xl border border-medium bg-white shadow-xl">
               {card.preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={card.preview} 
-                  alt="Website Preview" 
+                <img
+                  src={card.preview}
+                  alt="Website Preview"
                   className="w-full h-auto"
                   loading="lazy"
                 />
@@ -254,14 +254,14 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
         </aside>
 
         {/* Right: Content (60%) */}
-        <article className="relative flex flex-1 flex-col overflow-y-auto bg-white">
+        <article className="relative flex flex-1 flex-col overflow-y-auto bg-[#f6f8fa]">
           <div className="mx-auto w-full max-w-4xl px-8 py-10 pb-32">
-            
+
             {/* Brand Identity Header */}
             <header className="mb-10">
               <div className="mb-6 flex items-start justify-between">
                 <div className="flex items-center gap-5">
-                  <div 
+                  <div
                     className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl shadow-inner border border-medium"
                     style={{ backgroundColor: logoBg }}
                   >
@@ -300,9 +300,8 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
             <div className="mb-10 flex border-b border-medium">
               <button
                 onClick={() => setActiveTab("preview")}
-                className={`relative flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all ${
-                  activeTab === "preview" ? "text-primary" : "text-secondary hover:text-primary"
-                }`}
+                className={`relative flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all ${activeTab === "preview" ? "text-primary" : "text-secondary hover:text-primary"
+                  }`}
               >
                 <Monitor size={16} />
                 Live Preview
@@ -312,9 +311,8 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
               </button>
               <button
                 onClick={() => setActiveTab("code")}
-                className={`relative flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all ${
-                  activeTab === "code" ? "text-primary" : "text-secondary hover:text-primary"
-                }`}
+                className={`relative flex items-center gap-2 px-6 py-4 text-sm font-bold transition-all ${activeTab === "code" ? "text-primary" : "text-secondary hover:text-primary"
+                  }`}
               >
                 <Code2 size={16} />
                 DESIGN.md
@@ -332,7 +330,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                 <div className="overflow-hidden rounded-2xl border border-medium bg-gray-950 shadow-2xl">
                   <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-3">
                     <span className="text-xs font-bold uppercase tracking-widest text-white/40">markdown output</span>
-                    <button 
+                    <button
                       onClick={handleCopy}
                       className="text-xs font-bold text-white/60 hover:text-white"
                     >

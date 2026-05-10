@@ -1,18 +1,11 @@
-import { notFound } from "next/navigation";
-import DesignDetailPage from "@/components/DesignDetailPage";
-import { getDesignCardBySlug } from "@/lib/design-cards";
+import { redirect } from "next/navigation";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export default async function SlugPage({ params }: PageProps) {
+// Canonical URL for catalog cards is /styles/[slug] — redirect shorthand /[slug] there.
+export default async function SlugRedirectPage({ params }: PageProps) {
   const { slug } = await params;
-  const card = getDesignCardBySlug(slug);
-
-  if (!card) {
-    notFound();
-  }
-
-  return <DesignDetailPage card={card} />;
+  redirect(`/styles/${slug}`);
 }

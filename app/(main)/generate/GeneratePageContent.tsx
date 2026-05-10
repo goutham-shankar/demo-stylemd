@@ -42,7 +42,7 @@ function FetchedResultView() {
       isRunBusy={isRunning && !isFixtureDemo}
       onBack={() => {
         goHome();
-        router.replace("/");
+        router.replace("/styles");
       }}
 
       onRunAgain={

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Globe, AlertCircle, RefreshCw } from "lucide-react";
+import { Search, RefreshCw, Globe, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { API_BASE } from "@/lib/api-config";
 
@@ -83,7 +83,7 @@ function CardThumbnail({ run }: { run: RunCard }) {
   );
 }
 
-export default function StyleLibrary() {
+export default function RunsLibrary() {
   const [runs, setRuns] = useState<RunCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,6 +140,7 @@ export default function StyleLibrary() {
       if (!host.includes(q) && !title.includes(q)) return false;
     }
     if (activeTab === "recent") {
+      // Show runs from the last 7 days
       const age = Date.now() - new Date(run.createdAt).getTime();
       return age < 7 * 24 * 60 * 60 * 1000;
     }
@@ -202,7 +203,7 @@ export default function StyleLibrary() {
           ))}
         </div>
 
-        {/* Loading skeleton */}
+        {/* Loading */}
         {loading && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -250,7 +251,7 @@ export default function StyleLibrary() {
             </p>
             {runs.length === 0 && (
               <Link
-                href="/#generate"
+                href="/"
                 className="mt-2 px-5 py-2 bg-cta text-white text-sm font-semibold rounded-[10px] hover:opacity-90 transition-all"
               >
                 Generate now →
@@ -269,8 +270,10 @@ export default function StyleLibrary() {
                 className="group block overflow-hidden border border-light bg-white shadow-sm hover:border-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2"
                 style={{ borderRadius: 16 }}
               >
+                {/* Thumbnail with URL overlay on hover */}
                 <div className="relative h-48 overflow-hidden">
                   <CardThumbnail run={run} />
+                  {/* Hover overlay showing full URL */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 backdrop-blur-[2px]">
                     <Globe size={20} className="text-white/80" />
                     <span className="text-white text-xs font-medium px-4 text-center break-all line-clamp-2">
@@ -281,6 +284,7 @@ export default function StyleLibrary() {
                     </span>
                   </div>
                 </div>
+                {/* Card footer */}
                 <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
                   <div className="min-w-0">
                     <h3 className="text-base font-bold text-primary truncate group-hover:text-cta transition-colors duration-150">
@@ -299,19 +303,11 @@ export default function StyleLibrary() {
           </div>
         )}
 
-        {/* Count + see all link */}
+        {/* Count */}
         {!loading && !error && runs.length > 0 && (
-          <div className="mt-8 flex items-center justify-between">
-            <p className="text-xs text-secondary font-manrope">
-              {filtered.length} of {runs.length} design system{runs.length !== 1 ? "s" : ""}
-            </p>
-            <Link
-              href="/styles"
-              className="text-sm font-semibold text-cta hover:opacity-80 transition-opacity"
-            >
-              View all →
-            </Link>
-          </div>
+          <p className="mt-8 text-center text-xs text-secondary font-manrope">
+            {filtered.length} of {runs.length} design system{runs.length !== 1 ? "s" : ""}
+          </p>
         )}
 
       </div>
