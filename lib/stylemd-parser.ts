@@ -348,7 +348,7 @@ function extractTitle(md: string): string {
     .replace(/\s*[-–—]+\s*$/, "")
     .trim();
   // If the title is the generic placeholder the backend emits, discard it
-  if (!raw || /^design\.?md$/i.test(raw)) return "Untitled Design";
+  if (!raw || /^(?:design|style)\.?md$/i.test(raw)) return "Untitled Design";
   return raw;
 }
 
@@ -590,7 +590,7 @@ function extractTags(md: string): { label: string }[] {
   return tags.slice(0, 4);
 }
 
-export function mapToDesignCard(parsed: ReturnType<typeof parseStyleMd>, id: string, url: string, logo?: string, preview?: string | null): DesignCard {
+export function mapToDesignCard(parsed: ReturnType<typeof parseStyleMd>, id: string, url: string, logo?: string, preview?: string | null, pageTitle?: string): DesignCard {
   // For palette, prefer swatches already embedded (from format-2 or JSON extraction over padSwatches)
   const palette = parsed.palette.map(p => ({
     name: p.name,
@@ -609,12 +609,13 @@ export function mapToDesignCard(parsed: ReturnType<typeof parseStyleMd>, id: str
       f.role.toLowerCase().includes("display"),
   }));
 
-  // If the parser couldn't extract a real brand name, derive it from the URL hostname
+  // Priority: scraped page title > parsed markdown H1 > URL hostname
   let displayName = parsed.name;
-  if (!displayName || displayName === "Untitled Design") {
+  if (pageTitle && pageTitle.trim() && !/^(?:design|style)\.?md$/i.test(pageTitle.trim())) {
+    displayName = pageTitle.trim();
+  } else if (!displayName || displayName === "Untitled Design") {
     try {
       const hostname = new URL(url).hostname.replace(/^www\./, "");
-      // Capitalise first letter of the domain name part (before the first dot)
       const domain = hostname.split(".")[0];
       displayName = domain.charAt(0).toUpperCase() + domain.slice(1);
     } catch {
