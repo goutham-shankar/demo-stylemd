@@ -245,13 +245,6 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
           --border-light: var(--border);
           --border-medium: var(--border);
         }
-        .stylemd-theme-root h1, .stylemd-theme-root h2, .stylemd-theme-root h3 {
-          font-family: var(--font-display);
-        }
-        .stylemd-theme-root p, .stylemd-theme-root span, .stylemd-theme-root div {
-          font-family: var(--font-body);
-        }
-
         /* Mood: Brutalist */
         .mood-brutalist .stylemd-theme-root {
           --border: 2px solid #000;
