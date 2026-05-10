@@ -366,8 +366,13 @@ function extractTitle(md: string): string {
     // Strip any remaining trailing separator (dash, em-dash, en-dash)
     .replace(/\s*[-–—]+\s*$/, "")
     .trim();
-  // If the title is the generic placeholder the backend emits, discard it
-  if (!raw || /^(?:design|style)\.?md$/i.test(raw)) return "Untitled Design";
+  // If the title is the generic placeholder the backend emits, fall back to the
+  // first **bold** brand name in the Overview area before giving up entirely.
+  if (!raw || /^(?:design|style)\.?md$/i.test(raw)) {
+    const boldMatch = md.slice(0, 600).match(/\*\*([^*\n]{1,60})\*\*/);
+    if (boldMatch) return boldMatch[1].trim();
+    return "Untitled Design";
+  }
   return raw;
 }
 
