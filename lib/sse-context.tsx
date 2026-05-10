@@ -407,7 +407,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
               provider: saved.provider,
               model: "",
               stages: initStages(),
-              logs: [{ type: "stylemd_action", action: "Reconnecting to in-progress run…", timestamp: Date.now() }],
+              logs: [{ level: "info", message: "Reconnecting to in-progress run…", timestamp: Date.now() }],
               startedAt: saved.startedAt,
             },
           });
