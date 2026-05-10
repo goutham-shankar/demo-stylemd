@@ -441,27 +441,41 @@ function extractColors(md: string): { name: string; hex: string; desc?: string }
 
 function extractTypography(md: string): { name: string; role: string }[] {
   const fonts: { name: string; role: string }[] = [];
-  const typoSection = md.match(/## Typography\n([\s\S]+?)(?=\n##|$)/i);
+  // Match ## or ### Typography section header
+  const typoSection = md.match(/#{2,3} Typography\n([\s\S]+?)(?=\n#{1,3} |$)/i);
   const content = typoSection ? typoSection[1] : md;
   let match;
 
-  // Bullet or plain bold format: (- )**Role**: `"font-name", fallback`
-  const bulletRegex = /(?:^|\n)-?\s*\*\*([^*\n]+?)\*\*:\s+`?"?([^,`"\n]+)/g;
-  while ((match = bulletRegex.exec(content)) !== null) {
-    const role = match[1].trim();
+  // Format 1 — CSS variable: `--font-family-primary`: `'Font Name', fallback`
+  const cssVarRegex = /`--font-family-([^`]+)`\s*:\s*`'?([^',`\n]+)/g;
+  while ((match = cssVarRegex.exec(content)) !== null) {
+    const varSuffix = match[1].trim(); // e.g. "primary", "fallback"
     const name = match[2].replace(/["']/g, "").trim();
-    if (name.length > 1 && name.length < 80 && !name.startsWith("font-") && !name.startsWith("http")) {
+    // skip pure fallback stacks (Trebuchet MS, Arial, sans-serif etc) unless it's the primary
+    if (name.length > 1 && name.length < 80 && !name.startsWith("http")) {
+      const role = varSuffix === "primary" ? "Primary" : varSuffix === "fallback" ? "Fallback" : varSuffix;
       fonts.push({ name, role });
     }
   }
 
-  // Table format: | **Role** | `"Font Name, fallback"` | usage |
+  // Format 2 — bold label: **Display**: `"Font Name", fallback`  (with or without leading -)
+  if (fonts.length === 0) {
+    const bulletRegex = /(?:^|\n)-?\s*\*\*([^*\n]+?)\*\*:\s+`?"?([^,`"\n]+)/g;
+    while ((match = bulletRegex.exec(content)) !== null) {
+      const role = match[1].trim();
+      const name = match[2].replace(/["']/g, "").trim();
+      if (name.length > 1 && name.length < 80 && !name.startsWith("font-") && !name.startsWith("http")) {
+        fonts.push({ name, role });
+      }
+    }
+  }
+
+  // Format 3 — table: | **Role** | `"Font Name, fallback"` | usage |
   if (fonts.length === 0) {
     const tableRegex = /\|\s*\*\*([^*|]+)\*\*\s*\|\s*`?"?([^|`\n"]+)"?`?\s*\|/g;
     while ((match = tableRegex.exec(content)) !== null) {
       const role = match[1].trim();
       if (role.toLowerCase() === "role" || role.toLowerCase() === "stack") continue;
-      // Take only the first font family from the stack
       const firstName = match[2].split(",")[0].replace(/["']/g, "").trim();
       if (firstName && firstName.length < 60) {
         fonts.push({ name: firstName, role });
