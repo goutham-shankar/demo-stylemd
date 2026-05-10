@@ -26,27 +26,16 @@ export default function Footer() {
           <nav aria-label="Footer product links">
             <h4 className="font-bold mb-6 text-primary text-base font-funnel">Product</h4>
             <ul className="space-y-3 text-tertiary text-small">
-              <li><Link href="/#how-it-works" className="hover:text-primary transition-colors duration-150">How it Works</Link></li>
-              <li><Link href="/styles" className="hover:text-primary transition-colors duration-150">Library</Link></li>
-              <li><Link href="/#generate" className="hover:text-primary transition-colors duration-150">Generate</Link></li>
+              <li><Link href="/styles" className="hover:text-primary transition-colors duration-150">Style Library</Link></li>
+              <li><Link href="/generate" className="hover:text-primary transition-colors duration-150">Generate</Link></li>
             </ul>
           </nav>
 
-          {/* Resources */}
-          <nav aria-label="Footer resources links">
-            <h4 className="font-bold mb-6 text-primary text-base font-funnel">Resources</h4>
-            <ul className="space-y-3 text-tertiary text-small">
-              <li><Link href="/#faqs" className="hover:text-primary transition-colors duration-150">FAQs</Link></li>
-            </ul>
-          </nav>
+          {/* Empty column for grid alignment */}
+          <div />
 
-          {/* Company */}
-          <nav aria-label="Footer company links">
-            <h4 className="font-bold mb-6 text-primary text-base font-funnel">Company</h4>
-            <ul className="space-y-3 text-tertiary text-small">
-              <li><Link href="/#about" className="hover:text-primary transition-colors duration-150">About</Link></li>
-            </ul>
-          </nav>
+          {/* Empty column for grid alignment */}
+          <div />
         </div>
 
         {/* Bottom */}
@@ -54,11 +43,9 @@ export default function Footer() {
           <p className="text-muted text-small">
             © {new Date().getFullYear()} DesignProbe. All rights reserved.
           </p>
-          <div className="flex gap-4 items-center flex-wrap">
-            <a href="#" className="text-muted hover:text-primary text-small transition-colors duration-150 font-medium">Twitter</a>
-            <a href="#" className="text-muted hover:text-primary text-small transition-colors duration-150 font-medium">LinkedIn</a>
-            <a href="#" className="text-muted hover:text-primary text-small transition-colors duration-150 font-medium">GitHub</a>
-          </div>
+          <Link href="/generate" className="px-4 py-2 text-sm font-semibold text-white bg-cta rounded-[10px] hover:opacity-90 transition-all duration-150">
+            Try it free →
+          </Link>
         </div>
       </div>
     </footer>

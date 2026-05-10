@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Lock } from "lucide-react";
 import Link from "next/link";
-// ── Catalog Library ───────────────────────────────────────────────────────────
+import { designCards } from "@/lib/design-cards";
 
 type Card = {
   title: string;
@@ -13,6 +13,9 @@ type Card = {
   preview: React.ReactNode;
 };
 
+// Slugs that have full design data — all others are "Coming Soon"
+const AVAILABLE_SLUGS = new Set(designCards.map((c) => c.id));
+
 export default function StyleLibrary() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,6 +24,21 @@ export default function StyleLibrary() {
   const rightTabs = ["SaaS", "Fintech", "Ecommerce", "Consumer", "Hardware", "Logistics"];
 
   const cards: Card[] = [
+    {
+      title: "Levain Bakery",
+      slug: "levainbakery",
+      category: "consumer",
+      trending: true,
+      preview: (
+        <div className="h-full flex flex-col items-center justify-center bg-[#f5f0e8] px-6 text-center gap-2">
+          <div className="w-14 h-14 rounded-2xl bg-[#2d2417] flex items-center justify-center mb-1">
+            <span className="text-white text-2xl font-black">L</span>
+          </div>
+          <span className="text-[#2d2417] text-xl font-black tracking-tight">Levain Bakery</span>
+          <span className="text-[#8a7560] text-xs font-medium">NYC Cookie Icons Since 1995</span>
+        </div>
+      ),
+    },
     {
       title: "Figma",
       slug: "figma",
@@ -37,7 +55,7 @@ export default function StyleLibrary() {
               <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#FF7262" />
             </svg>
           </div>
-          <span className="text-3xl font-bold text-primary">Figma</span>
+          <span className="text-3xl font-bold text-white">Figma</span>
         </div>
       ),
     },
@@ -65,10 +83,7 @@ export default function StyleLibrary() {
       preview: (
         <div className="h-full flex items-center justify-center gap-3 bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
           <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
-            <path
-              d="M1.22541 61.5228c-.2225-.9485.90748-1.5459 1.59638-.857l36.3024 36.3024c.6889.6889.0915 1.8189-.857 1.5964C20.0515 94.0514 5.9486 79.9485 1.22541 61.5228zM.00189135 46.8891c-.01764375.2652.08641935.5244.28127.7073l52.1148 52.1148c.1829.1949.4421.2989.7073.2813C74.2964 97.8443 97.8443 74.2964 99.7924 47.1124c.0177-.2652-.0864-.5244-.2813-.7073L47.3963.281271c-.1829-.194937-.4421-.298983-.7073-.281271C20.0515 2.15568-2.15568 20.0515.00189135 46.8891z"
-              fill="white" opacity=".4"
-            />
+            <path d="M1.22541 61.5228c-.2225-.9485.90748-1.5459 1.59638-.857l36.3024 36.3024c.6889.6889.0915 1.8189-.857 1.5964C20.0515 94.0514 5.9486 79.9485 1.22541 61.5228zM.00189135 46.8891c-.01764375.2652.08641935.5244.28127.7073l52.1148 52.1148c.1829.1949.4421.2989.7073.2813C74.2964 97.8443 97.8443 74.2964 99.7924 47.1124c.0177-.2652-.0864-.5244-.2813-.7073L47.3963.281271c-.1829-.194937-.4421-.298983-.7073-.281271C20.0515 2.15568-2.15568 20.0515.00189135 46.8891z" fill="white" opacity=".4" />
             <path d="M4.83896 78.9088L78.9088 4.83896c8.5657 5.50186 15.6845 13.04654 20.4821 22.05974L26.9685 99.3911C17.9553 94.5935 10.3407 87.4746 4.83896 78.9088z" fill="white" />
           </svg>
           <span className="text-white text-2xl font-bold tracking-tight">Linear</span>
@@ -96,7 +111,7 @@ export default function StyleLibrary() {
           <p className="text-white text-lg font-bold text-center relative z-10 mb-3">Your 24/7 AI team</p>
           <div className="flex items-center gap-1.5 relative z-10">
             <div className="w-5 h-5 bg-white rounded flex items-center justify-center">
-              <span className="text-[10px] font-bold text-primary">N</span>
+              <span className="text-[10px] font-bold text-black">N</span>
             </div>
             <span className="text-white text-sm font-semibold">Notion</span>
           </div>
@@ -127,7 +142,6 @@ export default function StyleLibrary() {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-purple-500" />
             <span className="text-white text-xl font-bold">Lovable</span>
           </div>
-
           <p className="text-white/70 text-xs mb-4">Build apps and websites by chatting with AI</p>
           <div className="w-full bg-white/10 backdrop-blur rounded-xl px-3 py-2 flex items-center justify-between">
             <span className="text-white/60 text-xs">Build something lovable</span>
@@ -144,7 +158,7 @@ export default function StyleLibrary() {
       category: "saas",
       trending: false,
       preview: (
-        <div className="h-full flex items-center justify-center bg-cta gap-3">
+        <div className="h-full flex items-center justify-center bg-[#1c1c1c] gap-3">
           <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
             <path d="M5.35 24.6l.9-13.4 6.15-10.6 3.45 6.35L5.35 24.6z" fill="#FFA000" />
             <path d="M21.65 11.55L17.4 4.5l-1.55 2.95 5.8 17.15 5.35-3.1-5.35-10z" fill="#F57F17" />
@@ -175,10 +189,22 @@ export default function StyleLibrary() {
       category: "fintech",
       trending: true,
       preview: (
-        <div className="h-full flex items-center justify-center bg-gradient-to-br from-[#635bff] to-[#8b5cf6] gap-3">
-          <svg width="44" height="44" viewBox="0 0 60 25" fill="white">
-            <path d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a8.33 8.33 0 0 1-4.56 1.1c-4.01 0-6.83-2.5-6.83-7.48 0-4.19 2.39-7.52 6.3-7.52 3.92 0 5.96 3.28 5.96 7.5 0 .4-.04 1.26-.06 1.48zm-5.92-5.62c-1.03 0-2.17.73-2.17 2.58h4.25c0-1.85-1.07-2.58-2.08-2.58zM40.95 20.3c-1.44 0-2.32-.6-2.9-1.04l-.02 4.63-4.44.97V6.28h3.94l.19 1.06c.64-.72 1.8-1.39 3.29-1.39 3.65 0 5.64 3.08 5.64 7.17 0 4.3-2.05 7.18-5.7 7.18zm-.95-10.71c-.97 0-1.56.35-1.97.81l.03 6.12c.38.43.97.78 1.94.78 1.52 0 2.27-1.63 2.27-3.87 0-2.19-.76-3.84-2.27-3.84zM28.24 5.7c-1.44 0-2.32 1.07-2.32 2.4 0 1.32.88 2.4 2.32 2.4s2.32-1.08 2.32-2.4c0-1.33-.88-2.4-2.32-2.4zM26.08 20.3V6.28h4.44V20.3h-4.44zM19.69 6.28h-2.41V3.77l-4.45.97v1.54H10.4V2.93c0-.8.38-1.32 1.18-1.32h2.3V0L9.46.97C8 1.33 7.18 2.38 7.18 4.12v2.16H5.45v3.36h1.73V20.3h4.44V9.64h2.41l.38-3.36h-2.79V4.75c0-.5.19-.78.7-.78h2.09V2.93h-2.09C10.3 2.93 9.46 3.77 9.46 4.93v1.35H7.18v3.36h2.28V20.3h4.44V9.64H16.3l.38-3.36h-2.83V4.96c0-.73.33-1.03.88-1.03h1.55V1.9h-1.55C13.2 1.9 12 3.14 12 4.96v1.32H9.46" />
+        <div className="h-full flex items-center justify-center bg-gradient-to-br from-[#635bff] to-[#8b5cf6]">
+          <span className="text-white text-3xl font-black tracking-tighter">stripe</span>
+        </div>
+      ),
+    },
+    {
+      title: "Spotify",
+      slug: "spotify",
+      category: "consumer",
+      trending: true,
+      preview: (
+        <div className="h-full flex flex-col items-center justify-center bg-[#121212] gap-3">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="#1DB954">
+            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
           </svg>
+          <span className="text-white text-xl font-bold">Spotify</span>
         </div>
       ),
     },
@@ -195,91 +221,124 @@ export default function StyleLibrary() {
   });
 
   return (
-    <>
-      <section className="py-12 md:py-16 bg-page">
-        <div className="container-custom max-w-6xl mx-auto px-6">
+    <section className="py-12 md:py-16 bg-page">
+      <div className="container-custom max-w-6xl mx-auto px-6">
 
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
-            <div>
-              <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-1 font-manrope">Reference Library</p>
-              <h2 className="heading-h2 text-primary">Style Library</h2>
-            </div>
-
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-4 top-3 text-secondary" size={18} aria-hidden />
-              <input
-                type="search"
-                aria-label="Search styles"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-surface border border-medium rounded-[10px] text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light"
-              />
-            </div>
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
+          <div>
+            <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-1 font-manrope">Reference Library</p>
+            <h2 className="heading-h2 text-primary">Style Library</h2>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-            <div className="flex items-center gap-2 bg-surface border border-medium rounded-[12px] p-1">
-              {leftTabs.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab.toLowerCase())}
-                  aria-pressed={activeTab === tab.toLowerCase()}
-                  className={`px-5 py-1.5 rounded-[12px] text-sm font-semibold transition-all duration-150 ${activeTab === tab.toLowerCase() ? "bg-cta text-white" : "text-muted hover:bg-[#f7f4ee]"
-                    }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-4 top-3 text-secondary" size={18} aria-hidden />
+            <input
+              type="search"
+              aria-label="Search styles"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-2.5 bg-surface border border-medium rounded-[10px] text-sm placeholder-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-light"
+            />
+          </div>
+        </div>
 
-            <div className="flex flex-wrap gap-2">
-              {rightTabs.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab.toLowerCase())}
-                  aria-pressed={activeTab === tab.toLowerCase()}
-                  className={`px-4 py-1.5 text-sm font-semibold transition-all border rounded-[10px] ${activeTab === tab.toLowerCase()
-                      ? "bg-cta text-white border-transparent"
-                      : "bg-surface text-muted border-medium hover:bg-[#f7f4ee]"
-                    }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+          <div className="flex items-center gap-2 bg-surface border border-medium rounded-[12px] p-1">
+            {leftTabs.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab.toLowerCase())}
+                aria-pressed={activeTab === tab.toLowerCase()}
+                className={`px-5 py-1.5 rounded-[12px] text-sm font-semibold transition-all duration-150 ${
+                  activeTab === tab.toLowerCase() ? "bg-cta text-white" : "text-muted hover:bg-[#f7f4ee]"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
 
-          {filteredCards.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-lg font-semibold text-primary mb-2">No styles found</p>
-              <p className="text-sm text-secondary">Try a different search term or filter.</p>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCards.map((card) => (
+          <div className="flex flex-wrap gap-2">
+            {rightTabs.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab.toLowerCase())}
+                aria-pressed={activeTab === tab.toLowerCase()}
+                className={`px-4 py-1.5 text-sm font-semibold transition-all border rounded-[10px] ${
+                  activeTab === tab.toLowerCase()
+                    ? "bg-cta text-white border-transparent"
+                    : "bg-surface text-muted border-medium hover:bg-[#f7f4ee]"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {filteredCards.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="text-lg font-semibold text-primary mb-2">No styles found</p>
+            <p className="text-sm text-secondary">Try a different search term or filter.</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCards.map((card) => {
+              const isAvailable = AVAILABLE_SLUGS.has(card.slug);
+              const inner = (
+                <>
+                  <div className="h-48 overflow-hidden relative">
+                    {card.preview}
+                    {!isAvailable && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-bold backdrop-blur-sm">
+                          <Lock size={11} />
+                          Coming Soon
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="px-5 py-4 flex items-center justify-between bg-surface">
+                    <h3 className="text-lg font-bold text-primary">{card.title}</h3>
+                    {isAvailable ? (
+                      <span className="px-5 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:opacity-90 group-hover:shadow-md transition-all duration-150">
+                        View now
+                      </span>
+                    ) : (
+                      <span className="px-5 py-2 bg-surface-soft text-muted rounded-[10px] font-semibold text-sm border border-medium">
+                        Coming Soon
+                      </span>
+                    )}
+                  </div>
+                </>
+              );
+
+              return isAvailable ? (
                 <Link
                   key={card.title}
                   href={`/styles/${card.slug}`}
                   className="group block overflow-hidden border border-light bg-surface shadow-sm hover:border-dark hover:shadow-md transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
                   style={{ borderRadius: 16 }}
                 >
-                  <div className="h-48 overflow-hidden">{card.preview}</div>
-                  <div className="px-5 py-4 flex items-center justify-between bg-surface">
-                    <h3 className="text-lg font-bold text-primary">{card.title}</h3>
-                    <span className="px-5 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:opacity-90 group-hover:shadow-md transition-all duration-150">
-                      View now
-                    </span>
-                  </div>
+                  {inner}
                 </Link>
-              ))}
-            </div>
-          )}
+              ) : (
+                <div
+                  key={card.title}
+                  className="block overflow-hidden border border-light bg-surface cursor-default"
+                  style={{ borderRadius: 16 }}
+                >
+                  {inner}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-        </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

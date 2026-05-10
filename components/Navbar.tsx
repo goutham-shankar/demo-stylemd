@@ -5,11 +5,8 @@ import { Menu } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
 const navLinks = [
-  { label: "How it Works", href: "/#how-it-works" },
   { label: "Style Library", href: "/styles" },
   { label: "Generate", href: "/generate" },
-  { label: "FAQs", href: "/#faqs" },
-  { label: "About", href: "/#about" },
 ];
 
 export default function Navbar() {
@@ -64,19 +61,13 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* CTA Buttons */}
-        <div className="hidden md:flex items-center gap-4">
+        {/* CTA Button */}
+        <div className="hidden md:flex items-center">
           <Link
-            href="/login"
-            className="px-4 py-2 text-sm font-medium text-muted border border-medium rounded-[10px] hover:text-primary hover:bg-surface-soft transition-colors duration-150"
+            href="/generate"
+            className="px-5 py-2 text-sm font-semibold text-white bg-cta rounded-[10px] shadow-sm shadow-black/[0.12] hover:opacity-90 hover:shadow-md transition-all duration-150"
           >
-            Log In
-          </Link>
-          <Link
-            href="/signup"
-            className="px-5 py-2 text-sm font-semibold text-white bg-cta rounded-[10px] shadow-sm shadow-black/[0.12] hover:opacity-90 hover:shadow-md transition-all duration-150 cursor-pointer"
-          >
-            Sign Up
+            Get Started →
           </Link>
         </div>
 
@@ -111,18 +102,13 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
-          <div className="flex gap-3 pt-6 border-t border-medium">
+          <div className="pt-6 border-t border-medium">
             <Link
-              href="/login"
-              className="flex-1 px-4 py-2 text-sm font-medium text-primary border border-medium rounded-[10px] hover:bg-surface-soft transition-all duration-150 text-center"
+              href="/generate"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block w-full px-4 py-2.5 text-sm font-semibold text-white bg-cta rounded-[10px] shadow-sm hover:opacity-90 transition-all duration-150 text-center"
             >
-              Log In
-            </Link>
-            <Link
-              href="/signup"
-              className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-cta rounded-[10px] shadow-sm hover:opacity-90 hover:shadow-md transition-all duration-150 text-center"
-            >
-              Sign Up
+              Get Started →
             </Link>
           </div>
         </div>
