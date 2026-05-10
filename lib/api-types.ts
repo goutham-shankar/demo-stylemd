@@ -116,6 +116,7 @@ export interface LogEntry {
 
 export interface ActiveRun {
   runId: string;
+  slug?: string;
   url: string;
   provider: Provider;
   model: string;
