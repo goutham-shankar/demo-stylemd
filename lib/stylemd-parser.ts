@@ -445,12 +445,12 @@ function extractTypography(md: string): { name: string; role: string }[] {
   const content = typoSection ? typoSection[1] : md;
   let match;
 
-  // Bullet format: - **Role**: `font-name`
-  const bulletRegex = /-\s+\*\*(.+?)\*\*:\s+`?([^`\n]+)`?/g;
+  // Bullet or plain bold format: (- )**Role**: `"font-name", fallback`
+  const bulletRegex = /(?:^|\n)-?\s*\*\*([^*\n]+?)\*\*:\s+`?"?([^,`"\n]+)/g;
   while ((match = bulletRegex.exec(content)) !== null) {
     const role = match[1].trim();
-    const name = match[2].trim();
-    if (name.length < 60 && !name.startsWith("font-")) {
+    const name = match[2].replace(/["']/g, "").trim();
+    if (name.length > 1 && name.length < 80 && !name.startsWith("font-") && !name.startsWith("http")) {
       fonts.push({ name, role });
     }
   }

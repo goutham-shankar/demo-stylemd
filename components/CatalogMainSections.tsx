@@ -277,19 +277,19 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       <section style={{ gap: "var(--spacing-base)" }} className="flex flex-col">
         <div className="flex flex-col gap-1">
           <h2 className="text-3xl font-black tracking-tighter" style={{ color: "var(--primary)" }}>{typoTitle}</h2>
-          <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>{typoIntro}</p>
+          <p className="text-sm font-medium text-gray-500">{typoIntro}</p>
         </div>
         
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {effectiveFonts.slice(0, 2).map((font) => (
             <div
               key={font.name}
-              className={`group relative flex flex-col justify-between overflow-hidden p-8 transition-all hover:shadow-2xl`}
+              className="group relative flex flex-col justify-between overflow-hidden p-8 transition-all hover:shadow-xl"
               style={{
-                backgroundColor: font.dark ? "var(--primary)" : "var(--surface)",
+                backgroundColor: font.dark ? "var(--primary)" : "#ffffff",
                 borderRadius: "var(--radius)",
-                border: font.dark ? "none" : "1px solid var(--border)",
-                color: font.dark ? "var(--background)" : "var(--text)"
+                border: font.dark ? "none" : "1px solid #e5e7eb",
+                color: font.dark ? contrastColor(theme?.colors.primary ?? "#000000") : "#111827",
               }}
             >
               <div className="flex flex-col items-center justify-center py-12">
@@ -304,18 +304,20 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
               <div className="mt-4 flex flex-col gap-3">
                 <div>
                   <h3 className="text-xl font-black">{font.name}</h3>
-                  <p className="text-xs font-bold uppercase tracking-widest opacity-70">
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-60">
                     {font.weights ?? (font.dark ? "Medium" : "Regular, Medium")}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter"
+                  <span
+                    className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter"
                     style={{
-                      backgroundColor: font.dark ? "rgba(255,255,255,0.2)" : "var(--background)",
-                      border: font.dark ? "none" : "1px solid var(--border)",
-                      color: font.dark ? "white" : "var(--text)"
-                    }}>
+                      backgroundColor: font.dark ? "rgba(255,255,255,0.2)" : "#f6f8fa",
+                      border: font.dark ? "none" : "1px solid #e5e7eb",
+                      color: font.dark ? "white" : "#374151",
+                    }}
+                  >
                     {font.badge ?? font.role}
                   </span>
                 </div>
