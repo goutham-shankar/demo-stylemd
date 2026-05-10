@@ -451,40 +451,40 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
       </section>
 
-      <section className="p-8" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+      <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
         <div className="mb-6 flex items-center gap-2">
-          <Ruler size={14} style={{ color: "var(--text-muted)" }} />
-          <h2 className="text-lg font-bold tracking-tight" style={{ color: "var(--text)" }}>Spacing</h2>
+          <Ruler size={14} className="text-gray-400" />
+          <h2 className="text-lg font-bold tracking-tight text-gray-900">Spacing</h2>
         </div>
         <div className="mb-8 grid grid-cols-3 gap-4">
           {spacingCards.map((item) => (
-            <div key={item.label} className="p-4" style={{ backgroundColor: "var(--surface-muted)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
-              <p className="mb-2 text-[8px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{item.label}</p>
+            <div key={item.label} className="p-4" style={{ backgroundColor: "#f6f8fa", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
+              <p className="mb-2 text-[8px] font-bold uppercase tracking-wider text-gray-400">{item.label}</p>
               <p className="mb-1 text-4xl font-black" style={{ color: "var(--primary)" }}>
                 {item.value}
               </p>
-              <p className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>{item.sublabel}</p>
+              <p className="text-[10px] font-medium text-gray-400">{item.sublabel}</p>
             </div>
           ))}
         </div>
         <div className="mb-6 space-y-2">
           {spacingSteps.map((step) => (
             <div key={step.label} className="flex items-center gap-3">
-              <span className="w-12 text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>{step.label}</span>
-              <div className="flex-1 rounded-full" style={{ backgroundColor: "var(--surface-muted)" }}>
+              <span className="w-12 text-[10px] font-medium text-gray-400">{step.label}</span>
+              <div className="flex-1 rounded-full bg-gray-100">
                 <div className="h-2 rounded-full" style={{ width: step.pct, backgroundColor: "var(--primary)" }} />
               </div>
-              <span className="w-8 text-right text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>{step.value}</span>
+              <span className="w-8 text-right text-[10px] font-medium text-gray-500">{step.value}</span>
             </div>
           ))}
         </div>
-        <p className="mb-3 text-[8px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+        <p className="mb-3 text-[8px] font-bold uppercase tracking-wider text-gray-400">
           BASE RHYTHM:{` `}
           {(spacingCards.find((c) => c.label.toUpperCase() === "BASE")?.value ?? "4px").toUpperCase()}
         </p>
         <div className="flex flex-wrap gap-4">
           {spacingRules.map((r) => (
-            <p key={r} className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>
+            <p key={r} className="text-[10px] font-medium text-gray-500">
               {r}
             </p>
           ))}
