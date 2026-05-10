@@ -104,7 +104,12 @@ export default function GeneratePageContent() {
       setDeepFetchSettled(false);
       return;
     }
-    // Skip fetch if the current resultData already matches this slug (e.g., URL sync after run completion)
+    // Don't call viewRun if a run is already actively in progress (e.g. restored from localStorage after refresh)
+    if (screen === "running") {
+      setDeepFetchSettled(true);
+      return;
+    }
+    // Skip fetch if resultData already matches this slug (URL sync after run completion)
     const cur = resultDataRef.current;
     const curSlug = cur?.slug?.trim() || cur?.runId?.trim();
     if (curSlug && (curSlug === slug || cur?.runId?.trim() === slug)) {
@@ -120,7 +125,7 @@ export default function GeneratePageContent() {
     return () => {
       cancelledRef.current = true;
     };
-  }, [slug, viewRun]);
+  }, [slug, viewRun, screen]);
 
   useEffect(() => {
     if (slug) return;
