@@ -101,22 +101,63 @@ const DEFAULT_MOTION_BARS = [
   { label: "STROKE", pct: "50%" },
 ];
 
+function extractBrandFromMd(md: string): string {
+  const boldMatch = md.slice(0, 600).match(/\*\*([^*\n]{1,60})\*\*/);
+  if (boldMatch) return boldMatch[1].trim();
+  const h1Match = md.match(/^#\s+(.+)$/m);
+  if (h1Match) {
+    const raw = h1Match[1].trim();
+    if (!/^(?:design|style)\.?md$/i.test(raw)) return raw;
+  }
+  return "Design System";
+}
+
+function buildPayloadFromTokens(parsed: Record<string, unknown>, md: string): StyleMdUiPayload {
+  const paletteRaw = Array.isArray(parsed.palette) ? (parsed.palette as Record<string, unknown>[]) : [];
+  const accentColor = String(parsed.accentColor ?? paletteRaw[0]?.hex ?? "#000000");
+
+  const fonts: StyleMdUiFont[] = Array.isArray(parsed.fonts)
+    ? (parsed.fonts as Record<string, unknown>[]).map((f) => ({
+        name: String(f.name ?? ""),
+        role: String(f.role ?? "Body"),
+        dark: /heading|display|title/i.test(String(f.role ?? "")),
+        sample: "Aa Bb",
+      }))
+    : [];
+
+  const palette: StyleMdUiPaletteRow[] = paletteRaw.map((p) => ({
+    name: String(p.name ?? ""),
+    hex: String(p.hex ?? accentColor),
+    swatches: [],
+  }));
+
+  return { brand: extractBrandFromMd(md), accentColor, fonts, palette };
+}
+
 /**
- * Strip ```stylemd-ui / ```stylemd-json fenced blocks and parse the first valid payload.
+ * Strip ```stylemd-ui / ```stylemd-json / ```json fenced blocks and parse the first valid payload.
+ * Also handles token-format ```json blocks (with accentColor / palette but no brand field).
  */
 export function extractStyleMdUi(md: string): { payload: StyleMdUiPayload | null; remainder: string } {
   let payload: StyleMdUiPayload | null = null;
   const remainder = md
-    .replace(/```(?:stylemd-ui|stylemd-json)\s*\n([\s\S]*?)```/g, (_, inner: string) => {
-      if (!payload) {
-        try {
-          const parsed = JSON.parse(String(inner).trim()) as StyleMdUiPayload;
-          if (parsed?.brand && parsed?.accentColor) payload = parsed;
-        } catch {
-          /* keep scanning */
+    .replace(/```(?:stylemd-ui|stylemd-json|json)\s*\n([\s\S]*?)```/g, (fullMatch, inner: string) => {
+      try {
+        const parsed = JSON.parse(String(inner).trim()) as Record<string, unknown>;
+        if (parsed?.brand && parsed?.accentColor) {
+          // Full stylemd-ui format
+          if (!payload) payload = parsed as unknown as StyleMdUiPayload;
+          return "\n\n";
         }
+        if (!payload && (parsed?.accentColor || parsed?.palette)) {
+          // Token-format JSON — build a minimal payload from available data
+          payload = buildPayloadFromTokens(parsed, md);
+          return "\n\n";
+        }
+      } catch {
+        /* not valid JSON — leave block intact */
       }
-      return "\n\n";
+      return fullMatch;
     })
     .replace(/\n{3,}/g, "\n\n")
     .trim();
