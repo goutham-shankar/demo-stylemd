@@ -340,13 +340,16 @@ function padSwatches(hex: string, count = 10): string[] {
 function extractTitle(md: string): string {
   const match = md.match(/^#\s+(.+)$/m);
   if (!match) return "Untitled Design";
-  return match[1]
+  const raw = match[1]
     // Remove "- Design System", "— Design System", "Design System" at end
     .replace(/\s*[-–—]\s*Design System\s*$/i, "")
     .replace(/\s*Design System\s*$/i, "")
     // Strip any remaining trailing separator (dash, em-dash, en-dash)
     .replace(/\s*[-–—]+\s*$/, "")
-    .trim() || "Untitled Design";
+    .trim();
+  // If the title is the generic placeholder the backend emits, discard it
+  if (!raw || /^design\.?md$/i.test(raw)) return "Untitled Design";
+  return raw;
 }
 
 function stripBasicMarkdown(text: string): string {
@@ -606,14 +609,27 @@ export function mapToDesignCard(parsed: ReturnType<typeof parseStyleMd>, id: str
       f.role.toLowerCase().includes("display"),
   }));
 
+  // If the parser couldn't extract a real brand name, derive it from the URL hostname
+  let displayName = parsed.name;
+  if (!displayName || displayName === "Untitled Design") {
+    try {
+      const hostname = new URL(url).hostname.replace(/^www\./, "");
+      // Capitalise first letter of the domain name part (before the first dot)
+      const domain = hostname.split(".")[0];
+      displayName = domain.charAt(0).toUpperCase() + domain.slice(1);
+    } catch {
+      displayName = id || "Untitled Design";
+    }
+  }
+
   return {
     id,
     url,
-    name: parsed.name,
+    name: displayName,
     desc: parsed.desc,
     accentColor: parsed.accentColor,
-    logo: logo || parsed.name.slice(0, 1).toUpperCase(),
-    heroHeadline: `${parsed.name} Design System`,
+    logo: logo || displayName.slice(0, 1).toUpperCase(),
+    heroHeadline: `${displayName} Design System`,
     tags: parsed.tags.map(t => ({ label: t.label, color: "" })),
     preview,
     tokens: parsed.tokens,
