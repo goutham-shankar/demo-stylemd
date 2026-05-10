@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Search, Globe, AlertCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { API_BASE } from "@/lib/api-config";
+import { useSSE } from "@/lib/sse-context";
 
 type RunCard = {
   slug: string;
@@ -86,6 +88,8 @@ function CardThumbnail({ run }: { run: RunCard }) {
 export default function StyleLibrary() {
   const [runs, setRuns] = useState<RunCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isRunning, activeRun } = useSSE();
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -260,8 +264,58 @@ export default function StyleLibrary() {
         )}
 
         {/* Grid */}
-        {!loading && !error && filtered.length > 0 && (
+        {!loading && !error && (isRunning || filtered.length > 0) && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* In-progress run — shown first */}
+            {isRunning && activeRun && (
+              <button
+                type="button"
+                onClick={() => router.push("/generate")}
+                className="group text-left block overflow-hidden border-2 border-orange-300 bg-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                style={{ borderRadius: 16 }}
+              >
+                <div className="relative h-48 bg-gradient-to-br from-orange-50 to-orange-100 flex flex-col items-center justify-center gap-3 overflow-hidden">
+                  <div
+                    className="absolute inset-0 -translate-x-full"
+                    style={{
+                      background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)",
+                      animation: "shimmer 1.8s infinite",
+                    }}
+                  />
+                  <style>{`@keyframes shimmer { to { transform: translateX(200%) } }`}</style>
+                  <div className="relative flex h-3 w-3">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-orange-500" />
+                  </div>
+                  <p className="text-orange-500 text-xs font-bold uppercase tracking-widest">Generating</p>
+                  <p className="text-orange-400 text-sm font-semibold truncate px-6 max-w-full">
+                    {activeRun.url}
+                  </p>
+                </div>
+                <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <div className="relative flex h-2 w-2 flex-shrink-0">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                      </div>
+                      <h3 className="text-base font-bold text-gray-900 truncate">
+                        {(() => { try { return new URL(activeRun.url).hostname.replace(/^www\./, ""); } catch { return activeRun.url; } })()}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-orange-400 font-medium font-manrope">
+                      {activeRun.logs?.length
+                        ? activeRun.logs[activeRun.logs.length - 1]?.message
+                        : "Starting up…"}
+                    </p>
+                  </div>
+                  <span className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 bg-orange-500 text-white rounded-[10px] font-semibold text-sm whitespace-nowrap">
+                    <RefreshCw size={12} className="animate-spin" />
+                    Live
+                  </span>
+                </div>
+              </button>
+            )}
             {filtered.map((run) => (
               <Link
                 key={run.slug || run.runId}

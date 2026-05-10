@@ -3,7 +3,7 @@
 import { useSSE } from "@/lib/sse-context";
 import { usePathname, useRouter } from "next/navigation";
 import { RefreshCw, X } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 function cleanHostname(url: string): string {
   try {
@@ -18,20 +18,24 @@ export default function ActiveRunCard() {
   const pathname = usePathname();
   const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
+  const [visible, setVisible] = useState(false);
 
-  // Reset dismissed state when a new run starts
-  const runId = activeRun?.runId;
-  const [lastRunId, setLastRunId] = useState<string | null>(null);
-  if (runId && runId !== lastRunId) {
-    setLastRunId(runId);
-    setDismissed(false);
-  }
+  // Reset dismiss when a new run starts; fade in
+  const runId = activeRun?.runId ?? null;
+  useEffect(() => {
+    if (runId) {
+      setDismissed(false);
+      // Small delay so CSS transition fires after mount
+      const t = setTimeout(() => setVisible(true), 50);
+      return () => clearTimeout(t);
+    } else {
+      setVisible(false);
+    }
+  }, [runId]);
 
   const completedStages = useMemo(() => {
     if (!activeRun?.stages) return 0;
-    return Object.values(activeRun.stages).filter(
-      (s) => s.status === "completed"
-    ).length;
+    return Object.values(activeRun.stages).filter((s) => s.status === "completed").length;
   }, [activeRun?.stages]);
 
   const totalStages = useMemo(() => {
@@ -44,31 +48,36 @@ export default function ActiveRunCard() {
     return activeRun.logs[activeRun.logs.length - 1];
   }, [activeRun?.logs]);
 
-  // Only show when a run is in progress
-  if (!isRunning || !activeRun) return null;
-  // Don't show on /generate — PipelineView is already there
+  if (!isRunning || !activeRun || dismissed) return null;
+  // Don't show on /generate — PipelineView already covers it
   if (pathname?.startsWith("/generate")) return null;
-  if (dismissed) return null;
 
   const hostname = cleanHostname(activeRun.url);
   const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-72 rounded-2xl border border-orange-200 bg-white shadow-xl shadow-black/10 overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+    <div
+      className="fixed bottom-6 right-6 z-50 w-72 rounded-2xl border border-orange-200 bg-white shadow-xl shadow-black/10 overflow-hidden"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(16px)",
+        transition: "opacity 0.25s ease, transform 0.25s ease",
+      }}
+    >
       {/* Progress bar */}
       <div className="h-1 bg-orange-100">
         <div
-          className="h-full bg-orange-400 transition-all duration-500"
-          style={{ width: totalStages > 0 ? `${progress}%` : "30%", animation: totalStages === 0 ? "pulse 1.5s ease-in-out infinite" : undefined }}
+          className="h-full bg-orange-400 transition-all duration-700"
+          style={{ width: totalStages > 0 ? `${progress}%` : "25%" }}
         />
       </div>
 
       <div className="p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2 min-w-0">
+        {/* Header row */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
             {/* Pulsing orange dot */}
-            <div className="relative flex-shrink-0 flex h-2.5 w-2.5">
+            <div className="relative flex h-2.5 w-2.5 flex-shrink-0">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-orange-500" />
             </div>
@@ -77,34 +86,34 @@ export default function ActiveRunCard() {
             </span>
           </div>
           <button
-            onClick={() => setDismissed(true)}
-            className="flex-shrink-0 text-gray-300 hover:text-gray-500 transition-colors"
-            aria-label="Dismiss"
             type="button"
+            onClick={() => setDismissed(true)}
+            className="text-gray-300 hover:text-gray-500 transition-colors"
+            aria-label="Dismiss"
           >
             <X size={14} />
           </button>
         </div>
 
-        {/* Site name */}
+        {/* Site info */}
         <p className="text-sm font-bold text-gray-900 truncate mb-0.5">{hostname}</p>
         <p className="text-[11px] text-gray-400 truncate mb-3">{activeRun.url}</p>
 
         {/* Stage progress */}
         {totalStages > 0 && (
-          <p className="text-[11px] text-gray-500 mb-3 font-medium">
+          <p className="text-[11px] font-medium text-gray-500 mb-2">
             {completedStages} of {totalStages} stages complete
           </p>
         )}
 
         {/* Latest log */}
         {latestLog?.message && (
-          <p className="text-[11px] text-gray-400 truncate mb-3 italic">
+          <p className="text-[11px] text-gray-400 italic truncate mb-3">
             {latestLog.message}
           </p>
         )}
 
-        {/* View progress button */}
+        {/* CTA */}
         <button
           type="button"
           onClick={() => router.push("/generate")}
