@@ -230,7 +230,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
       {/* 2. Main Content Area */}
       <main className="flex flex-1 overflow-hidden">
         {/* Left: Preview (40%) */}
-        <aside className="hidden w-[40%] flex-col border-r border-medium bg-page md:flex">
+        <aside className="hidden w-[40%] flex-col border-r border-medium bg-[#f6f8fa] md:flex">
           <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
             <div className="overflow-hidden rounded-2xl border border-medium bg-white shadow-xl">
               {card.preview ? (
