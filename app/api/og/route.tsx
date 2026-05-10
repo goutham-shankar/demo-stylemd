@@ -3,13 +3,14 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+const COLORS = [
+  "#635bff", "#0d9488", "#2563eb", "#7c3aed",
+  "#d97706", "#059669", "#dc2626", "#0891b2",
+];
+
 function brandColor(str: string): string {
-  const palette = [
-    "#635bff", "#0d9488", "#2563eb", "#7c3aed",
-    "#d97706", "#059669", "#dc2626", "#0891b2",
-  ];
-  const idx = str.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % palette.length;
-  return palette[idx];
+  const idx = str.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % COLORS.length;
+  return COLORS[idx];
 }
 
 export async function GET(request: NextRequest) {
@@ -18,7 +19,8 @@ export async function GET(request: NextRequest) {
   const host = searchParams.get("host") || "";
   const img = searchParams.get("img") || "";
 
-  const bg = brandColor(host || title);
+  const accent = brandColor(host || title);
+  const initial = (host || title).charAt(0).toUpperCase();
 
   return new ImageResponse(
     (
@@ -30,164 +32,133 @@ export async function GET(request: NextRequest) {
           flexDirection: "column",
           background: "#ffffff",
           fontFamily: "sans-serif",
-          overflow: "hidden",
-          position: "relative",
         }}
       >
-        {/* Screenshot background (if available) */}
-        {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={img}
-            alt=""
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "top",
-            }}
-          />
-        ) : (
-          /* Fallback: colored gradient background */
+        {/* Top accent bar */}
+        <div style={{ display: "flex", height: "8px", background: accent, width: "100%" }} />
+
+        {/* Main body */}
+        <div style={{ display: "flex", flex: 1, flexDirection: "row" }}>
+
+          {/* Left: screenshot or colored swatch */}
           <div
             style={{
-              position: "absolute",
-              inset: 0,
-              background: `linear-gradient(135deg, ${bg}22 0%, ${bg}08 100%)`,
+              display: "flex",
+              width: "480px",
+              flexShrink: 0,
+              background: img ? "#000" : accent,
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
             }}
-          />
-        )}
-
-        {/* Dark overlay for readability */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: img
-              ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)"
-              : "none",
-          }}
-        />
-
-        {/* Content — bottom bar */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: "40px 56px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-            background: img ? "none" : "linear-gradient(to top, rgba(0,0,0,0.06), transparent)",
-          }}
-        >
-          {/* Site badge */}
-          {host && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "4px",
-              }}
-            >
+          >
+            {img ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={img}
+                alt=""
+                width={480}
+                height={622}
+                style={{ objectFit: "cover", objectPosition: "top", width: "100%", height: "100%" }}
+              />
+            ) : (
               <div
                 style={{
-                  width: "32px",
-                  height: "32px",
-                  borderRadius: "8px",
-                  background: bg,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "24px",
+                  background: "rgba(255,255,255,0.2)",
+                  fontSize: "64px",
+                  fontWeight: 900,
                   color: "#ffffff",
+                }}
+              >
+                {initial}
+              </div>
+            )}
+          </div>
+
+          {/* Right: text content */}
+          <div
+            style={{
+              display: "flex",
+              flex: 1,
+              flexDirection: "column",
+              justifyContent: "space-between",
+              padding: "56px 56px",
+              background: "#ffffff",
+            }}
+          >
+            {/* Site badge */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "10px",
+                  background: accent,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontSize: "20px",
+                  fontWeight: 900,
+                }}
+              >
+                {initial}
+              </div>
+              <span style={{ fontSize: "18px", color: "#6b7280", fontWeight: 600 }}>
+                {host || title}
+              </span>
+            </div>
+
+            {/* Title */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div
+                style={{
+                  fontSize: "48px",
+                  fontWeight: 900,
+                  color: "#111827",
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {title}
+              </div>
+              <div style={{ fontSize: "20px", color: "#9ca3af", fontWeight: 500 }}>
+                Design System · Colors · Typography
+              </div>
+            </div>
+
+            {/* DesignProbe branding */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "8px",
+                  background: "#635bff",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
                   fontSize: "16px",
                   fontWeight: 900,
                 }}
               >
-                {host.charAt(0).toUpperCase()}
+                D
               </div>
-              <span
-                style={{
-                  fontSize: "16px",
-                  color: img ? "rgba(255,255,255,0.8)" : "#6b7280",
-                  fontWeight: 600,
-                }}
-              >
-                {host}
+              <span style={{ fontSize: "16px", color: "#9ca3af", fontWeight: 700, letterSpacing: "0.03em" }}>
+                DesignProbe
               </span>
             </div>
-          )}
-
-          <div
-            style={{
-              fontSize: img ? "44px" : "52px",
-              fontWeight: 900,
-              color: img ? "#ffffff" : "#111827",
-              lineHeight: 1.1,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            {title}
-          </div>
-
-          <div
-            style={{
-              fontSize: "20px",
-              color: img ? "rgba(255,255,255,0.65)" : "#6b7280",
-              fontWeight: 500,
-              marginTop: "4px",
-            }}
-          >
-            Design System · Colors · Typography · Components
-          </div>
-
-          {/* DesignProbe branding */}
-          <div
-            style={{
-              marginTop: "20px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <div
-              style={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "6px",
-                background: "#635bff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontSize: "14px",
-                fontWeight: 900,
-              }}
-            >
-              D
-            </div>
-            <span
-              style={{
-                fontSize: "15px",
-                fontWeight: 700,
-                color: img ? "rgba(255,255,255,0.7)" : "#9ca3af",
-                letterSpacing: "0.02em",
-              }}
-            >
-              DesignProbe
-            </span>
           </div>
         </div>
       </div>
     ),
-    {
-      width: 1200,
-      height: 630,
-    }
+    { width: 1200, height: 630 }
   );
 }
