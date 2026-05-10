@@ -637,28 +637,112 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       </section>
 
       <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
-        <div className="mb-6 flex items-center gap-2">
-          <Square size={14} className="text-gray-400" />
-          <h2 className="text-lg font-bold tracking-tight text-gray-900">Shapes</h2>
-        </div>
-        <div className="grid grid-cols-2 gap-8">
-          <div>
+        <div className="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
+          <div className="max-w-md">
+            <div className="mb-4 flex items-center gap-2">
+              <Square size={16} className="text-gray-400" />
+              <h2 className="text-xl font-bold tracking-tight text-gray-900">Shape Language</h2>
+            </div>
             <p className="mb-4 text-sm leading-relaxed text-gray-500">{shapeIntro}</p>
-            <span className="inline-block px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000"), borderRadius: "var(--radius)" }}>
-              {shapeBadge}
-            </span>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm" style={{ backgroundColor: "var(--primary)", color: contrastColor(theme?.colors.primary ?? "#000000"), borderRadius: "6px" }}>
+                {shapeBadge}
+              </span>
+              <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-100 rounded-[6px]">
+                Geometry
+              </span>
+              <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-100 rounded-[6px]">
+                Tactile
+              </span>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {shapeItems.map((label) => (
-              <button
-                key={label}
-                className="px-4 py-8 text-sm font-bold text-gray-700 transition-all hover:shadow-md"
-                style={{ border: "1px solid #e5e7eb", borderRadius: "var(--radius)", backgroundColor: "#f6f8fa" }}
-                type="button"
-              >
-                {label}
-              </button>
-            ))}
+          
+          {/* Radius Scale Visualization */}
+          <div className="flex-1 flex justify-end">
+            <div className="flex items-end gap-5 rounded-xl bg-[#f6f8fa] p-5 border border-gray-100 shadow-inner">
+              {[
+                { label: "2px", rad: "2px", h: "h-8", w: "w-8" },
+                { label: "Base", rad: "var(--radius)", h: "h-12", w: "w-12" },
+                { label: "Large", rad: "calc(var(--radius) * 2)", h: "h-16", w: "w-16" },
+                { label: "Pill", rad: "9999px", h: "h-16", w: "w-24" }
+              ].map((step, i) => (
+                <div key={i} className="flex flex-col items-center gap-2 group cursor-crosshair">
+                  <div className={`bg-white border border-gray-200 shadow-sm transition-all duration-300 group-hover:border-[var(--primary)] group-hover:shadow-md ${step.h} ${step.w}`} style={{ borderRadius: step.rad }} />
+                  <span className="text-[9px] font-mono font-bold text-gray-400 transition-colors group-hover:text-gray-700">{step.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Interactive Shape Preview Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* Cards Preview */}
+          <div className="group relative overflow-hidden bg-[#f6f8fa] p-6 transition-all hover:bg-gray-50" style={{ border: "1px solid #e5e7eb", borderRadius: "calc(var(--radius) * 1.5)" }}>
+            <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">Cards</h3>
+            <div className="relative h-28 w-full bg-white shadow-sm transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-lg" style={{ borderRadius: "var(--radius)", border: "1px solid #f3f4f6" }}>
+              <div className="absolute top-0 left-0 w-full h-10 bg-gray-50/50 border-b border-gray-100" style={{ borderTopLeftRadius: "var(--radius)", borderTopRightRadius: "var(--radius)" }} />
+              <div className="absolute bottom-3 left-3 flex gap-2">
+                <div className="h-6 w-6 bg-gray-100" style={{ borderRadius: "calc(var(--radius) * 0.75)" }} />
+                <div className="h-2 w-16 mt-2 rounded-full bg-gray-100" />
+              </div>
+            </div>
+          </div>
+
+          {/* Panels Preview */}
+          <div className="group relative overflow-hidden bg-[#f6f8fa] p-6 transition-all hover:bg-gray-50" style={{ border: "1px solid #e5e7eb", borderRadius: "calc(var(--radius) * 1.5)" }}>
+            <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">Panels</h3>
+            <div className="relative h-28 w-full bg-white shadow-sm transition-all duration-500 group-hover:scale-[1.02]" style={{ borderRadius: "calc(var(--radius) * 2)", border: "1px solid #f3f4f6" }}>
+              <div className="absolute top-2 left-2 right-2 bottom-2 bg-gray-50 border border-gray-100 border-dashed transition-all duration-500 group-hover:bg-gray-100" style={{ borderRadius: "calc(var(--radius) * 1.5)" }} />
+            </div>
+          </div>
+
+          {/* Controls Preview */}
+          <div className="group relative overflow-hidden bg-[#f6f8fa] p-6 transition-all hover:bg-gray-50" style={{ border: "1px solid #e5e7eb", borderRadius: "calc(var(--radius) * 1.5)" }}>
+            <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">Controls</h3>
+            <div className="flex h-28 flex-col justify-center gap-3 w-full">
+              <div className="h-8 w-full bg-white shadow-sm transition-all duration-300 group-hover:border-[var(--primary)] group-hover:shadow-md" style={{ borderRadius: "var(--radius)", border: "1px solid #e5e7eb" }} />
+              <div className="flex gap-2">
+                <div className="h-8 w-1/2 shadow-sm transition-all duration-300 group-hover:brightness-110" style={{ borderRadius: "var(--radius)", border: "1px solid #e5e7eb", backgroundColor: "var(--primary)" }} />
+                <div className="h-8 w-1/2 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-md" style={{ borderRadius: "var(--radius)", border: "1px solid #e5e7eb" }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Media Preview */}
+          <div className="group relative overflow-hidden bg-[#f6f8fa] p-6 transition-all hover:bg-gray-50" style={{ border: "1px solid #e5e7eb", borderRadius: "calc(var(--radius) * 1.5)" }}>
+            <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">Media</h3>
+            <div className="relative h-28 w-full overflow-hidden bg-gray-200 transition-all duration-500 group-hover:scale-[0.98] shadow-inner" style={{ borderRadius: "var(--radius)" }}>
+              {/* Fake image gradient to look like a photo placeholder */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-gray-300 to-gray-100" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-black/5">
+                <div className="h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center shadow-sm">
+                  <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-gray-700 border-b-[4px] border-b-transparent ml-0.5" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Shape Characteristics Notes */}
+        <div className="rounded-xl bg-[#f6f8fa] p-5 border border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="flex items-start gap-3">
+              <Check size={14} className="text-[var(--primary)] mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-gray-600 font-medium">Tight radius system applied universally across interactive elements to maintain a structured feel.</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <Check size={14} className="text-[var(--primary)] mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-gray-600 font-medium">Soft container hierarchy with distinct nested border radii to prevent visual clipping.</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <Check size={14} className="text-[var(--primary)] mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-gray-600 font-medium">Sharp media framing where appropriate, scaling proportionally to bounding box dimensions.</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <Check size={14} className="text-[var(--primary)] mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-gray-600 font-medium">Fully rounded controls (pill shapes) reserved strictly for primary actions and tags.</p>
+            </div>
           </div>
         </div>
       </section>
