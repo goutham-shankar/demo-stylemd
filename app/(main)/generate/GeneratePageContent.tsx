@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PipelineView from "@/components/PipelineView";
 import DesignDetailPage, { DesignDetailPageSkeleton } from "@/components/DesignDetailPage";
-import { useSSE } from "@/lib/sse-context";
+import { useSSE, API_BASE } from "@/lib/sse-context";
 import { isFixtureRunId } from "@/lib/fixture-runs";
+import type { Provider } from "@/lib/api-types";
 
 function FetchedResultView() {
   const { resultData, goHome, runAgain, isRunning } = useSSE();
@@ -72,16 +73,17 @@ function DeepLinkError({
 }
 
 export default function GeneratePageContent() {
-  const { screen, resultData, viewRun, networkError, dismissNetworkError, goHome } = useSSE();
+  const { screen, resultData, viewRun, startRun, networkError, dismissNetworkError, goHome } = useSSE();
   const router = useRouter();
   const searchParams = useSearchParams();
   const slug = searchParams.get("run")?.trim() ?? "";
+  const force = searchParams.get("force") === "true";
 
   useEffect(() => {
     if (screen !== "result" || !resultData) return;
     const activeSlug = resultData.slug?.trim() || resultData.runId?.trim();
     if (!activeSlug) return;
-    
+
     // Once the generation is complete (or if we resolved a deep-link),
     // cleanly hand off to the static viewer page.
     router.replace(`/styles/${encodeURIComponent(activeSlug)}`);
@@ -90,18 +92,46 @@ export default function GeneratePageContent() {
   const resultDataRef = useRef(resultData);
   resultDataRef.current = resultData;
 
+  // Track whether a force re-run has already been initiated for this slug
+  // to prevent the effect from re-firing when screen/resultData changes.
+  const forceInitiatedForRef = useRef<string | null>(null);
+
   const cancelledRef = useRef(false);
   useEffect(() => {
     if (!slug) return;
-    
-    // Don't call viewRun if a run is already actively in progress (e.g. restored from localStorage after refresh)
+
+    // Don't interfere while a run is already actively in progress
     if (screen === "running") return;
-    
+
+    if (force) {
+      // Only trigger once per slug to avoid re-firing on state changes
+      if (forceInitiatedForRef.current === slug) return;
+      forceInitiatedForRef.current = slug;
+
+      // Fetch the existing run to get its URL + provider, then kick off a fresh run
+      void (async () => {
+        try {
+          const res = await fetch(`${API_BASE}/api/stylemd/by-slug/${encodeURIComponent(slug)}`);
+          const json = await res.json();
+          if (json.ok && json.data?.url) {
+            await startRun(json.data.url, (json.data.provider as Provider) || "kimi", true);
+          } else {
+            goHome();
+            router.replace("/");
+          }
+        } catch {
+          goHome();
+          router.replace("/");
+        }
+      })();
+      return;
+    }
+
     // Skip fetch if resultData already matches this slug (URL sync after run completion)
     const cur = resultDataRef.current;
     const curSlug = cur?.slug?.trim() || cur?.runId?.trim();
     if (curSlug && (curSlug === slug || cur?.runId?.trim() === slug)) return;
-    
+
     cancelledRef.current = false;
     void (async () => {
       await viewRun(slug);
@@ -109,7 +139,7 @@ export default function GeneratePageContent() {
     return () => {
       cancelledRef.current = true;
     };
-  }, [slug, viewRun, screen]);
+  }, [slug, force, viewRun, startRun, screen, goHome, router]);
 
   useEffect(() => {
     if (slug) return;
