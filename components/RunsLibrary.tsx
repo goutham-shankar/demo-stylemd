@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Search, RefreshCw, Globe, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -50,8 +50,8 @@ function CardThumbnail({ run }: { run: RunCard }) {
   const bg = brandColor(run.url);
   const slug = run.slug || run.runId;
 
-  // Immediate preview from list data (may be absent if API omits large base64 fields from summaries)
-  const immediatePreview = run.screenshot || ogImage;
+  // Immediate preview from list data (only if the large base64 screenshot is present in list payload)
+  const immediatePreview = run.screenshot;
 
   // null = still fetching, string = found, false = nothing to show
   const [lazyPreview, setLazyPreview] = useState<string | null | false>(() => {
@@ -63,6 +63,32 @@ function CardThumbnail({ run }: { run: RunCard }) {
 
   // Image error state for when the src loads but the img fails to render
   const [imgFailed, setImgFailed] = useState(false);
+  const [scrollAmount, setScrollAmount] = useState(0);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  const calculateScroll = () => {
+    if (imgRef.current && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const img = imgRef.current;
+      if (img.naturalWidth > 0 && containerRect.width > 0) {
+        const aspect = img.naturalHeight / img.naturalWidth;
+        const renderedHeight = containerRect.width * aspect;
+        const targetScroll = renderedHeight - containerRect.height;
+        if (targetScroll > 10) {
+          setScrollAmount(targetScroll);
+        } else {
+          setScrollAmount(0);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("resize", calculateScroll);
+    return () => window.removeEventListener("resize", calculateScroll);
+  }, []);
 
   useEffect(() => {
     if (immediatePreview || !slug || !API_BASE) return;
@@ -101,15 +127,36 @@ function CardThumbnail({ run }: { run: RunCard }) {
   }
 
   if (displaySrc && !imgFailed) {
+    const duration = Math.max(3, Math.min(10, scrollAmount / 180)); // speed of 180px per second, clamped between 3s and 10s
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={displaySrc}
-        alt={name}
-        className="w-full h-full object-cover object-top"
-        loading="lazy"
-        onError={() => setImgFailed(true)}
-      />
+      <div
+        ref={containerRef}
+        className="relative w-full h-full overflow-hidden"
+        style={{
+          "--scroll-amount": `${scrollAmount}px`,
+          "--scroll-duration": `${duration}s`,
+        } as any}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          ref={imgRef}
+          src={displaySrc}
+          alt={name}
+          onLoad={calculateScroll}
+          className="absolute top-0 left-0 w-full h-auto object-cover object-top transition-transform ease-in-out group-hover:-translate-y-[var(--scroll-amount,0px)]"
+          style={{
+            transitionDuration: "0.7s",
+          }}
+          loading="lazy"
+          onError={() => setImgFailed(true)}
+        />
+        {/* Unhover transition helper */}
+        <style jsx global>{`
+          .group:hover [style*="--scroll-amount"] img {
+            transition-duration: var(--scroll-duration, 5s) !important;
+          }
+        `}</style>
+      </div>
     );
   }
 
