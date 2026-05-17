@@ -330,17 +330,17 @@ export default function StyleLibrary() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-2 bg-surface border border-medium rounded-[12px] p-1 w-fit mb-8">
+        <div className="flex items-center gap-2 bg-surface border border-medium rounded-[14px] p-1 w-fit mb-8">
           {["All", "Recent"].map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab.toLowerCase())}
               aria-pressed={activeTab === tab.toLowerCase()}
-              className={`px-5 py-1.5 rounded-[12px] text-sm font-semibold transition-all duration-150 ${
+              className={`px-5 py-1.5 rounded-[10px] text-sm font-semibold transition-all duration-150 cursor-pointer ${
                 activeTab === tab.toLowerCase()
-                  ? "bg-cta text-white"
-                  : "text-muted hover:bg-[#f7f4ee]"
+                  ? "bg-cta text-white shadow-sm"
+                  : "text-muted hover:bg-gray-100/50 hover:text-primary"
               }`}
             >
               {tab}
