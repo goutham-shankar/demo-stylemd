@@ -241,9 +241,15 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
     { label: "SECTION", sublabel: "PAGE", value: evalSpacingValue(`calc(${spacingValue} * 8)`) },
   ];
 
-  const spacingSteps = extras?.spacing?.steps?.length ? extras.spacing.steps : DEFAULT_SPACING_STEPS;
+  const dynamicSpacingSteps = [
+    { label: "STEP 1", pct: "20%", value: evalSpacingValue(`calc(${spacingValue} * 0.5)`) },
+    { label: "STEP 2", pct: "40%", value: spacingValue },
+    { label: "STEP 3", pct: "60%", value: evalSpacingValue(`calc(${spacingValue} * 1.5)`) },
+    { label: "STEP 4", pct: "80%", value: evalSpacingValue(`calc(${spacingValue} * 2)`) },
+  ];
+  const spacingSteps = extras?.spacing?.steps?.length ? extras.spacing.steps : dynamicSpacingSteps;
   const spacingRules =
-    extras?.spacing?.rules?.length ? extras.spacing.rules : [`SECTION PADDING: ${spacingValue}`, `CARD PADDING: ${spacingValue}`, `GAPS: ${spacingValue}`];
+    extras?.spacing?.rules?.length ? extras.spacing.rules : [`SECTION PADDING: ${evalSpacingValue(`calc(${spacingValue} * 8)`)}`, `CARD PADDING: ${evalSpacingValue(`calc(${spacingValue} * 4)`)}`, `GAPS: ${spacingValue}`];
 
   const elevIntro =
     extras?.elevation?.intro ??
@@ -597,7 +603,12 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 </span>
               </p>
               {spacingRules[0] && (
-                <p className="text-[9px] font-medium text-gray-500">{spacingRules[0]}</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">
+                  {spacingRules[0].split(':')[0]}:{" "}
+                  <span className="text-gray-600">
+                    {spacingRules[0].split(':')[1]?.trim() ?? ''}
+                  </span>
+                </p>
               )}
             </div>
           </div>
@@ -609,7 +620,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
               {spacingCards.map((item) => (
                 <div key={item.label} className="flex flex-col gap-0.5 border-b border-gray-100 pb-3">
                   <p className="text-[8px] font-bold uppercase tracking-wider text-gray-400">{item.label}</p>
-                  <p className="text-3xl font-black" style={{ color: "var(--primary)" }}>{item.value}</p>
+                  <p className="text-3xl font-black text-black">{item.value}</p>
                   <p className="text-[9px] font-medium uppercase tracking-wider text-gray-400">{item.sublabel}</p>
                 </div>
               ))}
@@ -621,7 +632,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 <div key={step.label} className="flex items-center gap-3">
                   <span className="w-12 text-[10px] font-medium text-gray-400">{step.label}</span>
                   <div className="flex-1 rounded-full bg-gray-100">
-                    <div className="h-1.5 rounded-full" style={{ width: step.pct, backgroundColor: "var(--primary)" }} />
+                    <div className="h-1.5 rounded-full bg-black" style={{ width: step.pct }} />
                   </div>
                   <span className="w-8 text-right text-[10px] font-medium text-gray-500">{step.value}</span>
                 </div>
@@ -631,7 +642,10 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
             {/* Bottom rule chips */}
             <div className="flex flex-wrap gap-4 border-t border-gray-100 pt-3">
               {spacingRules.slice(1).map((r) => (
-                <p key={r} className="text-[9px] font-medium uppercase tracking-wider text-gray-500">{r}</p>
+                <p key={r} className="text-[9px] font-bold uppercase tracking-wider text-gray-400">
+                  {r.split(':')[0]}:{" "}
+                  <span className="text-gray-600">{r.split(':')[1]?.trim() ?? ''}</span>
+                </p>
               ))}
             </div>
           </div>
