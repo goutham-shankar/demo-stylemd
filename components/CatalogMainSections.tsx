@@ -556,37 +556,38 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
           <div>
             <div className="mb-4 flex flex-col gap-3">
               <span
-                className="inline-block w-fit px-4 py-2 text-base font-black"
+                className="inline-block w-fit px-4 py-2 text-base font-black tracking-tight"
                 style={{
-                  backgroundColor: "#f6f8fa",
+                  backgroundColor: "#f9fafb",
                   borderRadius: "var(--radius)",
                   border: "1px solid #e5e7eb",
-                  color: "var(--primary)",
+                  color: "#111827",
                 }}
               >
                 {card.name}
               </span>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {card.brandAssets?.appleIcon ? (
-                  <span className="flex items-center gap-2 rounded-full border border-gray-200 bg-white shadow-sm px-3 py-1.5 text-xs font-semibold text-gray-900 transition-transform hover:-translate-y-0.5">
+                  <span className="flex items-center gap-2 rounded-full border border-gray-200 bg-white shadow-sm px-3.5 py-1.5 text-xs font-semibold text-gray-900 transition-transform hover:-translate-y-0.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={card.brandAssets.appleIcon} alt="App Icon" className="h-4 w-4 rounded-sm object-contain" />
-                    {card.name} App
+                    <img src={card.brandAssets.appleIcon} alt="Apple Touch Icon" className="h-4 w-4 rounded-sm object-contain" />
+                    Apple Touch Icon
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white">
-                    <Apple size={14} /> Apple
+                  <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-900 px-3.5 py-1.5 text-xs font-semibold text-white">
+                    <Apple size={14} /> Apple Touch Icon
                   </span>
                 )}
                 
                 {card.brandAssets?.appleIcon ? (
-                  <span className="flex items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm px-3 py-1.5 transition-transform hover:-translate-y-0.5">
+                  <span className="flex items-center gap-2 rounded-full border border-gray-200 bg-white shadow-sm px-3.5 py-1.5 text-xs font-semibold text-gray-900 transition-transform hover:-translate-y-0.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={card.brandAssets.appleIcon} alt="Favicon" className="h-4 w-4 object-contain" />
+                    Favicon
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-gray-700">
-                    <Bell size={14} />
+                  <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-3.5 py-1.5 text-xs font-semibold text-gray-700">
+                    <Bell size={14} /> Notification
                   </span>
                 )}
               </div>
