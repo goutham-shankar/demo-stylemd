@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
 export const runtime = "edge";
+export const dynamic = 'force-dynamic';
 
 const COLORS = [
   "#635bff", "#0d9488", "#2563eb", "#7c3aed",

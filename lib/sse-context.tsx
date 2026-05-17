@@ -360,8 +360,8 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
       if (list.length > 0 || data.ok) {
         dispatch({ type: "SET_RUNS", runs: list.map((s) => mapApiSummary(s)) });
       }
-    } catch {
-      // silently ignore
+    } catch (e) {
+      console.error("Failed to fetch runs list:", e);
     }
   }, []);
 
@@ -593,7 +593,8 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
           });
           connectSSE(); // SSE onopen does a one-time check; no polling loop needed
         }
-      } catch {
+      } catch (e) {
+        console.error("Failed to restore active run:", e);
         localStorage.removeItem(ACTIVE_RUN_KEY);
       }
     }
