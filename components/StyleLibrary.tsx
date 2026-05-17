@@ -220,10 +220,24 @@ export default function StyleLibrary() {
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, activeTab]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const element = document.getElementById("library-section");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [currentPage]);
 
   const fetchRuns = useCallback(async () => {
     setLoading(true);
@@ -293,7 +307,7 @@ export default function StyleLibrary() {
   );
 
   return (
-    <section className="py-12 md:py-16 bg-page">
+    <section id="library-section" className="py-12 md:py-16 bg-page">
       <div className="container-custom max-w-6xl mx-auto px-6">
 
         {/* Header */}
