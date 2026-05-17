@@ -673,7 +673,25 @@ export function mapToDesignCard(parsed: ReturnType<typeof parseStyleMd>, id: str
   // Priority: scraped page title > parsed markdown H1 > URL hostname
   let displayName = parsed.name;
   if (pageTitle && pageTitle.trim() && !/^(?:design|style)\.?md$/i.test(pageTitle.trim())) {
-    displayName = pageTitle.trim();
+    // Page titles often look like "Free screen recorder | Loom" or "Loom | Make video messaging"
+    // — extract just the brand segment (shortest pipe-separated part, usually at the end or start)
+    const rawTitle = pageTitle.trim();
+    const segments = rawTitle.split(/\s*[|–—]\s*/).map(s => s.trim()).filter(Boolean);
+    if (segments.length > 1) {
+      // Prefer the last segment if it's a short brand-like word (≤ 30 chars, no spaces or ≤ 2 words)
+      const last = segments[segments.length - 1];
+      const first = segments[0];
+      const wordCount = (s: string) => s.split(/\s+/).filter(Boolean).length;
+      // Pick the shortest segment (most likely to be the brand name)
+      const byLength = [...segments].sort((a, b) => a.length - b.length);
+      const shortest = byLength[0];
+      // Use shortest only if it's ≤ 3 words, otherwise fall back to last segment
+      displayName = wordCount(shortest) <= 3 ? shortest : (wordCount(last) <= 3 ? last : first);
+    } else {
+      displayName = rawTitle;
+    }
+    // Strip generic suffixes like "Home", "Official Site", "Official Website"
+    displayName = displayName.replace(/\s*[-–—]\s*(?:Home|Official Site|Official Website|Welcome)$/i, "").trim();
   } else if (!displayName || displayName === "Untitled Design") {
     try {
       const hostname = new URL(url).hostname.replace(/^www\./, "");
@@ -683,6 +701,7 @@ export function mapToDesignCard(parsed: ReturnType<typeof parseStyleMd>, id: str
       displayName = id || "Untitled Design";
     }
   }
+
 
   return {
     id,

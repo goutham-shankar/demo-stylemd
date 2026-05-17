@@ -16,10 +16,6 @@ export default function StyleViewClient({ runData }: { runData: RunData }) {
         onBack={() => {
           router.push("/styles");
         }}
-        onRunAgain={() => {
-          // If the user wants to run it again, send them to the generate page
-          router.push(`/generate?run=${encodeURIComponent(runData.slug || runData.runId)}&force=true`);
-        }}
       />
     </div>
   );

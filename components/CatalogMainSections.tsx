@@ -114,7 +114,7 @@ function contrastColor(hex: string): string {
 export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) {
   const { tokens, theme } = card;
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
-  const [paletteView, setPaletteView] = useState<"scale" | "cards">("scale");
+  const [paletteView, setPaletteView] = useState<"scale" | "cards">("cards");
 
   // Authoritative CTA/interactive color — must match --primary in themeStyles
   const effectiveAccent = extras?.accentColor || theme?.colors.accent || theme?.colors.primary || "#000000";
@@ -137,6 +137,30 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
     }
     return card.palette;
   }, [extras, card.palette]);
+
+  // Reduce to max 4 semantic ramps: Primary, Accent, Background, Secondary (optional)
+  const filteredPalette = useMemo(() => {
+    if (effectivePalette.length <= 4) return effectivePalette;
+    // Score each entry by semantic role keywords in its name
+    const score = (name: string): number => {
+      const n = name.toLowerCase();
+      if (n.includes("primary") || n.includes("brand") || n.includes("main")) return 100;
+      if (n.includes("accent") || n.includes("cta") || n.includes("interactive")) return 90;
+      if (n.includes("background") || n.includes("bg") || n.includes("canvas") || n.includes("surface")) return 80;
+      if (n.includes("secondary")) return 70;
+      if (n.includes("neutral") || n.includes("gray") || n.includes("grey")) return 60;
+      if (n.includes("text") || n.includes("foreground") || n.includes("dark")) return 50;
+      return 10;
+    };
+    const sorted = [...effectivePalette].sort((a, b) => score(b.name) - score(a.name));
+    // Always keep at most 4; drop duplicates by proximity of hex
+    const picked: typeof effectivePalette = [];
+    for (const row of sorted) {
+      if (picked.length >= 4) break;
+      picked.push(row);
+    }
+    return picked;
+  }, [effectivePalette]);
 
   const effectiveFonts = useMemo(() => {
     if (extras?.fonts?.length) {
@@ -292,11 +316,14 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       `}</style>
       <div className="stylemd-theme-root space-y-10">
       {/* 1. Pro Typography Section */}
-      <section className="overflow-hidden" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
+      <section className="overflow-hidden" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "20px" }}>
         <div className="flex min-h-[320px]">
           {/* Left panel — title + intro + aside */}
           <div className="flex w-52 flex-shrink-0 flex-col gap-4 p-6 border-r border-dashed border-gray-200">
-            <h2 className="text-2xl font-black tracking-tighter" style={{ color: "var(--primary)" }}>{typoTitle}</h2>
+            <h2
+              className="text-2xl tracking-tighter text-gray-900"
+              style={{ fontFamily: "'Magnetik', system-ui, sans-serif", fontWeight: 700 }}
+            >{typoTitle}</h2>
             <p className="text-[11px] font-medium leading-relaxed text-gray-500">{typoIntro}</p>
             {extras?.typographyAside && (
               <p className="text-[10px] leading-relaxed text-gray-400">{extras.typographyAside}</p>
@@ -336,7 +363,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                       color: font.dark ? "white" : "#4f46e5",
                     }}
                   >
-                    {font.badge ?? font.role}
+                    {font.dark ? "TITLE" : "BODY"}
                   </span>
                   {font.body && (
                     <p className="text-[9px] leading-relaxed opacity-70 line-clamp-2">{font.body}</p>
@@ -381,7 +408,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
               <div />
             </div>
             <div className="divide-y divide-gray-100">
-              {effectivePalette.map((row, idx) => {
+              {filteredPalette.map((row, idx) => {
                 const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
                 const swatches = (!row.swatches?.length || allSame)
                   ? generateColorScale(row.hex)
@@ -419,7 +446,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         ) : (
           /* Card view */
           <div className="grid grid-cols-2 gap-4 p-4">
-            {effectivePalette.map((row) => {
+            {filteredPalette.map((row) => {
               const allSame = row.swatches.length > 0 && row.swatches.every(s => s === row.swatches[0]);
               const swatches = (!row.swatches?.length || allSame)
                 ? generateColorScale(row.hex)
@@ -471,13 +498,19 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
 
       <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
         <div className="mb-6 grid grid-cols-2 gap-8">
-          <div className="flex items-center gap-2">
-            <MousePointerClick size={14} className="text-gray-400" />
-            <h2 className="text-lg font-bold tracking-tight text-gray-900">Buttons</h2>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: "#EAE8E1" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/Text Field.svg" alt="Buttons" className="h-5 w-5" />
+            </div>
+            <h2 className="text-xl font-bold tracking-tight text-gray-900">Buttons</h2>
           </div>
-          <div className="flex items-center gap-2">
-            <Square size={14} className="text-gray-400" />
-            <h3 className="text-lg font-bold tracking-tight text-gray-900">Icons</h3>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: "#EAE8E1" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/Vector.svg" alt="Icons" className="h-5 w-5" />
+            </div>
+            <h3 className="text-xl font-bold tracking-tight text-gray-900">Icons</h3>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-8">
@@ -549,9 +582,12 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         <div className="flex min-h-[280px]">
           {/* Left panel — title + summary labels */}
           <div className="flex w-48 flex-shrink-0 flex-col justify-between p-6 border-r border-dashed border-gray-200">
-            <div className="flex items-center gap-2">
-              <Ruler size={14} className="text-gray-400" />
-              <h2 className="text-lg font-bold tracking-tight text-gray-900">Spacing</h2>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: "#EAE8E1" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/Ruler.svg" alt="Spacing" className="h-5 w-5" />
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-gray-900">Spacing</h2>
             </div>
             <div className="space-y-3">
               <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">
@@ -606,9 +642,12 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         <div className="flex min-h-[280px]">
           {/* Left panel — title + description */}
           <div className="flex w-48 flex-shrink-0 flex-col gap-4 p-6 border-r border-dashed border-gray-200">
-            <div className="flex items-center gap-2">
-              <Layers size={14} className="text-gray-400" />
-              <h2 className="text-lg font-bold tracking-tight text-gray-900">Elevation &amp; Depth</h2>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: "#EAE8E1" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/Paragraph Spacing.svg" alt="Elevation" className="h-5 w-5" />
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-gray-900">Elevation &amp; Depth</h2>
             </div>
             <p className="text-[11px] leading-relaxed text-gray-400">{elevIntro}</p>
           </div>
@@ -643,8 +682,11 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
         <div className="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div className="max-w-md">
-            <div className="mb-4 flex items-center gap-2">
-              <Square size={16} className="text-gray-400" />
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: "#EAE8E1" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/Shield Star.svg" alt="Shape Language" className="h-5 w-5" />
+              </div>
               <h2 className="text-xl font-bold tracking-tight text-gray-900">Shape Language</h2>
             </div>
             <p className="mb-4 text-sm leading-relaxed text-gray-500">{shapeIntro}</p>
@@ -732,19 +774,19 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         <div className="rounded-xl bg-[#f6f8fa] p-5 border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             <div className="flex items-start gap-3">
-              <Check size={14} className="text-[var(--primary)] mt-0.5 flex-shrink-0" />
+              <Check size={14} className="text-black mt-0.5 flex-shrink-0" />
               <p className="text-xs text-gray-600 font-medium">Tight radius system applied universally across interactive elements to maintain a structured feel.</p>
             </div>
             <div className="flex items-start gap-3">
-              <Check size={14} className="text-[var(--primary)] mt-0.5 flex-shrink-0" />
+              <Check size={14} className="text-black mt-0.5 flex-shrink-0" />
               <p className="text-xs text-gray-600 font-medium">Soft container hierarchy with distinct nested border radii to prevent visual clipping.</p>
             </div>
             <div className="flex items-start gap-3">
-              <Check size={14} className="text-[var(--primary)] mt-0.5 flex-shrink-0" />
+              <Check size={14} className="text-black mt-0.5 flex-shrink-0" />
               <p className="text-xs text-gray-600 font-medium">Sharp media framing where appropriate, scaling proportionally to bounding box dimensions.</p>
             </div>
             <div className="flex items-start gap-3">
-              <Check size={14} className="text-[var(--primary)] mt-0.5 flex-shrink-0" />
+              <Check size={14} className="text-black mt-0.5 flex-shrink-0" />
               <p className="text-xs text-gray-600 font-medium">Fully rounded controls (pill shapes) reserved strictly for primary actions and tags.</p>
             </div>
           </div>
@@ -755,9 +797,12 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         <div className="flex min-h-[280px]">
           {/* Left panel — title + badge */}
           <div className="flex w-48 flex-shrink-0 flex-col justify-between p-6 border-r border-dashed border-gray-200">
-            <div className="flex items-center gap-2">
-              <Clock size={14} className="text-gray-400" />
-              <h2 className="text-lg font-bold tracking-tight text-gray-900">Motion</h2>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: "#EAE8E1" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/Playback Speed.svg" alt="Motion" className="h-5 w-5" />
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-gray-900">Motion</h2>
             </div>
             <span className="w-fit rounded-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-400">
               {motionBadge}
@@ -805,20 +850,37 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
       </section>
 
       <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
-        <div className="mb-6 flex items-center gap-2">
-          <AlertCircle size={14} className="text-gray-400" />
-          <h2 className="text-lg font-bold tracking-tight text-gray-900">Do&apos;s and Don&apos;ts</h2>
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: "#EAE8E1" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/Chat Square Check.svg" alt="Do's and Don'ts" className="h-5 w-5" />
+          </div>
+          <h2 className="text-xl font-bold tracking-tight text-gray-900">Do&apos;s and Don&apos;ts</h2>
         </div>
         <p className="mb-6 max-w-lg text-sm leading-relaxed text-gray-500">{guideIntro}</p>
         <div className="grid grid-cols-2 gap-8">
           <div>
-            <span className="mb-4 inline-block rounded px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: "var(--primary)", color: contrastColor(effectiveAccent) }}>
+            {/* DO pill — always show a visible dark background regardless of accent lightness */}
+            <span
+              className="mb-4 inline-block rounded px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider"
+              style={{
+                backgroundColor: effectiveAccent && effectiveAccent !== "#ffffff" && effectiveAccent !== "#fff"
+                  ? effectiveAccent
+                  : "#111827",
+                color: contrastColor(
+                  effectiveAccent && effectiveAccent !== "#ffffff" && effectiveAccent !== "#fff"
+                    ? effectiveAccent
+                    : "#111827"
+                ),
+              }}
+            >
               ✓ Do
             </span>
             <div className="space-y-3">
               {dos.map((item, i) => (
                 <div key={i} className="flex items-start gap-2.5">
-                  <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: "var(--primary)" }} />
+                  {/* Tick always black so it's visible on any background */}
+                  <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: "#111827" }} />
                   <p className="text-xs leading-relaxed text-gray-500">{item}</p>
                 </div>
               ))}
@@ -840,72 +902,78 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
         </div>
       </section>
 
-      {(tokens.typography.scale || tokens.spacingScale || tokens.implementation) && (
-        <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
-          <div className="mb-6 flex items-center gap-2">
-            <Layers size={14} className="text-gray-400" />
-            <h2 className="text-lg font-bold tracking-tight text-gray-900">Engineering Specs</h2>
-          </div>
+      {(() => {
+        const hasTypeScale = tokens.typography.scale && tokens.typography.scale.length > 0;
+        const hasSpacingScale = tokens.spacingScale && tokens.spacingScale.length > 0;
+        const hasCssVars = tokens.implementation?.cssVariables && tokens.implementation.cssVariables.trim().length > 0;
+        if (!hasTypeScale && !hasSpacingScale && !hasCssVars) return null;
+        return (
+          <section className="p-8" style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "var(--radius)" }}>
+            <div className="mb-6 flex items-center gap-2">
+              <Layers size={14} className="text-gray-400" />
+              <h2 className="text-lg font-bold tracking-tight text-gray-900">Engineering Specs</h2>
+            </div>
 
-          <div className="space-y-8">
-            {tokens.typography.scale && (
-              <div>
-                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Type Scale</h3>
-                <div className="overflow-x-auto rounded-xl border border-gray-200">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-gray-200 bg-gray-50 text-gray-500">
-                        <th className="px-4 py-2 font-bold">Element</th>
-                        <th className="px-4 py-2 font-bold">Size</th>
-                        <th className="px-4 py-2 font-bold">Line Height</th>
-                        <th className="px-4 py-2 font-bold">Letter Spacing</th>
-                        <th className="px-4 py-2 font-bold">Weight</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tokens.typography.scale.map((row, i) => (
-                        <tr key={i} className="border-b border-gray-100 text-gray-700">
-                          <td className="px-4 py-3 font-bold">{row.element}</td>
-                          <td className="px-4 py-3 font-mono">{row.size}</td>
-                          <td className="px-4 py-3 font-mono">{row.lineHeight}</td>
-                          <td className="px-4 py-3 font-mono">{row.letterSpacing}</td>
-                          <td className="px-4 py-3 font-mono">{row.weight}</td>
+            <div className="space-y-8">
+              {hasTypeScale && (
+                <div>
+                  <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Type Scale</h3>
+                  <div className="overflow-x-auto rounded-xl border border-gray-200">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-gray-200 bg-gray-50 text-gray-500">
+                          <th className="px-4 py-2 font-bold">Element</th>
+                          <th className="px-4 py-2 font-bold">Size</th>
+                          <th className="px-4 py-2 font-bold">Line Height</th>
+                          <th className="px-4 py-2 font-bold">Letter Spacing</th>
+                          <th className="px-4 py-2 font-bold">Weight</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {tokens.typography.scale!.map((row, i) => (
+                          <tr key={i} className="border-b border-gray-100 text-gray-700">
+                            <td className="px-4 py-3 font-bold">{row.element}</td>
+                            <td className="px-4 py-3 font-mono">{row.size ?? "—"}</td>
+                            <td className="px-4 py-3 font-mono">{row.lineHeight ?? "—"}</td>
+                            <td className="px-4 py-3 font-mono">{row.letterSpacing ?? "—"}</td>
+                            <td className="px-4 py-3 font-mono">{row.weight ?? "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {tokens.spacingScale && (
-              <div>
-                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Spacing Scale</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {tokens.spacingScale.map((s, i) => (
-                    <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-                      <div className="w-20 flex-shrink-0 font-mono text-[10px] text-gray-400">{s.token}</div>
-                      <div className="w-12 text-right font-black" style={{ color: "var(--primary)" }}>{s.value}</div>
-                      <div className="truncate text-[10px] font-medium text-gray-500">{s.usage}</div>
-                    </div>
-                  ))}
+              {hasSpacingScale && (
+                <div>
+                  <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Spacing Scale</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {tokens.spacingScale!.map((s, i) => (
+                      <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <div className="w-20 flex-shrink-0 font-mono text-[10px] text-gray-400">{s.token}</div>
+                        <div className="w-12 text-right font-black" style={{ color: "var(--primary)" }}>{s.value ?? "—"}</div>
+                        <div className="truncate text-[10px] font-medium text-gray-500">{s.usage}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {tokens.implementation?.cssVariables && (
-              <div>
-                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Implementation Notes</h3>
-                <div className="rounded-xl bg-gray-900 p-5">
-                  <pre className="overflow-x-auto font-mono text-[10px] leading-relaxed text-gray-100">
-                    <code>{tokens.implementation.cssVariables}</code>
-                  </pre>
+              {hasCssVars && (
+                <div>
+                  <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">Implementation Notes</h3>
+                  <div className="rounded-xl bg-gray-900 p-5">
+                    <pre className="overflow-x-auto font-mono text-[10px] leading-relaxed text-gray-100">
+                      <code>{tokens.implementation!.cssVariables}</code>
+                    </pre>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+              )}
+            </div>
+          </section>
+        );
+      })()}
     </div>
     </div>
   );

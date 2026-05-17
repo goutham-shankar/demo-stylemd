@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
   { label: "How it Works", href: "/#how-it-works" },
@@ -15,8 +16,14 @@ const navLinks = [
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
 
   const toggleMobile = useCallback(() => setMobileMenuOpen((s) => !s), []);
+
+  const isActive = (href: string) => {
+    if (href === "/styles") return pathname === "/styles" || pathname.startsWith("/styles/");
+    return false;
+  };
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
@@ -57,7 +64,12 @@ export default function Navbar() {
             <Link
               key={l.label}
               href={l.href}
-              className="text-sm font-medium text-secondary hover:text-primary transition-colors duration-150 font-manrope"
+              className={
+                "text-sm font-medium transition-colors duration-150 font-manrope" +
+                (isActive(l.href)
+                  ? " text-cta font-semibold"
+                  : " text-secondary hover:text-primary")
+              }
             >
               {l.label}
             </Link>
@@ -106,7 +118,12 @@ export default function Navbar() {
               key={l.label}
               href={l.href}
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-secondary hover:text-primary transition-colors duration-150"
+              className={
+                "block text-sm font-medium transition-colors duration-150" +
+                (isActive(l.href)
+                  ? " text-cta font-semibold"
+                  : " text-secondary hover:text-primary")
+              }
             >
               {l.label}
             </Link>

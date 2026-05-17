@@ -245,7 +245,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                   {/* Logo */}
                   {(typeof card.logo === "string" && (card.logo.startsWith("/") || card.logo.startsWith("data:image") || card.logo.startsWith("http://") || card.logo.startsWith("https://"))) ? (
-                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
+                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl ring-1 ring-black/10 shadow-sm">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={card.logo}
@@ -255,7 +255,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                     </div>
                   ) : (
                     <div
-                      className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl shadow-inner"
+                      className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl ring-2 ring-black/10 shadow-sm"
                       style={{ backgroundColor: logoBg }}
                     >
                       <span className="text-2xl font-black text-white">{card.name.charAt(0)}</span>
@@ -271,10 +271,10 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                           className="group flex items-center gap-1.5 hover:opacity-80 transition-opacity"
                           title={`Visit ${card.url}`}
                         >
-                          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary group-hover:underline underline-offset-4 decoration-2">{card.name}</h1>
+                          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900 group-hover:underline underline-offset-4 decoration-2">{card.name}</h1>
                         </a>
                       ) : (
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">{card.name}</h1>
+                        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900">{card.name}</h1>
                       )}
                       {card.url && (
                         <a
