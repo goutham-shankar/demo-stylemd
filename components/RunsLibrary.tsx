@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, RefreshCw, Globe, AlertCircle } from "lucide-react";
+import { Search, RefreshCw, Globe, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { API_BASE } from "@/lib/api-config";
@@ -64,6 +64,8 @@ function CardThumbnail({ run }: { run: RunCard }) {
   // Image error state for when the src loads but the img fails to render
   const [imgFailed, setImgFailed] = useState(false);
   const [scrollAmount, setScrollAmount] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -90,8 +92,35 @@ function CardThumbnail({ run }: { run: RunCard }) {
     return () => window.removeEventListener("resize", calculateScroll);
   }, []);
 
+  // Set up intersection observer to only load detailed data when card is visible or hovered
   useEffect(() => {
     if (immediatePreview || !slug || !API_BASE) return;
+    if (shouldLoad) return;
+
+    if (isHovered) {
+      setShouldLoad(true);
+      return;
+    }
+
+    if (typeof window !== "undefined" && "IntersectionObserver" in window && containerRef.current) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setShouldLoad(true);
+            observer.disconnect();
+          }
+        },
+        { rootMargin: "100px" }
+      );
+      observer.observe(containerRef.current);
+      return () => observer.disconnect();
+    } else {
+      setShouldLoad(true);
+    }
+  }, [immediatePreview, slug, isHovered, shouldLoad]);
+
+  useEffect(() => {
+    if (!shouldLoad || immediatePreview || !slug || !API_BASE) return;
     if (screenshotCache.has(slug)) {
       setLazyPreview(screenshotCache.get(slug)!);
       return;
@@ -117,13 +146,13 @@ function CardThumbnail({ run }: { run: RunCard }) {
     return () => {
       cancelled = true;
     };
-  }, [immediatePreview, slug]);
+  }, [shouldLoad, immediatePreview, slug]);
 
   const displaySrc = immediatePreview || (typeof lazyPreview === "string" ? lazyPreview : null);
 
   // Skeleton while lazy-fetching
   if (!immediatePreview && lazyPreview === null) {
-    return <div className="w-full h-full bg-gray-100 animate-pulse" />;
+    return <div ref={containerRef} className="w-full h-full bg-gray-100 animate-pulse" />;
   }
 
   if (displaySrc && !imgFailed) {
@@ -132,10 +161,11 @@ function CardThumbnail({ run }: { run: RunCard }) {
       <div
         ref={containerRef}
         className="relative w-full h-full overflow-hidden"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         style={{
-          "--scroll-amount": `${scrollAmount}px`,
-          "--scroll-duration": `${duration}s`,
-        } as any}
+          borderRadius: "inherit",
+        }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -143,19 +173,14 @@ function CardThumbnail({ run }: { run: RunCard }) {
           src={displaySrc}
           alt={name}
           onLoad={calculateScroll}
-          className="absolute top-0 left-0 w-full h-auto object-cover object-top transition-transform ease-in-out group-hover:-translate-y-[var(--scroll-amount,0px)]"
+          className="absolute top-0 left-0 w-full h-auto object-cover object-top transition-transform ease-in-out"
           style={{
-            transitionDuration: "0.7s",
+            transform: isHovered && scrollAmount > 0 ? `translateY(-${scrollAmount}px)` : "translateY(0)",
+            transitionDuration: isHovered ? `${duration}s` : "0.7s",
           }}
           loading="lazy"
           onError={() => setImgFailed(true)}
         />
-        {/* Unhover transition helper */}
-        <style jsx global>{`
-          .group:hover [style*="--scroll-amount"] img {
-            transition-duration: var(--scroll-duration, 5s) !important;
-          }
-        `}</style>
       </div>
     );
   }
@@ -193,6 +218,12 @@ export default function RunsLibrary() {
   const [activeTab, setActiveTab] = useState("all");
   const { isRunning, activeRun } = useSSE();
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeTab]);
 
   const fetchRuns = useCallback(async () => {
     setLoading(true);
@@ -257,6 +288,12 @@ export default function RunsLibrary() {
     }
     return true;
   });
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedRuns = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <section className="py-12 md:py-16 bg-page">
@@ -428,7 +465,7 @@ export default function RunsLibrary() {
                 </div>
               </button>
             )}
-            {filtered.map((run) => {
+            {paginatedRuns.map((run) => {
               // Running API runs (not tracked by SSE) get the animated card
               if (run.status === "running") {
                 return (
@@ -496,13 +533,14 @@ export default function RunsLibrary() {
                 <Link
                   key={run.slug || run.runId}
                   href={`/styles/${encodeURIComponent(run.slug || run.runId)}`}
+                  prefetch={false}
                   className="group block overflow-hidden border border-light bg-white shadow-sm hover:border-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2"
                   style={{ borderRadius: 16 }}
                 >
                   {/* Thumbnail with URL overlay on hover */}
                   <div className="relative h-48 overflow-hidden">
                     <CardThumbnail run={run} />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 backdrop-blur-[2px]">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 backdrop-blur-[2px] pointer-events-none">
                       <Globe size={20} className="text-white/80" />
                       <span className="text-white text-xs font-medium px-4 text-center break-all line-clamp-2">
                         {run.url}
@@ -546,8 +584,63 @@ export default function RunsLibrary() {
           </div>
         )}
 
-        {/* Count */}
-        {!loading && !error && runs.length > 0 && (
+        {/* Pagination Controls */}
+        {!loading && !error && totalPages > 1 && (
+          <div className="mt-16 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <p className="text-xs font-semibold text-secondary font-manrope tracking-wider uppercase">
+              Showing <span className="text-primary font-bold">{Math.min(filtered.length, (currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> – <span className="text-primary font-bold">{Math.min(filtered.length, currentPage * ITEMS_PER_PAGE)}</span> of <span className="text-primary font-bold">{filtered.length}</span> styles
+            </p>
+            
+            <div className="inline-flex items-center gap-1 bg-white border border-light p-1.5 rounded-[12px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] backdrop-blur-sm">
+              {/* Previous Page */}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="flex h-9 w-9 items-center justify-center rounded-[10px] text-secondary hover:text-primary hover:bg-gray-50/80 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-secondary transition-all cursor-pointer disabled:cursor-not-allowed"
+                aria-label="Previous Page"
+              >
+                <ChevronLeft size={16} strokeWidth={2.5} />
+              </button>
+
+              {/* Page Numbers */}
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                  const pageNum = idx + 1;
+                  const isActive = pageNum === currentPage;
+                  return (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`flex h-9 min-w-[36px] px-2 items-center justify-center text-xs font-bold rounded-[10px] transition-all cursor-pointer hover:scale-105 active:scale-95 duration-200 ${
+                        isActive
+                          ? "bg-cta text-white shadow-md shadow-cta/15"
+                          : "bg-transparent text-secondary hover:text-primary hover:bg-gray-50/80"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next Page */}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="flex h-9 w-9 items-center justify-center rounded-[10px] text-secondary hover:text-primary hover:bg-gray-50/80 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-secondary transition-all cursor-pointer disabled:cursor-not-allowed"
+                aria-label="Next Page"
+              >
+                <ChevronRight size={16} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Count fallback if only 1 page */}
+        {!loading && !error && runs.length > 0 && totalPages <= 1 && (
           <p className="mt-8 text-center text-xs text-secondary font-manrope">
             {filtered.length} of {runs.length} design system{runs.length !== 1 ? "s" : ""}
           </p>
