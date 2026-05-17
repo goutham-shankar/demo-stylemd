@@ -394,13 +394,27 @@ export default function StyleLibrary() {
                   </div>
                 </div>
                 <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
-                  <div className="min-w-0">
-                    <h3 className="text-base font-bold text-primary truncate group-hover:text-cta transition-colors duration-150">
-                      {run.title || cleanHostname(run.url)}
-                    </h3>
-                    <p className="text-xs text-secondary font-manrope truncate">
-                      {cleanHostname(run.url)}
-                    </p>
+                  <div className="flex items-center gap-3 min-w-0">
+                    {run.brandAssets?.appleIcon ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={run.brandAssets.appleIcon}
+                        alt=""
+                        className="w-8 h-8 rounded-lg object-contain border border-medium shadow-sm flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-[#f9fafb] flex items-center justify-center text-[#4b5563] font-bold text-xs uppercase flex-shrink-0 border border-gray-200">
+                        {cleanHostname(run.url).slice(0, 2).toUpperCase() || "??"}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold text-primary truncate group-hover:text-cta transition-colors duration-150">
+                        {run.title || cleanHostname(run.url)}
+                      </h3>
+                      <p className="text-xs text-secondary font-manrope truncate">
+                        {cleanHostname(run.url)}
+                      </p>
+                    </div>
                   </div>
                   <span className="flex-shrink-0 px-4 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:shadow-md group-hover:opacity-90 transition-all duration-150 whitespace-nowrap">
                     View →

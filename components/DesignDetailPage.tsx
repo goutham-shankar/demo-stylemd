@@ -58,23 +58,33 @@ export default function DesignDetailPage({
       // otherwise it may be a third-party embed (e.g. a Spotify widget on the page).
       // Fall back to favicon / apple-icon which are always from the target domain.
       const resolvedLogo = (() => {
-        const candidates = [
-          run.brandAssets?.logo,
-          run.brandAssets?.appleIcon,
-          run.brandAssets?.favicon,
-        ].filter(Boolean) as string[];
-        try {
-          const runHost = new URL(run.url).hostname.replace(/^www\./, "");
-          for (const c of candidates) {
-            if (c.startsWith("data:")) return c;
-            try {
-              const logoHost = new URL(c).hostname.replace(/^www\./, "");
-              if (logoHost === runHost || logoHost.endsWith(`.${runHost}`)) return c;
-            } catch { /* relative URL – always safe */ return c; }
+        // 1. Prioritize apple-touch-icon (always safe & official)
+        if (run.brandAssets?.appleIcon) {
+          return run.brandAssets.appleIcon;
+        }
+
+        // 2. Validate generic scraped logo (only use if same-host to filter out third-party widgets)
+        if (run.brandAssets?.logo) {
+          const logoUrl = run.brandAssets.logo;
+          if (logoUrl.startsWith("data:")) return logoUrl;
+          try {
+            const runHost = new URL(run.url).hostname.replace(/^www\./, "");
+            const logoHost = new URL(logoUrl).hostname.replace(/^www\./, "");
+            if (logoHost === runHost || logoHost.endsWith(`.${runHost}`)) {
+              return logoUrl;
+            }
+          } catch {
+            // relative URL – always safe
+            return logoUrl;
           }
-        } catch { /* run.url unparseable */ }
-        // No same-domain logo found; prefer apple-icon / favicon over an off-domain logo
-        return run.brandAssets?.appleIcon || run.brandAssets?.favicon || undefined;
+        }
+
+        // 3. Fallback to favicon (always safe & official)
+        if (run.brandAssets?.favicon) {
+          return run.brandAssets.favicon;
+        }
+
+        return undefined;
       })();
 
       const mapped = mapToDesignCard(

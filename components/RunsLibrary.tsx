@@ -410,17 +410,31 @@ export default function RunsLibrary() {
                       </p>
                     </div>
                     <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <div className="relative flex h-2 w-2 flex-shrink-0">
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
-                            <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        {run.brandAssets?.appleIcon ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={run.brandAssets.appleIcon}
+                            alt=""
+                            className="w-8 h-8 rounded-lg object-contain border border-medium shadow-sm flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-[#f9fafb] flex items-center justify-center text-[#4b5563] font-bold text-xs uppercase flex-shrink-0 border border-gray-200">
+                            {cleanHostname(run.url).slice(0, 2).toUpperCase() || "??"}
                           </div>
-                          <h3 className="text-base font-bold text-gray-900 truncate">
-                            {run.title || cleanHostname(run.url)}
-                          </h3>
+                        )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <div className="relative flex h-2 w-2 flex-shrink-0">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                            </div>
+                            <h3 className="text-base font-bold text-gray-900 truncate">
+                              {run.title || cleanHostname(run.url)}
+                            </h3>
+                          </div>
+                          <p className="text-xs text-orange-400 font-medium font-manrope">Running…</p>
                         </div>
-                        <p className="text-xs text-orange-400 font-medium font-manrope">Running…</p>
                       </div>
                       <span className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 bg-orange-500 text-white rounded-[10px] font-semibold text-sm whitespace-nowrap">
                         <RefreshCw size={12} className="animate-spin" />
@@ -453,13 +467,27 @@ export default function RunsLibrary() {
                   </div>
                   {/* Card footer */}
                   <div className="px-5 py-4 flex items-center justify-between bg-white gap-3">
-                    <div className="min-w-0">
-                      <h3 className="text-base font-bold text-primary truncate group-hover:text-cta transition-colors duration-150">
-                        {run.title || cleanHostname(run.url)}
-                      </h3>
-                      <p className="text-xs text-secondary font-manrope truncate">
-                        {cleanHostname(run.url)}
-                      </p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {run.brandAssets?.appleIcon ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={run.brandAssets.appleIcon}
+                          alt=""
+                          className="w-8 h-8 rounded-lg object-contain border border-medium shadow-sm flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-lg bg-[#f9fafb] flex items-center justify-center text-[#4b5563] font-bold text-xs uppercase flex-shrink-0 border border-gray-200">
+                          {cleanHostname(run.url).slice(0, 2).toUpperCase() || "??"}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <h3 className="text-base font-bold text-primary truncate group-hover:text-cta transition-colors duration-150">
+                          {run.title || cleanHostname(run.url)}
+                        </h3>
+                        <p className="text-xs text-secondary font-manrope truncate">
+                          {cleanHostname(run.url)}
+                        </p>
+                      </div>
                     </div>
                     <span className="flex-shrink-0 px-4 py-2 bg-cta text-white rounded-[10px] font-semibold text-sm shadow-sm group-hover:shadow-md group-hover:opacity-90 transition-all duration-150 whitespace-nowrap">
                       View →
