@@ -55,6 +55,12 @@ export type DesignCard = {
   fonts: { name: string; sample: string; role: string; dark: boolean }[];
   preview?: string | null;
   theme?: StyleMdTheme;
+  brandAssets?: {
+    logo?: string;
+    favicon?: string;
+    appleIcon?: string;
+    ogImage?: string;
+  };
   tokens: {
     colors: {
       primary: string;

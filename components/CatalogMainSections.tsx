@@ -523,7 +523,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
           <div>
             <div className="mb-4 flex flex-col gap-3">
               <button
-                className="flex w-fit items-center gap-2 px-5 py-3 text-sm"
+                className="flex w-fit items-center gap-2 px-5 py-3 text-sm transition-all hover:brightness-110 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:brightness-95"
                 style={{
                   background: theme?.buttons.fill === "solid" ? "var(--primary)" : "transparent",
                   color: theme?.buttons.fill === "solid"
@@ -540,7 +540,7 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 <ArrowLeft size={13} /> Primary <ArrowRight size={13} />
               </button>
               <button
-                className="flex w-fit items-center gap-2 px-5 py-3 text-sm font-medium text-gray-700"
+                className="flex w-fit items-center gap-2 px-5 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-100 hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:bg-gray-200"
                 style={{
                   border: "1px solid #e5e7eb",
                   borderRadius: "var(--radius)",
@@ -567,12 +567,28 @@ export function CatalogMainSections({ card, extras }: CatalogMainSectionsProps) 
                 {card.name}
               </span>
               <div className="flex gap-2">
-                <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white">
-                  <Apple size={14} /> Apple
-                </span>
-                <span className="flex items-center justify-center rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-gray-700">
-                  <Bell size={14} />
-                </span>
+                {card.brandAssets?.appleIcon ? (
+                  <span className="flex items-center gap-2 rounded-full border border-gray-200 bg-white shadow-sm px-3 py-1.5 text-xs font-semibold text-gray-900 transition-transform hover:-translate-y-0.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={card.brandAssets.appleIcon} alt="App Icon" className="h-4 w-4 rounded-sm object-contain" />
+                    {card.name} App
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white">
+                    <Apple size={14} /> Apple
+                  </span>
+                )}
+                
+                {card.brandAssets?.appleIcon ? (
+                  <span className="flex items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm px-3 py-1.5 transition-transform hover:-translate-y-0.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={card.brandAssets.appleIcon} alt="Favicon" className="h-4 w-4 object-contain" />
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-gray-700">
+                    <Bell size={14} />
+                  </span>
+                )}
               </div>
             </div>
             {(extras?.motion?.badge || extras?.shapes?.badge) && (

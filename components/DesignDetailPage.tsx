@@ -85,6 +85,7 @@ export default function DesignDetailPage({
         preview,
         run.title
       );
+      mapped.brandAssets = run.brandAssets;
       const { payload } = extractStyleMdUi(run.styleMd);
       return { card: mapped, styleMd: run.styleMd, extras: payload };
     }
@@ -308,7 +309,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                     className="group relative flex flex-1 sm:flex-initial items-center justify-center gap-2 rounded-[10px] border border-medium bg-white px-4 py-2.5 text-sm font-semibold text-primary transition-all hover:border-gray-400 active:scale-95 shadow-sm"
                   >
                     {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-secondary group-hover:text-primary" />}
-                    <span>{copied ? "Copied!" : "Copy DESIGN.md"}</span>
+                    <span>{copied ? "Copied!" : "Copy style.md"}</span>
                   </button>
                   <button
                     onClick={handleDownload}
@@ -316,7 +317,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/Cloud Download.svg" alt="" width={19} height={19} />
-                    <span>Download</span>
+                    <span>Download style.md</span>
                   </button>
                   {onRunAgain && (
                     <button
@@ -354,7 +355,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                   }`}
               >
                 <Code2 size={16} />
-                DESIGN.md
+                style.md
                 {activeTab === "code" && (
                   <div className="absolute bottom-[-1px] left-0 h-[2px] w-full bg-gray-900" />
                 )}
@@ -375,7 +376,7 @@ ${card.fonts.map((f) => `- **${f.role}**: \`${f.name}\``).join("\n")}
                         <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
                         <span className="h-3 w-3 rounded-full bg-green-500/70" />
                       </div>
-                      <span className="font-mono text-[11px] text-white/30">DESIGN.md</span>
+                      <span className="font-mono text-[11px] text-white/30">style.md</span>
                     </div>
                     <button
                       onClick={handleCopy}

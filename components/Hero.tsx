@@ -165,7 +165,7 @@ export default function Hero() {
             <br />project a design makeover
           </h1>
           <p className="text-base md:text-lg mb-2 font-manrope font-medium" style={{ color: "#616161" }}>
-            A plug-and-play Design.md file to elevate your project&apos;s design
+            A plug-and-play style.md file to elevate your project&apos;s design
           </p>
           <Link
             href="/styles"
@@ -217,7 +217,7 @@ export default function Hero() {
                   {(isRunning || isSubmitting) && (
                     <span className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin border-white" />
                   )}
-                  {isRunning || isSubmitting ? "Running…" : "Generate DESIGN.md"}
+                  {isRunning || isSubmitting ? "Running…" : "Generate style.md"}
                 </button>
               </div>
             </form>
